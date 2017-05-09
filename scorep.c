@@ -8,8 +8,6 @@
 #include <Python.h>
 #include <scorep/SCOREP_User.h>
 
-extern void SCOREP_FinalizeMeasurement(void);
-
 static PyObject *enable_recording(PyObject *self, PyObject *args)
 {
     SCOREP_User_EnableRecording();
@@ -32,8 +30,6 @@ static PyObject *region_enter(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &region))
         return NULL;
 
-    printf("enter region %s \n", region);
-
     SCOREP_USER_REGION_BY_NAME_BEGIN(region, SCOREP_USER_REGION_TYPE_FUNCTION)
 
     Py_INCREF(Py_None);
@@ -48,18 +44,8 @@ static PyObject *region_exit(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &region))
         return NULL;
 
-    printf("exit region %s \n", region);
-
     SCOREP_USER_REGION_BY_NAME_END(region)
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-static PyObject *finalise(PyObject *self, PyObject *args)
-{
-    printf("scorep finalise \n");
-    SCOREP_FinalizeMeasurement();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -67,7 +53,6 @@ static PyObject *finalise(PyObject *self, PyObject *args)
 static PyMethodDef ScorePMethods[] = {
     {"region_enter", region_enter, METH_VARARGS, "enter a region."},
     {"region_exit", region_exit, METH_VARARGS, "exit a region."},
-    {"finalise", finalise, METH_VARARGS, "finalise scorep."},
     {"enable_recording", enable_recording, METH_VARARGS, "disable scorep recording."},
     {"disable_recording", disable_recording, METH_VARARGS, "disable scorep recording."},
     {NULL, NULL, 0, NULL} /* Sentinel */

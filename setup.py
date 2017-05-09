@@ -3,7 +3,7 @@ import os
 import subprocess
 import re
 
-scorep_config = "/opt/scorep/TRY_READEX_online_access_call_tree_extensions_r11730_mpich_gcc6.2.0/bin/scorep-config"
+scorep_config = "scorep-config"
 
 ldflage =   subprocess.run([scorep_config,"--nocompiler", "--user", "--ldflags"], stdout=subprocess.PIPE).stdout
 libs =      subprocess.run([scorep_config,"--nocompiler", "--user", "--libs"], stdout=subprocess.PIPE).stdout

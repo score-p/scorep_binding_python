@@ -8,18 +8,12 @@ scorep_config = "/opt/scorep/TRY_READEX_online_access_call_tree_extensions_r1173
 ldflage =   subprocess.run([scorep_config,"--nocompiler", "--user", "--ldflags"], stdout=subprocess.PIPE).stdout
 libs =      subprocess.run([scorep_config,"--nocompiler", "--user", "--libs"], stdout=subprocess.PIPE).stdout
 cflags =    subprocess.run([scorep_config,"--nocompiler", "--user", "--cflags"], stdout=subprocess.PIPE).stdout
-#cxxflags =  subprocess.run(["scorep-config","--nocompiler", "--user", "--cxxflags"], stdout=subprocess.PIPE).stdout
-#cinclude =  subprocess.run(["scorep-config","--nocompiler", "--user", "--cppflags=c"], stdout=subprocess.PIPE).stdout
-#cxxinclude= subprocess.run(["scorep-config","--nocompiler", "--user", "--cppflags=c++"], stdout=subprocess.PIPE).stdout
  
 scorep_adapter_init = subprocess.run([scorep_config,"--nocompiler", "--user", "--adapter-init"], stdout=subprocess.PIPE).stdout
  
 libs        = libs.decode("utf-8")
 ldflage     = ldflage.decode("utf-8")
 cflags      = cflags.decode("utf-8")
-#cxxflags    = cxxflags.decode("utf-8")
-#cinclude    = cinclude.decode("utf-8")
-#cxxinclude  = cxxinclude.decode("utf-8")
 
 scorep_adapter_init = scorep_adapter_init.decode("utf-8")
 
@@ -38,18 +32,6 @@ macro   = list(map(remove_flag, macro))
 
 macro   = list(map(lambda x: tuple([x,1]), macro))
     
-
-
-print("lib_dir: {}".format(lib_dir))
-print("lib: {}".format(lib))
-print("include: {}".format(include))
-print("macro: {}".format(macro))
-
-#os.environ["CC"] = "scorep-gcc"
-#os.environ["LDSHARED"] = "scorep-gcc -pthread -shared"
-#os.environ["SCOREP_WRAPPER_INSTRUMENTER_FLAGS"] = "--user --nocompiler --nopomp --no-as-needed" 
-
-print(scorep_adapter_init)
 
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)

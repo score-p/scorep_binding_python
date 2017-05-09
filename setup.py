@@ -43,13 +43,22 @@ module1 = Extension('scorep',
                     define_macros = macro,
                     sources = ['scorep.c',"scorep_init.c"])
 
-setup (name = 'scorep',
-       version = '0.1',
-       description = 'This is a scorep demo package',
-       author = 'Andreas Gocht',
-       author_email = 'andreas.gocht@tu-dresden.de',
-       url = '',
-       long_description = '''
-This is really just a scorep demo package.
+
+setup (
+    name = 'scorep',
+    version = '0.2',
+    description = 'This is a scorep tracing package',
+    author = 'Andreas Gocht',
+    author_email = 'andreas.gocht@tu-dresden.de',
+    url = '',
+    long_description = '''
+This package allows taring of python code using Score-P]
+
+The Package just uses Score-P user regions.
+
+Differnend python theads are not differentiated, but using MPI should work (not tested).
+
+This module is more or less similar to the python trace module. 
 ''',
-       ext_modules = [module1])
+    py_modules = ['scorep_trace'],
+    ext_modules = [module1])

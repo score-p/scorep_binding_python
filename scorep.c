@@ -25,7 +25,6 @@ static PyObject *disable_recording(PyObject *self, PyObject *args)
 static PyObject *region_enter(PyObject *self, PyObject *args)
 {
     const char *region;
-    int sts;
 
     if (!PyArg_ParseTuple(args, "s", &region))
         return NULL;
@@ -39,7 +38,6 @@ static PyObject *region_enter(PyObject *self, PyObject *args)
 static PyObject *region_exit(PyObject *self, PyObject *args)
 {
     const char *region;
-    int sts;
 
     if (!PyArg_ParseTuple(args, "s", &region))
         return NULL;

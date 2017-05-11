@@ -5,11 +5,11 @@ import re
 
 scorep_config = "scorep-config"
 
-ldflage =   subprocess.run([scorep_config,"--nocompiler", "--user", "--ldflags"], stdout=subprocess.PIPE).stdout
-libs =      subprocess.run([scorep_config,"--nocompiler", "--user", "--libs"], stdout=subprocess.PIPE).stdout
-cflags =    subprocess.run([scorep_config,"--nocompiler", "--user", "--cflags"], stdout=subprocess.PIPE).stdout
+ldflage =   subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--ldflags"], stdout=subprocess.PIPE).stdout
+libs =      subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--libs"], stdout=subprocess.PIPE).stdout
+cflags =    subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--cflags"], stdout=subprocess.PIPE).stdout
  
-scorep_adapter_init = subprocess.run([scorep_config,"--nocompiler", "--user", "--adapter-init"], stdout=subprocess.PIPE).stdout
+scorep_adapter_init = subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--adapter-init"], stdout=subprocess.PIPE).stdout
  
 libs        = libs.decode("utf-8")
 ldflage     = ldflage.decode("utf-8")
@@ -31,6 +31,7 @@ include = list(map(remove_flag, include))
 macro   = list(map(remove_flag, macro))
 
 macro   = list(map(lambda x: tuple([x,1]), macro))
+
     
 
 with open("./scorep_init.c","w") as f:

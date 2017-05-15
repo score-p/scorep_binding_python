@@ -10,14 +10,14 @@
 
 static PyObject *enable_recording(PyObject *self, PyObject *args)
 {
-    SCOREP_User_EnableRecording();
+    SCOREP_RECORDING_ON();
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 static PyObject *disable_recording(PyObject *self, PyObject *args)
 {
-    SCOREP_User_DisableRecording();
+    SCOREP_RECORDING_OFF();
     Py_INCREF(Py_None);
     return Py_None;
 }

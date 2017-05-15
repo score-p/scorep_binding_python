@@ -2,21 +2,31 @@ from distutils.core import setup, Extension
 import os
 import subprocess
 import re
+import sys 
 
-scorep_config = "scorep-config"
 
-ldflage =   subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--ldflags"], stdout=subprocess.PIPE).stdout
-libs =      subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--libs"], stdout=subprocess.PIPE).stdout
-cflags =    subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--cflags"], stdout=subprocess.PIPE).stdout
+    
+scorep_config = ["scorep-config","--nocompiler", "--user"]
+
+if subprocess.run(scorep_config + ["--cuda"],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+    scorep_config.append("--cuda")
+    print("Cuda is supported, building with cuda")
+else:
+    print("Cuda is not supported, building without cuda")
+    
+              
+
+ldflage =   subprocess.run(scorep_config + ["--ldflags"], stdout=subprocess.PIPE).stdout
+libs =      subprocess.run(scorep_config + ["--libs"], stdout=subprocess.PIPE).stdout
+cflags =    subprocess.run(scorep_config + ["--cflags"], stdout=subprocess.PIPE).stdout
  
-scorep_adapter_init = subprocess.run([scorep_config,"--nocompiler", "--user", "--cuda", "--adapter-init"], stdout=subprocess.PIPE).stdout
+scorep_adapter_init = subprocess.run(scorep_config + ["--adapter-init"], stdout=subprocess.PIPE).stdout
  
 libs        = libs.decode("utf-8")
 ldflage     = ldflage.decode("utf-8")
 cflags      = cflags.decode("utf-8")
 
 scorep_adapter_init = scorep_adapter_init.decode("utf-8")
-
 
 lib_dir = re.findall("-L[/.\w]*",ldflage)
 lib     = re.findall("-l[/.\w]*",libs)

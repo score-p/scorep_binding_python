@@ -22,7 +22,7 @@ static PyObject *disable_recording(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-static PyObject *region_enter(PyObject *self, PyObject *args)
+static PyObject *region_begin(PyObject *self, PyObject *args)
 {
     const char *region;
 
@@ -35,7 +35,7 @@ static PyObject *region_enter(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-static PyObject *region_exit(PyObject *self, PyObject *args)
+static PyObject *region_end(PyObject *self, PyObject *args)
 {
     const char *region;
 
@@ -91,8 +91,8 @@ static PyObject *parameter_uint(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef ScorePMethods[] = {
-    {"region_enter", region_enter, METH_VARARGS, "enter a region."},
-    {"region_exit", region_exit, METH_VARARGS, "exit a region."},
+    {"region_begin", region_begin, METH_VARARGS, "enter a region."},
+    {"region_end", region_end, METH_VARARGS, "exit a region."},
     {"enable_recording", enable_recording, METH_VARARGS, "disable scorep recording."},
     {"disable_recording", disable_recording, METH_VARARGS, "disable scorep recording."},
     {"parameter_int", parameter_int, METH_VARARGS, "User parameter int."},

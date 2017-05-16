@@ -57,7 +57,7 @@ module1 = Extension('scorep',
 
 setup (
     name = 'scorep',
-    version = '0.2',
+    version = '0.3',
     description = 'This is a scorep tracing package',
     author = 'Andreas Gocht',
     author_email = 'andreas.gocht@tu-dresden.de',

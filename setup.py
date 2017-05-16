@@ -26,10 +26,6 @@ libs        = libs.decode("utf-8")
 ldflage     = ldflage.decode("utf-8")
 cflags      = cflags.decode("utf-8")
 
-print(libs)
-print(ldflage)
-print(cflags)
-
 scorep_adapter_init = scorep_adapter_init.decode("utf-8")
 
 lib_dir = re.findall("-L[/+.\w]*",ldflage)

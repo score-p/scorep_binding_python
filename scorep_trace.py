@@ -295,7 +295,7 @@ class Trace:
                     ignore_it = self.ignore.names(filename, modulename)
                     if not ignore_it:
                         if self.trace:
-                            scorep.region_enter("%s:%s"% (modulename, code.co_name))
+                            scorep.region_begin("%s:%s"% (modulename, code.co_name))
                         return self.localtrace
             else:
                 return None
@@ -312,7 +312,7 @@ class Trace:
                     ignore_it = self.ignore.names(filename, modulename)
                     if not ignore_it:
                         if self.trace:
-                            scorep.region_exit("%s:%s"% (modulename, code.co_name))            
+                            scorep.region_end("%s:%s"% (modulename, code.co_name))            
         return self.localtrace
 
 

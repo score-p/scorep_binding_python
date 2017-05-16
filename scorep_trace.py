@@ -1,10 +1,36 @@
+#! /usr/bin/python3.5
 
-######
+# Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
+# Author: Andreas Gocht
+#  
+# portions copyright 2001, Autonomous Zones Industries, Inc., all rights...
+# err...  reserved and offered to the public under the terms of the
+# Python 2.2 license.
+# Author: Zooko O'Whielacronx
+# http://zooko.com/
+# mailto:zooko@zooko.com
 #
-# inspired and partly copied from python tracing module 
-# TODO copyright
+# Copyright 2000, Mojam Media, Inc., all rights reserved.
+# Author: Skip Montanaro
 #
-#####
+# Copyright 1999, Bioreason, Inc., all rights reserved.
+# Author: Andrew Dalke
+#
+# Copyright 1995-1997, Automatrix, Inc., all rights reserved.
+# Author: Skip Montanaro
+#
+# Copyright 1991-1995, Stichting Mathematisch Centrum, all rights reserved.
+#
+#
+# Permission to use, copy, modify, and distribute this Python software and
+# its associated documentation for any purpose without fee is hereby
+# granted, provided that the above copyright notice appears in all copies,
+# and that both that copyright notice and this permission notice appear in
+# supporting documentation, and that the name of neither Automatrix,
+# Bioreason, Mojam Media or TU Dresden be used in advertising or publicity
+# pertaining to distribution of the software without specific, written
+# prior permission.
+#
 
 __all__ = ['Trace']
 import linecache

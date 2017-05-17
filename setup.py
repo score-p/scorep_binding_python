@@ -17,7 +17,7 @@ import subprocess
 import re
 import sys 
     
-scorep_config = ["scorep-config","--nocompiler", "--user"]
+scorep_config = ["scorep-config","--nocompiler", "--user", "--mpp=none"]
 
 if subprocess.run(scorep_config + ["--cuda"],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
     scorep_config.append("--cuda")

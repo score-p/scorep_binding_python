@@ -312,34 +312,35 @@ class Trace:
         """
         if why == 'call':
             code = frame.f_code
-            filename = frame.f_globals.get('__file__', None)
-            if filename:
-                # XXX _modname() doesn't work right for packages, so
-                # the ignore support won't work right for packages
-                modulename = _modname(filename)
-                if modulename is not None:
-                    ignore_it = self.ignore.names(filename, modulename)
-                    if not ignore_it:
-                        if self.trace:
-                            scorep.region_begin("%s:%s"% (modulename, code.co_name))
-                        return self.localtrace
-            else:
-                return None
+            modulename = frame.f_globals.get('__name__', None)
+            if self.trace and code.co_name is not "_unsettrace":
+                scorep.region_begin("%s:%s"% (modulename, code.co_name))
+            return self.localtrace
+
 
     def localtrace_trace(self, frame, why, arg):
         if why == "return":
             code = frame.f_code
-            filename = frame.f_globals.get('__file__', None)
-            if filename:
-                # XXX _modname() doesn't work right for packages, so
-                # the ignore support won't work right for packages
-                modulename = _modname(filename)
-                if modulename is not None:
-                    ignore_it = self.ignore.names(filename, modulename)
-                    if not ignore_it:
-                        if self.trace:
-                            scorep.region_end("%s:%s"% (modulename, code.co_name))            
+            modulename = frame.f_globals.get('__name__', None)
+            if self.trace:
+                scorep.region_end("%s:%s"% (modulename, code.co_name))
         return self.localtrace
+    
+    def flush_scorep_groups(self):
+        modules = sys.modules.keys()
+        with open(scorep.get_expiriment_dir_name() + "/scorep.fgp","w") as f:
+            f.write("""
+BEGIN OPTIONS
+        MATCHING_STRATEGY=FIRST
+        CASE_SENSITIVITY_FUNCTION_NAME=NO
+        CASE_SENSITIVITY_MANGLED_NAME=NO
+        CASE_SENSITIVITY_SOURCE_FILE_NAME=NO
+END OPTIONS\n""")
+            for module in modules:
+                f.write("BEGIN FUNCTION_GROUP {}\n".format(module))
+                f.write("\tNAME={}*\n".format(module))
+                f.write("END FUNCTION_GROUP\n")
+                
 
 
 def _err_exit(msg):
@@ -419,6 +420,7 @@ def main(argv=None):
             '__cached__': None,
         }
         t.runctx(code, globs, globs)
+        t.flush_scorep_groups()
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     except SystemExit:

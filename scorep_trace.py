@@ -71,56 +71,6 @@ PRAGMA_NOCOVER = "#pragma NO COVER"
 # Simple rx to find lines with no code.
 rx_blank = re.compile(r'^\s*(#.*)?$')
 
-class _Ignore:
-    def __init__(self, modules=None, dirs=None):
-        self._mods = set() if not modules else set(modules)
-        self._dirs = [] if not dirs else [os.path.normpath(d)
-                                          for d in dirs]
-        self._ignore = { '<string>': 1 }
-
-    def names(self, filename, modulename):
-        if modulename in self._ignore:
-            return self._ignore[modulename]
-
-        # haven't seen this one before, so see if the module name is
-        # on the ignore list.
-        if modulename in self._mods:  # Identical names, so ignore
-            self._ignore[modulename] = 1
-            return 1
-
-        # check if the module is a proper submodule of something on
-        # the ignore list
-        for mod in self._mods:
-            # Need to take some care since ignoring
-            # "cmp" mustn't mean ignoring "cmpcache" but ignoring
-            # "Spam" must also mean ignoring "Spam.Eggs".
-            if modulename.startswith(mod + '.'):
-                self._ignore[modulename] = 1
-                return 1
-
-        # Now check that filename isn't in one of the directories
-        if filename is None:
-            # must be a built-in, so we must ignore
-            self._ignore[modulename] = 1
-            return 1
-
-        # Ignore a file when it contains one of the ignorable paths
-        for d in self._dirs:
-            # The '+ os.sep' is to ensure that d is a parent directory,
-            # as compared to cases like:
-            #  d = "/usr/local"
-            #  filename = "/usr/local.py"
-            # or
-            #  d = "/usr/local.py"
-            #  filename = "/usr/local.py"
-            if filename.startswith(d + os.sep):
-                self._ignore[modulename] = 1
-                return 1
-
-        # Tried the different ways, so we don't ignore this module
-        self._ignore[modulename] = 0
-        return 0
-
 def _modname(path):
     """Return a plausible module name for the patch."""
 
@@ -216,16 +166,12 @@ def _find_executable_linenos(filename):
     return _find_lines(code, strs)
 
 class Trace:
-    def __init__(self, trace=1, ignoremods=(), ignoredirs=()):
+    def __init__(self, trace=1):
         """
         @param trace true iff it should print out each line that is
                      being counted
-        @param ignoremods a list of the names of modules to ignore
-        @param ignoredirs a list of the names of directories to ignore
-                     all of the (recursive) contents of
         @param timing true iff timing information be displayed
         """
-        self.ignore = _Ignore(ignoremods, ignoredirs)
         self.pathtobasename = {} # for memoizing os.path.basename
         self.donothing = 0
         self.trace = trace
@@ -316,6 +262,8 @@ class Trace:
             if self.trace and code.co_name is not "_unsettrace":
                 scorep.region_begin("%s:%s"% (modulename, code.co_name))
             return self.localtrace
+        else:
+            return None
 
 
     def localtrace_trace(self, frame, why, arg):
@@ -336,7 +284,7 @@ BEGIN OPTIONS
         CASE_SENSITIVITY_MANGLED_NAME=NO
         CASE_SENSITIVITY_SOURCE_FILE_NAME=NO
 END OPTIONS\n""")
-            for module in modules:
+            for module in sorted(modules,reverse=True):
                 f.write("BEGIN FUNCTION_GROUP {}\n".format(module))
                 f.write("\tNAME={}*\n".format(module))
                 f.write("END FUNCTION_GROUP\n")
@@ -354,8 +302,7 @@ def main(argv=None):
         argv = sys.argv
     try:
         opts, prog_argv = getopt.getopt(argv[1:], "v",
-                                        ["help", "version", 
-                                         "ignore-module=", "ignore-dir="])
+                                        ["help", "version"])
 
     except getopt.error as msg:
         sys.stderr.write("%s: %s\n" % (sys.argv[0], msg))
@@ -365,8 +312,6 @@ def main(argv=None):
 
     trace = 1
     timing = False
-    ignore_modules = []
-    ignore_dirs = []
 
     for opt, val in opts:
         if opt == "--help":
@@ -376,27 +321,7 @@ def main(argv=None):
         if opt == "--version":
             sys.stdout.write("scorep_trace 1.0\n")
             sys.exit(0)
-
-        if opt == "--ignore-module":
-            for mod in val.split(","):
-                ignore_modules.append(mod.strip())
-            continue
-
-        if opt == "--ignore-dir":
-            for s in val.split(os.pathsep):
-                s = os.path.expandvars(s)
-                # should I also call expanduser? (after all, could use $HOME)
-
-                s = s.replace("$prefix",
-                              os.path.join(sys.base_prefix, "lib",
-                                           "python" + sys.version[:3]))
-                s = s.replace("$exec_prefix",
-                              os.path.join(sys.base_exec_prefix, "lib",
-                                           "python" + sys.version[:3]))
-                s = os.path.normpath(s)
-                ignore_dirs.append(s)
-            continue
-
+            
         assert 0, "Should never get here"
 
     if len(prog_argv) == 0:
@@ -407,8 +332,7 @@ def main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    t = Trace(trace, ignoremods=ignore_modules,
-              ignoredirs=ignore_dirs)
+    t = Trace(trace)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -431,12 +355,6 @@ def usage(outfile):
     _warn("The trace.usage() function is deprecated",
          DeprecationWarning, 2)
     _usage(outfile)
-
-class Ignore(_Ignore):
-    def __init__(self, modules=None, dirs=None):
-        _warn("The class trace.Ignore is deprecated",
-             DeprecationWarning, 2)
-        _Ignore.__init__(self, modules, dirs)
 
 def modname(path):
     _warn("The trace.modname() function is deprecated",

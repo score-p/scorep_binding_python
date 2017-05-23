@@ -17,14 +17,21 @@ import subprocess
 import re
 import sys 
     
-scorep_config = ["scorep-config","--nocompiler", "--user"]
+scorep_config = ["scorep-config","--nocompiler", "--user", "--mpp=none"]
 
 if subprocess.run(scorep_config + ["--cuda"],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
     scorep_config.append("--cuda")
     print("Cuda is supported, building with cuda")
 else:
     print("Cuda is not supported, building without cuda")
+    scorep_config.append("--nocuda")
     
+if subprocess.run(scorep_config + ["--opencl"],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+    scorep_config.append("--opencl")
+    print("OpenCL is supported, building with OpenCL")
+else:
+    print("OpenCl is not supported, building without OpenCL")
+    scorep_config.append("--noopencl")
               
 
 ldflage =   subprocess.run(scorep_config + ["--ldflags"], stdout=subprocess.PIPE).stdout

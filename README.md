@@ -17,11 +17,24 @@ Allows to change the installation target. To use the module the path ```<locatio
 
 # Use
 
-To trace the a script you need to run
+To trace the full script you need to run
 
 ```
 python3 -m scorep_trace <script.py>
 ```
+
+Alternatively you can kick of the tracing from insed your script by using:
+
+```
+import scorep_trace
+t = scorep_trace.Trace(True)
+t.register()
+```
+
+Then all code after the call to `t.register()` is traced. This might be helpfull to avoid tracing the inialisation of some imported modules.
+
+Moreover, you can trace masterprocesses that usees python multiprocessing.
+Please be aware, that the current version of scorep_trace does not support tracing of the by multiprocessing forked processes.   
 
 The usual Score-P environment Variables will be respected. Please have a look at:
 

@@ -44,6 +44,7 @@ import gc
 import dis
 import pickle
 import scorep
+import atexit
 from warnings import warn as _warn
 from time import monotonic as _time
 
@@ -181,6 +182,12 @@ class Trace:
         else:
             # Ahem -- do nothing?  Okay.
             self.donothing = 1
+
+    def register(self):
+        if not self.donothing:
+            _settrace(self.globaltrace)
+            atexit.register(self.flush_scorep_groups)
+
 
     def run(self, cmd):
         import __main__

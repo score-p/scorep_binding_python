@@ -118,6 +118,12 @@ static PyMethodDef ScorePMethods[] = {
     { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
+#if PY_VERSION_HEX < 0x03000000
+PyMODINIT_FUNC initscorep(void)
+{
+    (void)Py_InitModule("scorep", ScorePMethods);
+}
+#else
 static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT, "scorep", /* name of module */
                                            NULL, /* module documentation, may be NULL */
                                            -1,   /* size of per-interpreter state of the module,
@@ -129,3 +135,4 @@ PyMODINIT_FUNC PyInit_scorep(void)
 {
     return PyModule_Create(&scorepmodule);
 }
+#endif

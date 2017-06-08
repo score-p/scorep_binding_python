@@ -46,7 +46,6 @@ import pickle
 import scorep
 import atexit
 from warnings import warn as _warn
-from time import monotonic as _time
 
 try:
     import threading
@@ -151,20 +150,6 @@ def _find_strings(filename, encoding=None):
                         d[i] = 1
             prev_ttype = ttype
     return d
-
-def _find_executable_linenos(filename):
-    """Return dict where keys are line numbers in the line number table."""
-    try:
-        with tokenize.open(filename) as f:
-            prog = f.read()
-            encoding = f.encoding
-    except OSError as err:
-        print(("Not printing coverage data for %r: %s"
-                              % (filename, err)), file=sys.stderr)
-        return {}
-    code = compile(prog, filename, "exec")
-    strs = _find_strings(filename, encoding)
-    return _find_lines(code, strs)
 
 class Trace:
     def __init__(self, trace=1):
@@ -357,41 +342,7 @@ def main(argv=None):
     except SystemExit:
         pass
 
-#  Deprecated API
-def usage(outfile):
-    _warn("The trace.usage() function is deprecated",
-         DeprecationWarning, 2)
-    _usage(outfile)
 
-def modname(path):
-    _warn("The trace.modname() function is deprecated",
-         DeprecationWarning, 2)
-    return _modname(path)
-
-def fullmodname(path):
-    _warn("The trace.fullmodname() function is deprecated",
-         DeprecationWarning, 2)
-    return _fullmodname(path)
-
-def find_lines_from_code(code, strs):
-    _warn("The trace.find_lines_from_code() function is deprecated",
-         DeprecationWarning, 2)
-    return _find_lines_from_code(code, strs)
-
-def find_lines(code, strs):
-    _warn("The trace.find_lines() function is deprecated",
-         DeprecationWarning, 2)
-    return _find_lines(code, strs)
-
-def find_strings(filename, encoding=None):
-    _warn("The trace.find_strings() function is deprecated",
-         DeprecationWarning, 2)
-    return _find_strings(filename, encoding=None)
-
-def find_executable_linenos(filename):
-    _warn("The trace.find_executable_linenos() function is deprecated",
-         DeprecationWarning, 2)
-    return _find_executable_linenos(filename)
 
 if __name__=='__main__':
     main()

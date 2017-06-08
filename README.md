@@ -20,7 +20,7 @@ Allows to change the installation target. To use the module the path ```<locatio
 To trace the full script you need to run
 
 ```
-python3 -m scorep_trace <script.py>
+python -m scorep_trace <script.py>
 ```
 
 Alternatively you can kick of the tracing from insed your script by using:
@@ -45,7 +45,7 @@ and
 [Score-P Documentation](https://silc.zih.tu-dresden.de/scorep-current/pdf/scorep.pdf)
 
 # Compatibility
-The installation script works with python3. Python2 is not tested.
+The installation script works with python3 and python2.
 
 # Tracing
 The tracing uses Score-P User instrumentation. The python trace module was reworked, to pass the region names to ```SCOREP_USER_REGION_BY_NAME_BEGIN(name,type)``` and ```SCOREP_USER_REGION_BY_NAME_END(name)``` instead of printing. All other features of the tracing module where striped.

@@ -16,17 +16,35 @@ import os
 import subprocess
 import re
 import sys 
-    
+
+"""
+return a tuple with (returncode,stdout) from the call to subprocess
+"""
+def call(arguments):
+    result = ()
+    if sys.version_info > (3,5):
+        out = subprocess.run(arguments,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+        result = (out.returncode, out.stdout.decode("utf-8"))
+    else:
+        p = subprocess.Popen(arguments,stdout=subprocess.PIPE,stderr=None)
+        stdout, _ = p.communicate()
+        p.wait()
+        result = (p.returncode,stdout)
+    return result
+         
+
 scorep_config = ["scorep-config","--nocompiler", "--user", "--mpp=none"]
 
-if subprocess.run(scorep_config + ["--cuda"],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+(retrun_code, _) = call(scorep_config + ["--cuda"])
+if retrun_code == 0:
     scorep_config.append("--cuda")
     print("Cuda is supported, building with cuda")
 else:
     print("Cuda is not supported, building without cuda")
     scorep_config.append("--nocuda")
     
-if subprocess.run(scorep_config + ["--opencl"],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+(retrun_code, _) = call(scorep_config + ["--opencl"])
+if retrun_code == 0:
     scorep_config.append("--opencl")
     print("OpenCL is supported, building with OpenCL")
 else:
@@ -34,19 +52,13 @@ else:
     scorep_config.append("--noopencl")
               
 
-ldflage =   subprocess.run(scorep_config + ["--ldflags"], stdout=subprocess.PIPE).stdout
-libs =      subprocess.run(scorep_config + ["--libs"], stdout=subprocess.PIPE).stdout
-cflags =    subprocess.run(scorep_config + ["--cflags"], stdout=subprocess.PIPE).stdout
+(_, ldflags) = call(scorep_config + ["--ldflags"])
+(_, libs)    = call(scorep_config + ["--libs"])
+(_, cflags)  = call(scorep_config + ["--cflags"])
  
-scorep_adapter_init = subprocess.run(scorep_config + ["--adapter-init"], stdout=subprocess.PIPE).stdout
+(_, scorep_adapter_init) = call(scorep_config + ["--adapter-init"])
  
-libs        = libs.decode("utf-8")
-ldflage     = ldflage.decode("utf-8")
-cflags      = cflags.decode("utf-8")
-
-scorep_adapter_init = scorep_adapter_init.decode("utf-8")
-
-lib_dir = re.findall("-L[/+.\w]*",ldflage)
+lib_dir = re.findall("-L[/+.\w]*",ldflags)
 lib     = re.findall("-l[/+.\w]*",libs)
 include = re.findall("-I[/+.\w]*",cflags)
 macro   = re.findall("-D[/+.\w]*",cflags)
@@ -75,7 +87,7 @@ module1 = Extension('scorep',
 
 setup (
     name = 'scorep',
-    version = '0.4',
+    version = '0.5',
     description = 'This is a scorep tracing package',
     author = 'Andreas Gocht',
     author_email = 'andreas.gocht@tu-dresden.de',

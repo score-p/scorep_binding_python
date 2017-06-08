@@ -6,7 +6,7 @@ You need to have scorep-config in your ```PATH``` variable.
 
 Then simply run
 ```
-python3 setup.py install
+python setup.py install
 ```
 
 The option

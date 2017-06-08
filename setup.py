@@ -33,7 +33,7 @@ def call(arguments):
     return result
          
 
-scorep_config = ["scorep-config","--nocompiler", "--user", "--mpp=none"]
+scorep_config = ["scorep-config","--nocompiler", "--user", "--mpp=none", "--thread=pthread"]
 
 (retrun_code, _) = call(scorep_config + ["--cuda"])
 if retrun_code == 0:
@@ -58,17 +58,24 @@ else:
  
 (_, scorep_adapter_init) = call(scorep_config + ["--adapter-init"])
  
-lib_dir = re.findall("-L[/+.\w]*",ldflags)
-lib     = re.findall("-l[/+.\w]*",libs)
-include = re.findall("-I[/+.\w]*",cflags)
-macro   = re.findall("-D[/+.\w]*",cflags)
+lib_dir = re.findall(" -L[/+-@.\w]*",ldflags)
+lib     = re.findall(" -l[/+-@.\w]*",libs)
+include = re.findall(" -I[/+-@.\w]*",cflags)
+macro   = re.findall(" -D[/+-@.\w]*",cflags)
+linker_flags = re.findall(" -Wl[/+-@.\w]*",ldflags)
 
-remove_flag = lambda x: x[2:]
 
-lib_dir = list(map(remove_flag, lib_dir))
-lib     = list(map(remove_flag, lib))
-include = list(map(remove_flag, include))
-macro   = list(map(remove_flag, macro))
+print("\n\nlinker flags: {}".format(linker_flags))
+print("\n\nldflags {}\n".format(ldflags))
+
+remove_flag3 = lambda x: x[3:]
+remove_space1 = lambda x: x[1:]
+
+lib_dir      = list(map(remove_flag3, lib_dir))
+lib          = list(map(remove_flag3, lib))
+include      = list(map(remove_flag3, include))
+macro        = list(map(remove_flag3, macro))
+linker_flags = list(map(remove_space1, linker_flags)) 
 
 macro   = list(map(lambda x: tuple([x,1]), macro))
 
@@ -82,6 +89,7 @@ module1 = Extension('scorep',
                     libraries = lib,
                     library_dirs = lib_dir,
                     define_macros = macro,
+                    extra_link_args = linker_flags, 
                     sources = ['scorep.c',"scorep_init.c"])
 
 

@@ -43,8 +43,8 @@ import inspect
 import gc
 import dis
 import pickle
-import scorep
 import atexit
+import subprocess
 from warnings import warn as _warn
 
 try:
@@ -152,7 +152,7 @@ def _find_strings(filename, encoding=None):
     return d
 
 class Trace:
-    def __init__(self, trace=1):
+    def __init__(self, scorep, trace=1):
         """
         @param trace true iff it should print out each line that is
                      being counted
@@ -161,6 +161,9 @@ class Trace:
         self.pathtobasename = {} # for memoizing os.path.basename
         self.donothing = 0
         self.trace = trace
+        self.scorep = scorep
+        print(self.scorep)
+        print(os.environ["LD_PRELOAD"])
         if trace:
             self.globaltrace = self.globaltrace_lt
             self.localtrace = self.localtrace_trace
@@ -252,7 +255,7 @@ class Trace:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if self.trace and code.co_name is not "_unsettrace":
-                scorep.region_begin("%s:%s"% (modulename, code.co_name))
+                self.scorep.region_begin("%s:%s"% (modulename, code.co_name))
             return self.localtrace
         else:
             return None
@@ -263,12 +266,12 @@ class Trace:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if self.trace:
-                scorep.region_end("%s:%s"% (modulename, code.co_name))
+                self.scorep.region_end("%s:%s"% (modulename, code.co_name))
         return self.localtrace
     
     def flush_scorep_groups(self):
         modules = sys.modules.keys()
-        with open(scorep.get_expiriment_dir_name() + "/scorep.fgp","w") as f:
+        with open(self.scorep.get_expiriment_dir_name() + "/scorep.fgp","w") as f:
             f.write("""
 BEGIN OPTIONS
         MATCHING_STRATEGY=FIRST
@@ -294,7 +297,7 @@ def main(argv=None):
         argv = sys.argv
     try:
         opts, prog_argv = getopt.getopt(argv[1:], "v",
-                                        ["help", "version"])
+                                        ["help", "version", "mpi"])
 
     except getopt.error as msg:
         sys.stderr.write("%s: %s\n" % (sys.argv[0], msg))
@@ -304,6 +307,7 @@ def main(argv=None):
 
     trace = 1
     timing = False
+    mpi = False
 
     for opt, val in opts:
         if opt == "--help":
@@ -313,18 +317,60 @@ def main(argv=None):
         if opt == "--version":
             sys.stdout.write("scorep_trace 1.0\n")
             sys.exit(0)
-            
-        assert 0, "Should never get here"
+        
+        if opt == "--mpi":
+            mpi = True
 
     if len(prog_argv) == 0:
         _err_exit("missing name of file to run")
+    
+    scorep = None
+
+    if not mpi:
+        scorep = __import__("scorep")
+    else:
+        scorep = __import__("scorep_mpi")
+        
+        scorep_subsystem = scorep.__file__
+        
+        p = subprocess.Popen(["which","scorep"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        p.wait()
+        if p.returncode != 0:
+            raise Exception("which scorep: " + stderr.decode("utf-8"))
+        #TODO this is dirty ... find a better way
+        path = stdout.decode("utf-8").replace("bin/scorep\n","",1)
+        path = path + "lib"
+        scorep_libs = [ "libscorep_adapter_user_event.so.0",
+            "libscorep_adapter_cuda_event.so.0",
+            "libscorep_adapter_opencl_event_static.so.0",
+            "libscorep_adapter_mpi_event.so.0",
+            "libscorep_adapter_pthread_event.so.0",
+            "libscorep_measurement.so.0",
+            "libscorep_adapter_user_mgmt.so.0",
+            "libscorep_adapter_cuda_mgmt.so.0",
+            "libscorep_adapter_opencl_mgmt_static.so.0",
+            "libscorep_adapter_mpi_mgmt.so.0",
+            "libscorep_mpp_mpi.so.0",
+            "libscorep_online_access_mpp_mpi.so.0",
+            "libscorep_thread_create_wait_pthread.so.0",
+            "libscorep_mutex_pthread_wrap.so.0",
+            "libscorep_alloc_metric.so.0",
+            "libscorep_adapter_utils.so.0",
+            "libscorep_adapter_pthread_mgmt.so.0"]
+        
+        preload = scorep_subsystem
+        for scorep_lib in scorep_libs:
+            preload = preload + " \n" +path + "/" + scorep_lib
+        
+        os.environ["LD_PRELOAD"] = preload
 
     # everything is ready
     sys.argv = prog_argv
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    t = Trace(trace)
+    t = Trace(scorep,True)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -336,7 +382,7 @@ def main(argv=None):
             '__cached__': None,
         }
         t.runctx(code, globs, globs)
-        t.flush_scorep_groups()
+        #t.flush_scorep_groups()
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     except SystemExit:

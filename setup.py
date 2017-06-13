@@ -15,7 +15,7 @@ from distutils.core import setup, Extension
 import os
 import subprocess
 import re
-import sys 
+import sys
 
 """
 return a tuple with (returncode,stdout) from the call to subprocess
@@ -33,56 +33,61 @@ def call(arguments):
     return result
          
 
-scorep_config = ["scorep-config","--nocompiler", "--user", "--mpp=none", "--thread=pthread"]
+scorep_config = ["scorep-config","--nocompiler", "--user", "--thread=pthread", "--mpp=none"]
+scorep_config_mpi = ["scorep-config","--nocompiler", "--user", "--thread=pthread", "--mpp=mpi"]
 
-(retrun_code, _) = call(scorep_config + ["--cuda"])
-if retrun_code == 0:
-    scorep_config.append("--cuda")
-    print("Cuda is supported, building with cuda")
-else:
-    print("Cuda is not supported, building without cuda")
-    scorep_config.append("--nocuda")
+def get_config(scorep_config):
+    (retrun_code, _) = call(scorep_config + ["--cuda"])
+    if retrun_code == 0:
+        scorep_config.append("--cuda")
+        print("Cuda is supported, building with cuda")
+    else:
+        print("Cuda is not supported, building without cuda")
+        scorep_config.append("--nocuda")
+        
+    (retrun_code, _) = call(scorep_config + ["--opencl"])
+    if retrun_code == 0:
+        scorep_config.append("--opencl")
+        print("OpenCL is supported, building with OpenCL")
+    else:
+        print("OpenCl is not supported, building without OpenCL")
+        scorep_config.append("--noopencl")
+                  
     
-(retrun_code, _) = call(scorep_config + ["--opencl"])
-if retrun_code == 0:
-    scorep_config.append("--opencl")
-    print("OpenCL is supported, building with OpenCL")
-else:
-    print("OpenCl is not supported, building without OpenCL")
-    scorep_config.append("--noopencl")
-              
-
-(_, ldflags) = call(scorep_config + ["--ldflags"])
-(_, libs)    = call(scorep_config + ["--libs"])
-(_, cflags)  = call(scorep_config + ["--cflags"])
- 
-(_, scorep_adapter_init) = call(scorep_config + ["--adapter-init"])
- 
-lib_dir = re.findall(" -L[/+-@.\w]*",ldflags)
-lib     = re.findall(" -l[/+-@.\w]*",libs)
-include = re.findall(" -I[/+-@.\w]*",cflags)
-macro   = re.findall(" -D[/+-@.\w]*",cflags)
-linker_flags = re.findall(" -Wl[/+-@.\w]*",ldflags)
-
-
-print("\n\nlinker flags: {}".format(linker_flags))
-print("\n\nldflags {}\n".format(ldflags))
-
-remove_flag3 = lambda x: x[3:]
-remove_space1 = lambda x: x[1:]
-
-lib_dir      = list(map(remove_flag3, lib_dir))
-lib          = list(map(remove_flag3, lib))
-include      = list(map(remove_flag3, include))
-macro        = list(map(remove_flag3, macro))
-linker_flags = list(map(remove_space1, linker_flags)) 
-
-macro   = list(map(lambda x: tuple([x,1]), macro))
-
+    (_, ldflags) = call(scorep_config + ["--ldflags"])
+    (_, libs)    = call(scorep_config + ["--libs"])
+    (_, cflags)  = call(scorep_config + ["--cflags"])
+     
+    (_, scorep_adapter_init) = call(scorep_config + ["--mpp=none", "--adapter-init"])
+     
+    lib_dir = re.findall(" -L[/+-@.\w]*",ldflags)
+    lib     = re.findall(" -l[/+-@.\w]*",libs)
+    include = re.findall(" -I[/+-@.\w]*",cflags)
+    macro   = re.findall(" -D[/+-@.\w]*",cflags)
+    linker_flags = re.findall(" -Wl[/+-@.\w]*",ldflags)
     
+    remove_flag3 = lambda x: x[3:]
+    remove_space1 = lambda x: x[1:]
+    
+    lib_dir      = list(map(remove_flag3, lib_dir))
+    lib          = list(map(remove_flag3, lib))
+    include      = list(map(remove_flag3, include))
+    macro        = list(map(remove_flag3, macro))
+    linker_flags = list(map(remove_space1, linker_flags)) 
+    
+    macro   = list(map(lambda x: tuple([x,1]), macro))
+    
+    return (include, lib, lib_dir, macro, linker_flags, scorep_adapter_init)
+
+(include, lib, lib_dir, macro, linker_flags, scorep_adapter_init) = get_config(scorep_config)
+(include_mpi, lib_mpi, lib_dir_mpi, macro_mpi, linker_flags_mpi, scorep_adapter_init_mpi) = get_config(scorep_config_mpi)
 
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)
+    
+with open("./scorep_init_mpi.c","w") as f:
+    f.write(scorep_adapter_init_mpi)
+
 
 module1 = Extension('scorep',
                     include_dirs = include,
@@ -92,6 +97,13 @@ module1 = Extension('scorep',
                     extra_link_args = linker_flags, 
                     sources = ['scorep.c',"scorep_init.c"])
 
+module2 = Extension('scorep_mpi',
+                    include_dirs = include_mpi,
+                    libraries = lib_mpi,
+                    library_dirs = lib_dir_mpi,
+                    define_macros = macro_mpi + [("USE_MPI",None)],
+                    extra_link_args = linker_flags_mpi, 
+                    sources = ['scorep.c',"scorep_init_mpi.c"])
 
 setup (
     name = 'scorep',
@@ -110,4 +122,4 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 This module is more or less similar to the python trace module. 
 ''',
     py_modules = ['scorep_trace'],
-    ext_modules = [module1])
+    ext_modules = [module1,module2])

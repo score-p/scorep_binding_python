@@ -70,9 +70,7 @@ def _usage(outfile):
 class Trace:
     def __init__(self, trace=1):
         """
-        @param trace true iff it should print out each line that is
-                     being counted
-        @param timing true iff timing information be displayed
+        @param trace true if there shall be any tracing at all
         """
         self.pathtobasename = {} # for memoizing os.path.basename
         self.donothing = 0
@@ -157,7 +155,6 @@ END OPTIONS\n""")
                 f.write("END FUNCTION_GROUP\n")
                 
 
-
 def _err_exit(msg):
     sys.stderr.write("%s: %s\n" % (sys.argv[0], msg))
     sys.exit(1)
@@ -217,7 +214,26 @@ def main(argv=None):
     except SystemExit:
         pass
 
+def user_region_begin(name):
+    _scorep.region_begin(name)
+    
+def user_region_end(name):
+    _scorep.region_end(name)
+    
+def user_enable_recording():
+    _scorep.enable_recording()
 
+def user_disable_recording():
+    _scorep.disable_recording()
+    
+def user_parameter_int(name, val):
+    _scorep.parameter_int(name, val)
+
+def user_parameter_uint(name, val):
+    _scorep.parameter_string(name, val)
+
+def user_parameter_string(name, string):
+    _scorep.parameter_string(name, string)
 
 if __name__=='__main__':
     main()

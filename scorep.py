@@ -66,90 +66,6 @@ def _usage(outfile):
     outfile.write("""TODO
 """ % sys.argv[0])
 
-PRAGMA_NOCOVER = "#pragma NO COVER"
-
-# Simple rx to find lines with no code.
-rx_blank = re.compile(r'^\s*(#.*)?$')
-
-def _modname(path):
-    """Return a plausible module name for the patch."""
-
-    base = os.path.basename(path)
-    filename, ext = os.path.splitext(base)
-    return filename
-
-def _fullmodname(path):
-    """Return a plausible module name for the path."""
-
-    # If the file 'path' is part of a package, then the filename isn't
-    # enough to uniquely identify it.  Try to do the right thing by
-    # looking in sys.path for the longest matching prefix.  We'll
-    # assume that the rest is the package name.
-
-    comparepath = os.path.normcase(path)
-    longest = ""
-    for dir in sys.path:
-        dir = os.path.normcase(dir)
-        if comparepath.startswith(dir) and comparepath[len(dir)] == os.sep:
-            if len(dir) > len(longest):
-                longest = dir
-
-    if longest:
-        base = path[len(longest) + 1:]
-    else:
-        base = path
-    # the drive letter is never part of the module name
-    drive, base = os.path.splitdrive(base)
-    base = base.replace(os.sep, ".")
-    if os.altsep:
-        base = base.replace(os.altsep, ".")
-    filename, ext = os.path.splitext(base)
-    return filename.lstrip(".")
-
-def _find_lines_from_code(code, strs):
-    """Return dict where keys are lines in the line number table."""
-    linenos = {}
-
-    for _, lineno in dis.findlinestarts(code):
-        if lineno not in strs:
-            linenos[lineno] = 1
-
-    return linenos
-
-def _find_lines(code, strs):
-    """Return lineno dict for all code objects reachable from code."""
-    # get all of the lineno information from the code of this scope level
-    linenos = _find_lines_from_code(code, strs)
-
-    # and check the constants for references to other code objects
-    for c in code.co_consts:
-        if inspect.iscode(c):
-            # find another code object, so recurse into it
-            linenos.update(_find_lines(c, strs))
-    return linenos
-
-def _find_strings(filename, encoding=None):
-    """Return a dict of possible docstring positions.
-
-    The dict maps line numbers to strings.  There is an entry for
-    line that contains only a string or a part of a triple-quoted
-    string.
-    """
-    d = {}
-    # If the first token is a string, then it's the module docstring.
-    # Add this special case so that the test in the loop passes.
-    prev_ttype = token.INDENT
-    with open(filename, encoding=encoding) as f:
-        tok = tokenize.generate_tokens(f.readline)
-        for ttype, tstr, start, end, line in tok:
-            if ttype == token.STRING:
-                if prev_ttype == token.INDENT:
-                    sline, scol = start
-                    eline, ecol = end
-                    for i in range(sline, eline + 1):
-                        d[i] = 1
-            prev_ttype = ttype
-    return d
 
 class Trace:
     def __init__(self, trace=1):
@@ -200,47 +116,6 @@ class Trace:
             if not self.donothing:
                 sys.settrace(None)
         return result
-
-    def file_module_function_of(self, frame):
-        code = frame.f_code
-        filename = code.co_filename
-        if filename:
-            modulename = _modname(filename)
-        else:
-            modulename = None
-
-        funcname = code.co_name
-        clsname = None
-        if code in self._caller_cache:
-            if self._caller_cache[code] is not None:
-                clsname = self._caller_cache[code]
-        else:
-            self._caller_cache[code] = None
-            ## use of gc.get_referrers() was suggested by Michael Hudson
-            # all functions which refer to this code object
-            funcs = [f for f in gc.get_referrers(code)
-                         if inspect.isfunction(f)]
-            # require len(func) == 1 to avoid ambiguity caused by calls to
-            # new.function(): "In the face of ambiguity, refuse the
-            # temptation to guess."
-            if len(funcs) == 1:
-                dicts = [d for d in gc.get_referrers(funcs[0])
-                             if isinstance(d, dict)]
-                if len(dicts) == 1:
-                    classes = [c for c in gc.get_referrers(dicts[0])
-                                   if hasattr(c, "__bases__")]
-                    if len(classes) == 1:
-                        # ditto for new.classobj()
-                        clsname = classes[0].__name__
-                        # cache the result - assumption is that new.* is
-                        # not called later to disturb this relationship
-                        # _caller_cache could be flushed if functions in
-                        # the new module get called.
-                        self._caller_cache[code] = clsname
-        if clsname is not None:
-            funcname = "%s.%s" % (clsname, funcname)
-
-        return filename, modulename, funcname
 
     def globaltrace_lt(self, frame, why, arg):
         """Handler for call events.

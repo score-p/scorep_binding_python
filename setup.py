@@ -105,6 +105,7 @@ module2 = Extension('scorep_mpi',
                     extra_link_args = linker_flags_mpi, 
                     sources = ['scorep.c',"scorep_init_mpi.c"])
 
+
 setup (
     name = 'scorep',
     version = '0.5',

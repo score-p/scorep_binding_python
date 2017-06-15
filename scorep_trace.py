@@ -1,4 +1,4 @@
-#! /usr/bin/python3.5
+#!/usr/bin/python3.5
 
 # Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
 # Author: Andreas Gocht
@@ -162,8 +162,6 @@ class Trace:
         self.donothing = 0
         self.trace = trace
         self.scorep = scorep
-        print(self.scorep)
-        print(os.environ["LD_PRELOAD"])
         if trace:
             self.globaltrace = self.globaltrace_lt
             self.localtrace = self.localtrace_trace
@@ -331,7 +329,7 @@ def main(argv=None):
     else:
         scorep = __import__("scorep_mpi")
         
-        scorep_subsystem = scorep.__file__
+        scorep_subsystem = scorep.__file__.strip()
         
         p = subprocess.Popen(["which","scorep"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -339,7 +337,7 @@ def main(argv=None):
         if p.returncode != 0:
             raise Exception("which scorep: " + stderr.decode("utf-8"))
         #TODO this is dirty ... find a better way
-        path = stdout.decode("utf-8").replace("bin/scorep\n","",1)
+        path = stdout.decode("utf-8").replace("bin/scorep\n","",1).strip()
         path = path + "lib"
         scorep_libs = [ "libscorep_adapter_user_event.so.0",
             "libscorep_adapter_cuda_event.so.0",
@@ -359,11 +357,17 @@ def main(argv=None):
             "libscorep_adapter_utils.so.0",
             "libscorep_adapter_pthread_mgmt.so.0"]
         
-        preload = scorep_subsystem
+        preload = "python3 " + scorep_subsystem
         for scorep_lib in scorep_libs:
-            preload = preload + " \n" +path + "/" + scorep_lib
+            preload = preload + " " +path + "/" + scorep_lib
+            
+        if "LD_PRELOAD" not in os.environ:
+            os.environ["LD_PRELOAD"] = preload
+            os.execve(os.path.realpath(__file__), sys.argv, os.environ)
+        elif("libscorep" not in os.environ["LD_PRELOAD"]): 
+            os.environ["LD_PRELOAD"] = preload
+            os.execve(os.path.realpath(__file__), sys.argv, os.environ)
         
-        os.environ["LD_PRELOAD"] = preload
 
     # everything is ready
     sys.argv = prog_argv

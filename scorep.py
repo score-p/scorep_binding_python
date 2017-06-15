@@ -43,7 +43,7 @@ import inspect
 import gc
 import dis
 import pickle
-import scorep
+import _scorep
 import atexit
 from warnings import warn as _warn
 
@@ -252,7 +252,7 @@ class Trace:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if self.trace and code.co_name is not "_unsettrace":
-                scorep.region_begin("%s:%s"% (modulename, code.co_name))
+                _scorep.region_begin("%s:%s"% (modulename, code.co_name))
             return self.localtrace
         else:
             return None
@@ -263,12 +263,12 @@ class Trace:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if self.trace:
-                scorep.region_end("%s:%s"% (modulename, code.co_name))
+                _scorep.region_end("%s:%s"% (modulename, code.co_name))
         return self.localtrace
     
     def flush_scorep_groups(self):
         modules = sys.modules.keys()
-        with open(scorep.get_expiriment_dir_name() + "/scorep.fgp","w") as f:
+        with open(_scorep.get_expiriment_dir_name() + "/scorep.fgp","w") as f:
             f.write("""
 BEGIN OPTIONS
         MATCHING_STRATEGY=FIRST

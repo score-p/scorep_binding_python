@@ -84,7 +84,7 @@ macro   = list(map(lambda x: tuple([x,1]), macro))
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)
 
-module1 = Extension('scorep',
+module1 = Extension('_scorep',
                     include_dirs = include,
                     libraries = lib,
                     library_dirs = lib_dir,
@@ -109,5 +109,5 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 
 This module is more or less similar to the python trace module. 
 ''',
-    py_modules = ['scorep_trace'],
+    py_modules = ['scorep'],
     ext_modules = [module1])

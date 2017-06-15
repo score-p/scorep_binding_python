@@ -20,14 +20,14 @@ Allows to change the installation target. To use the module the path ```<locatio
 To trace the full script you need to run
 
 ```
-python -m scorep_trace <script.py>
+python -m scorep <script.py>
 ```
 
 Alternatively you can kick of the tracing from insed your script by using:
 
 ```
-import scorep_trace
-t = scorep_trace.Trace(True)
+import scorep
+t = scorep.Trace(True)
 t.register()
 ```
 

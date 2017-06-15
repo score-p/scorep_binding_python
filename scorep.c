@@ -119,19 +119,19 @@ static PyMethodDef ScorePMethods[] = {
 };
 
 #if PY_VERSION_HEX < 0x03000000
-PyMODINIT_FUNC initscorep(void)
+PyMODINIT_FUNC init_scorep(void)
 {
-    (void)Py_InitModule("scorep", ScorePMethods);
+    (void)Py_InitModule("_scorep", ScorePMethods);
 }
 #else
-static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT, "scorep", /* name of module */
+static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT, "_scorep", /* name of module */
                                            NULL, /* module documentation, may be NULL */
                                            -1,   /* size of per-interpreter state of the module,
                                                     or -1 if the module keeps state in global
                                                     variables. */
                                            ScorePMethods };
 
-PyMODINIT_FUNC PyInit_scorep(void)
+PyMODINIT_FUNC PyInit__scorep(void)
 {
     return PyModule_Create(&scorepmodule);
 }

@@ -1,5 +1,5 @@
 # scorep
-scorep is a module that allows tracing of python scripts using scorep.
+scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 
 # Install
 You need to have scorep-config in your ```PATH``` variable.

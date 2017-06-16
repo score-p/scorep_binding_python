@@ -89,7 +89,7 @@ with open("./scorep_init_mpi.c","w") as f:
     f.write(scorep_adapter_init_mpi)
 
 
-module1 = Extension('scorep',
+module1 = Extension('_scorep',
                     include_dirs = include,
                     libraries = lib,
                     library_dirs = lib_dir,
@@ -97,7 +97,7 @@ module1 = Extension('scorep',
                     extra_link_args = linker_flags, 
                     sources = ['scorep.c',"scorep_init.c"])
 
-module2 = Extension('scorep_mpi',
+module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
                     libraries = lib_mpi,
                     library_dirs = lib_dir_mpi,
@@ -122,5 +122,5 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 
 This module is more or less similar to the python trace module. 
 ''',
-    py_modules = ['scorep_trace'],
+    py_modules = ['scorep'],
     ext_modules = [module1,module2])

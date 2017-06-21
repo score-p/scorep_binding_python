@@ -12,6 +12,8 @@
 
 
 from distutils.core import setup, Extension
+import distutils.ccompiler
+
 import os
 import subprocess
 import re
@@ -88,23 +90,27 @@ with open("./scorep_init.c","w") as f:
 with open("./scorep_init_mpi.c","w") as f:
     f.write(scorep_adapter_init_mpi)
 
+# build scorep with mpi for ld_prealod
+cc = distutils.ccompiler.new_compiler()
+cc.compile(["./scorep_init_mpi.c"])
+cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = "./libscorep_init_mpi.so")
 
 module1 = Extension('_scorep',
                     include_dirs = include,
                     libraries = lib,
                     library_dirs = lib_dir,
                     define_macros = macro,
-                    extra_link_args = linker_flags, 
-                    sources = ['scorep.c',"scorep_init.c"])
+                    extra_link_args = linker_flags,
+                    sources = ['scorep.c','scorep_init.c'])
 
 module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
-                    libraries = lib_mpi,
-                    library_dirs = lib_dir_mpi,
+                    libraries = lib_mpi + ["scorep_init_mpi"],
+                    library_dirs = lib_dir_mpi + ["./"],
+                    runtime_library_dirs = ["/usr/local/lib"],
                     define_macros = macro_mpi + [("USE_MPI",None)],
                     extra_link_args = linker_flags_mpi, 
-                    sources = ['scorep.c',"scorep_init_mpi.c"])
-
+                    sources = ['scorep.c'])
 
 setup (
     name = 'scorep',
@@ -123,4 +129,5 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 This module is more or less similar to the python trace module. 
 ''',
     py_modules = ['scorep'],
-    ext_modules = [module1,module2])
+    data_files = [("lib",["libscorep_init_mpi.so"])],
+    ext_modules = [module2])

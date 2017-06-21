@@ -201,7 +201,7 @@ def main(argv=None):
     else:
         scorep = __import__("_scorep_mpi")
         
-        scorep_subsystem = scorep.__file__.strip()
+        scorep_subsystem = "/usr/local/lib/libscorep_init_mpi.so"
         
         p = subprocess.Popen(["which","scorep"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -229,7 +229,7 @@ def main(argv=None):
             "libscorep_adapter_utils.so.0",
             "libscorep_adapter_pthread_mgmt.so.0"]
         
-        preload = "python3 " + scorep_subsystem
+        preload = scorep_subsystem
         for scorep_lib in scorep_libs:
             preload = preload + " " +path + "/" + scorep_lib
             

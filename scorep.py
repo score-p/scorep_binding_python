@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 # Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
 # Author: Andreas Gocht
@@ -212,13 +212,13 @@ def main(argv=None):
         path = stdout.decode("utf-8").replace("bin/scorep\n","",1).strip()
         path = path + "lib"
         scorep_libs = [ "libscorep_adapter_user_event.so",
-            # "libscorep_adapter_cuda_event.so",
+            "libscorep_adapter_cuda_event.so",
             "libscorep_adapter_opencl_event_static.so",
             "libscorep_adapter_mpi_event.so",
             "libscorep_adapter_pthread_event.so",
             "libscorep_measurement.so",
             "libscorep_adapter_user_mgmt.so",
-            # "libscorep_adapter_cuda_mgmt.so",
+            "libscorep_adapter_cuda_mgmt.so",
             "libscorep_adapter_opencl_mgmt_static.so",
             "libscorep_adapter_mpi_mgmt.so",
             "libscorep_mpp_mpi.so",
@@ -241,7 +241,7 @@ def main(argv=None):
             # Module __file__ attributes (and related values) should now
             # always contain absolute paths by default
             # https://docs.python.org/3.4/whatsnew/3.4.html#other-language-changes
-            os.execve(__file__, sys.argv, os.environ)
+            os.execve(os.path.realpath(__file__), sys.argv, os.environ)
         elif("libscorep" not in os.environ["LD_PRELOAD"]): 
             os.environ["LD_PRELOAD"] = preload
             os.execve(os.path.realpath(__file__), sys.argv, os.environ)

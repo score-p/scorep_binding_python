@@ -62,7 +62,7 @@ def get_config(scorep_config):
     (_, mgmt_libs)    = call(scorep_config + ["--mgmt-libs"])
     (_, cflags)  = call(scorep_config + ["--cflags"])
      
-    (_, scorep_adapter_init) = call(scorep_config + ["-adapter-init"])
+    (_, scorep_adapter_init) = call(scorep_config + ["--adapter-init"])
      
     libs = libs + " " + mgmt_libs
 
@@ -112,7 +112,7 @@ module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
                     libraries = lib_mpi + ["scorep_init_mpi"],
                     library_dirs = lib_dir_mpi + ["./"],
-                    runtime_library_dirs = ["/usr/local/lib"],
+                    runtime_library_dirs = ["/usr/local/lib/"],
                     define_macros = macro_mpi + [("USE_MPI",None)],
                     extra_link_args = linker_flags_mpi, 
                     sources = ['scorep.c'])
@@ -135,8 +135,10 @@ This module is more or less similar to the python trace module.
 ''',
     py_modules = ['scorep'],
     data_files = [("lib",["libscorep_init_mpi.so"])],
-    ext_modules = [module1, module2])
+    ext_modules = [module1,module2])
 
-# not nice
-print("change permissions")
-os.chmod("/usr/local/lib/python3.6/site-packages/scorep.py", stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+# TOFO
+if "install" in sys.argv:
+    print("change permissions")
+    os.chmod("/usr/local/lib/python3.5/dist-packages/scorep.py", stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+

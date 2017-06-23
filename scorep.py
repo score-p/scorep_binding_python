@@ -1,4 +1,4 @@
-#!/usr/bin/python3.5
+#!/usr/bin/env python3.6
 
 # Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
 # Author: Andreas Gocht
@@ -211,23 +211,23 @@ def main(argv=None):
         #TODO this is dirty ... find a better way
         path = stdout.decode("utf-8").replace("bin/scorep\n","",1).strip()
         path = path + "lib"
-        scorep_libs = [ "libscorep_adapter_user_event.so.0",
-            "libscorep_adapter_cuda_event.so.0",
-            "libscorep_adapter_opencl_event_static.so.0",
-            "libscorep_adapter_mpi_event.so.0",
-            "libscorep_adapter_pthread_event.so.0",
-            "libscorep_measurement.so.0",
-            "libscorep_adapter_user_mgmt.so.0",
-            "libscorep_adapter_cuda_mgmt.so.0",
-            "libscorep_adapter_opencl_mgmt_static.so.0",
-            "libscorep_adapter_mpi_mgmt.so.0",
-            "libscorep_mpp_mpi.so.0",
-            "libscorep_online_access_mpp_mpi.so.0",
-            "libscorep_thread_create_wait_pthread.so.0",
-            "libscorep_mutex_pthread_wrap.so.0",
-            "libscorep_alloc_metric.so.0",
-            "libscorep_adapter_utils.so.0",
-            "libscorep_adapter_pthread_mgmt.so.0"]
+        scorep_libs = [ "libscorep_adapter_user_event.so",
+            # "libscorep_adapter_cuda_event.so",
+            "libscorep_adapter_opencl_event_static.so",
+            "libscorep_adapter_mpi_event.so",
+            "libscorep_adapter_pthread_event.so",
+            "libscorep_measurement.so",
+            "libscorep_adapter_user_mgmt.so",
+            # "libscorep_adapter_cuda_mgmt.so",
+            "libscorep_adapter_opencl_mgmt_static.so",
+            "libscorep_adapter_mpi_mgmt.so",
+            "libscorep_mpp_mpi.so",
+            "libscorep_online_access_mpp_mpi.so",
+            "libscorep_thread_create_wait_pthread.so",
+            "libscorep_mutex_pthread_wrap.so",
+            "libscorep_alloc_metric.so",
+            "libscorep_adapter_utils.so",
+            "libscorep_adapter_pthread_mgmt.so"]
         
         preload = scorep_subsystem
         for scorep_lib in scorep_libs:
@@ -235,7 +235,13 @@ def main(argv=None):
             
         if "LD_PRELOAD" not in os.environ:
             os.environ["LD_PRELOAD"] = preload
-            os.execve(os.path.realpath(__file__), sys.argv, os.environ)
+
+            # pay attention for shebang the python version must be match
+
+            # Module __file__ attributes (and related values) should now
+            # always contain absolute paths by default
+            # https://docs.python.org/3.4/whatsnew/3.4.html#other-language-changes
+            os.execve(__file__, sys.argv, os.environ)
         elif("libscorep" not in os.environ["LD_PRELOAD"]): 
             os.environ["LD_PRELOAD"] = preload
             os.execve(os.path.realpath(__file__), sys.argv, os.environ)

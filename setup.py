@@ -18,6 +18,7 @@ import os
 import subprocess
 import re
 import sys
+import stat
 
 """
 return a tuple with (returncode,stdout) from the call to subprocess
@@ -58,10 +59,13 @@ def get_config(scorep_config):
     
     (_, ldflags) = call(scorep_config + ["--ldflags"])
     (_, libs)    = call(scorep_config + ["--libs"])
+    (_, mgmt_libs)    = call(scorep_config + ["--mgmt-libs"])
     (_, cflags)  = call(scorep_config + ["--cflags"])
      
-    (_, scorep_adapter_init) = call(scorep_config + ["--mpp=none", "--adapter-init"])
+    (_, scorep_adapter_init) = call(scorep_config + ["-adapter-init"])
      
+    libs = libs + " " + mgmt_libs
+
     lib_dir = re.findall(" -L[/+-@.\w]*",ldflags)
     lib     = re.findall(" -l[/+-@.\w]*",libs)
     include = re.findall(" -I[/+-@.\w]*",cflags)
@@ -93,7 +97,8 @@ with open("./scorep_init_mpi.c","w") as f:
 # build scorep with mpi for ld_prealod
 cc = distutils.ccompiler.new_compiler()
 cc.compile(["./scorep_init_mpi.c"])
-cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = "./libscorep_init_mpi.so")
+cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = "./libscorep_init_mpi.so",\
+        library_dirs = lib_dir_mpi, libraries = lib_mpi)
 
 module1 = Extension('_scorep',
                     include_dirs = include,
@@ -130,4 +135,8 @@ This module is more or less similar to the python trace module.
 ''',
     py_modules = ['scorep'],
     data_files = [("lib",["libscorep_init_mpi.so"])],
-    ext_modules = [module2])
+    ext_modules = [module1, module2])
+
+# not nice
+print("change permissions")
+os.chmod("/usr/local/lib/python3.6/site-packages/scorep.py", stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)

@@ -12,6 +12,7 @@
 
 
 from distutils.core import setup, Extension
+from distutils.command.install import install
 import distutils.ccompiler
 
 import os
@@ -19,6 +20,8 @@ import subprocess
 import re
 import sys
 import stat
+import platform
+import functools
 
 """
 return a tuple with (returncode,stdout) from the call to subprocess
@@ -94,6 +97,17 @@ with open("./scorep_init.c","w") as f:
 with open("./scorep_init_mpi.c","w") as f:
     f.write(scorep_adapter_init_mpi)
 
+## black magic to find prefix
+# Setup the default install prefix
+prefix = sys.prefix
+
+# Get the install prefix if one is specified from the command line
+for arg in sys.argv:
+    if arg.startswith('--prefix='):
+        prefix = arg[9:]
+        prefix = os.path.expandvars(prefix)
+
+
 # build scorep with mpi for ld_prealod
 cc = distutils.ccompiler.new_compiler()
 cc.compile(["./scorep_init_mpi.c"])
@@ -112,10 +126,60 @@ module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
                     libraries = lib_mpi + ["scorep_init_mpi"],
                     library_dirs = lib_dir_mpi + ["./"],
-                    runtime_library_dirs = ["/usr/local/lib/"],
+                    runtime_library_dirs = ["{}/lib/".format(prefix)],
                     define_macros = macro_mpi + [("USE_MPI",None)],
                     extra_link_args = linker_flags_mpi, 
                     sources = ['scorep.c'])
+
+
+## modify scorep.py for a shebang with the right python version
+# fix python interpreter 
+# from https://stackoverflow.com/a/17099342
+def fix_shebang(file_path, python_version):
+    print("fix python version")
+    # accept array of python version from platform.python_version_tuple()
+    sed = "sed -i 's/#!.*\/usr\/bin\/.*python.*$/#!\/usr\/bin\/env python{}\.{}/'"\
+            .format(python_version[0], python_version[1])
+    # bring command together with file path
+    cmd = ' '.join([sed, file_path])
+    # execute the sed command and replace in place
+    os.system(cmd)
+
+# Get current Python version
+fix_shebang_curr = functools.partial(fix_shebang, python_version=platform.python_version_tuple())
+
+# add execution rights to file
+def add_exec(file_path):
+    print("change permissions")
+    # change Permission with bitwies or and the constants from stat modul
+    os.chmod(file_path, stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | \
+            stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+# custom class for additional install instructions
+class my_install(install):
+    # Dict with a filename and the function that should be executed 
+    # upon the matching files
+    # function must have only one parameter, the file path
+    files_and_commands = {'scorep.py' : (fix_shebang_curr, add_exec)}
+
+    def run(self):
+        # standard install routine
+        install.run(self)
+        # get all installed files
+        install_files = self.get_outputs()
+
+        ## Parse dictionary
+        # first loop over all key of the dict
+        for key in self.files_and_commands.keys():
+            # find matching pathes in the list with the installed files
+            matching_files = list(filter(lambda x: key in x, install_files))
+            # loop over all matching files
+            for files in matching_files:
+                # and over the file operations
+                for function in self.files_and_commands[key]:
+                    # apply file operations
+                    function(files)
+
 
 setup (
     name = 'scorep',
@@ -134,11 +198,9 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 This module is more or less similar to the python trace module. 
 ''',
     py_modules = ['scorep'],
+    # Eggsecutable?
     data_files = [("lib",["libscorep_init_mpi.so"])],
-    ext_modules = [module1,module2])
-
-# TOFO
-if "install" in sys.argv:
-    print("change permissions")
-    os.chmod("/usr/local/lib/python3.5/dist-packages/scorep.py", stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+    ext_modules = [module1,module2],
+    cmdclass={'install': my_install}
+)
 

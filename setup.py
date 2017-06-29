@@ -35,7 +35,7 @@ def call(arguments):
         p = subprocess.Popen(arguments,stdout=subprocess.PIPE,stderr=None)
         stdout, _ = p.communicate()
         p.wait()
-        result = (p.returncode,stdout)
+        result = (p.returncode,stdout.decode("utf-8"))
     return result
          
 
@@ -138,7 +138,8 @@ module2 = Extension('_scorep_mpi',
 def fix_shebang(file_path, python_version):
     print("fix python version")
     # accept array of python version from platform.python_version_tuple()
-    sed = "sed -i 's/#!.*\/usr\/bin\/.*python.*$/#!\/usr\/bin\/env python{}\.{}/'"\
+    # fix shebang only with major python version
+    sed = "sed -i 's/#!.*\/usr\/bin\/.*python.*$/#!\/usr\/bin\/env python{}/'"\
             .format(python_version[0], python_version[1])
     # bring command together with file path
     cmd = ' '.join([sed, file_path])
@@ -160,7 +161,7 @@ class my_install(install):
     # Dict with a filename and the function that should be executed 
     # upon the matching files
     # function must have only one parameter, the file path
-    files_and_commands = {'scorep.py' : (fix_shebang_curr, add_exec)}
+    files_and_commands = {'scorep.py' : (add_exec, fix_shebang_curr)}
 
     def run(self):
         # standard install routine
@@ -198,7 +199,6 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 This module is more or less similar to the python trace module. 
 ''',
     py_modules = ['scorep'],
-    # Eggsecutable?
     data_files = [("lib",["libscorep_init_mpi.so"])],
     ext_modules = [module1,module2],
     cmdclass={'install': my_install}

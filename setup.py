@@ -13,6 +13,7 @@
 
 from distutils.core import setup, Extension
 from distutils.command.install import install
+from distutils.command.install_data import install_data
 import distutils.ccompiler
 
 import os
@@ -136,6 +137,8 @@ module2 = Extension('_scorep_mpi',
 # fix python interpreter 
 # from https://stackoverflow.com/a/17099342
 def fix_shebang(file_path, python_version):
+    """Rewrite the  shebang for the used major python version of the install,
+    use simply sed from OS"""
     print("fix python version")
     # accept array of python version from platform.python_version_tuple()
     # fix shebang only with major python version
@@ -151,17 +154,61 @@ fix_shebang_curr = functools.partial(fix_shebang, python_version=platform.python
 
 # add execution rights to file
 def add_exec(file_path):
+    """Add execution rights for user, group and others to the given file"""
+
     print("change permissions")
     # change Permission with bitwies or and the constants from stat modul
     os.chmod(file_path, stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | \
             stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+# global vars are very bad but I think the only solution for this
+all_data_files = None
+
+# fix the path of an installed file in another file
+def fix_path(file_path, fix_file_name):
+    """Setting the correct path in the given file with the matching file from
+    the list of all files from own install_data, use simply sed from OS"""
+    
+    global all_data_files
+
+    print("change path for " + fix_file_name)
+    # find matching pathes in the list with the installed files
+    matching_files = list(filter(lambda x: fix_file_name in x, all_data_files))
+
+    if len(matching_files) == 0:
+        print("no matching files were installed, do nothing")
+        return
+    elif len(matching_files) > 1:
+        print("multiple files were found, make name more precise")
+        return
+    new_path = os.path.abspath(matching_files[0])
+
+    # replace all absolute paths that contains the given file name with an
+    # arbitrary filetyp postfix and surrounded by " or not
+    sed = "sed -i 's:\"*\(/.*\)*/{}\..*\"*:\"{}\":g'".format(fix_file_name, new_path)
+    # bring command together with file path
+    cmd = ' '.join([sed, file_path])
+    # execute the sed command and replace in place
+    os.system(cmd)
+    
+fix_init_mpi = functools.partial(fix_path, fix_file_name="libscorep_init_mpi") 
+
+# custom class for additional install_data instructions
+class my_install_data(install_data):
+
+    def run(self):
+        # standard install_data routine
+        install_data.run(self)
+        # get all installed data files
+        global all_data_files
+        all_data_files = self.get_outputs()
 
 # custom class for additional install instructions
 class my_install(install):
     # Dict with a filename and the function that should be executed 
     # upon the matching files
     # function must have only one parameter, the file path
-    files_and_commands = {'scorep.py' : (add_exec, fix_shebang_curr)}
+    files_and_commands = {'scorep.py' : (add_exec, fix_shebang_curr, fix_init_mpi)}
 
     def run(self):
         # standard install routine
@@ -180,7 +227,6 @@ class my_install(install):
                 for function in self.files_and_commands[key]:
                     # apply file operations
                     function(files)
-
 
 setup (
     name = 'scorep',
@@ -201,6 +247,6 @@ This module is more or less similar to the python trace module.
     py_modules = ['scorep'],
     data_files = [("lib",["libscorep_init_mpi.so"])],
     ext_modules = [module1,module2],
-    cmdclass={'install': my_install}
+    cmdclass={'install': my_install, 'install_data': my_install_data}
 )
 

@@ -125,9 +125,9 @@ PyMODINIT_FUNC init_scorep(void)
     (void)Py_InitModule("_scorep", ScorePMethods);
 }
 #else  /*USE_MPI*/
-PyMODINIT_FUNC initscorep_mpi(void)
+PyMODINIT_FUNC init_scorep_mpi(void)
 {
-    (void)Py_InitModule("scorep_mpi", ScorePMethods);
+    (void)Py_InitModule("_scorep_mpi", ScorePMethods);
 }
 #endif /*USE_MPI*/
 #else  /*python 3*/

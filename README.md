@@ -47,7 +47,6 @@ and
 * python2
 
 ## Not Working
-* MPI
 
 ## Partly working
 * threaded applications
@@ -111,3 +110,7 @@ These functions allow passing user parameters to Score-P. These parameters can b
 
 # Tracing
 The tracing uses Score-P User instrumentation. The python trace module was reworked, to pass the region names to ```SCOREP_USER_REGION_BY_NAME_BEGIN(name,type)``` and ```SCOREP_USER_REGION_BY_NAME_END(name)``` instead of printing. All other features of the tracing module where striped.
+
+# MPI
+
+For MPI support please check the branch `mpi` (https://github.com/score-p/scorep_binding_python/tree/mpi)

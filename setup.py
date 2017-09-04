@@ -64,10 +64,6 @@ include = re.findall(" -I[/+-@.\w]*",cflags)
 macro   = re.findall(" -D[/+-@.\w]*",cflags)
 linker_flags = re.findall(" -Wl[/+-@.\w]*",ldflags)
 
-
-print("\n\nlinker flags: {}".format(linker_flags))
-print("\n\nldflags {}\n".format(ldflags))
-
 remove_flag3 = lambda x: x[3:]
 remove_space1 = lambda x: x[1:]
 

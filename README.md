@@ -113,4 +113,11 @@ The tracing uses Score-P User instrumentation. The python trace module was rewor
 
 # MPI
 
-For MPI support please check the branch `mpi` (https://github.com/score-p/scorep_binding_python/tree/mpi)
+This version of the Score-P python tracing plugin supports MPI. To use it please specify `--mpi`:
+
+```
+python -m scorep --mpi <script.py>
+```
+
+This will ensure, that the right Score-P libs are in `LD_PRELOAD`. It will re-execute the tracing script, with the preloaded libs. Please be aware that during installation the shebang of scorep.py is rewritten to match your python version.
+

@@ -113,4 +113,4 @@ The tracing uses Score-P User instrumentation. The python trace module was rewor
 
 # MPI
 
-For MPI support please check the branch `mpi` (https://github.com/score-p/scorep_binding_python/tree/mpi)
+For MPI support please check the branch `mpi` (https://github.com/score-p/scorep_binding_python/tree/mpi2)

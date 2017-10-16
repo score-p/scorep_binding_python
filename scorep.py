@@ -66,6 +66,7 @@ def _usage(outfile):
     outfile.write("""TODO
 """ % sys.argv[0])
 
+global_trace = None
 
 class Trace:
     def __init__(self, _scorep, trace=1):
@@ -156,9 +157,31 @@ END OPTIONS\n""")
                 f.write("END FUNCTION_GROUP\n")
                 
 
+    def user_region_begin(self, name):
+        self._scorep.region_begin(name)
+        
+    def user_region_end(self, name):
+        self._scorep.region_end(name)
+        
+    def user_enable_recording(self):
+        self._scorep.enable_recording()
+
+    def user_disable_recording(self):
+        self._scorep.disable_recording()
+        
+    def user_parameter_int(self, name, val):
+        self._scorep.parameter_int(name, val)
+
+    def user_parameter_uint(self, name, val):
+        self._scorep.parameter_string(name, val)
+
+    def user_parameter_string(self, name, string):
+        self._scorep.parameter_string(name, string)
+
+
 def _err_exit(msg):
     sys.stderr.write("%s: %s\n" % (sys.argv[0], msg))
-    sys.exit(1)
+    sys.exit(1)    
 
 def main(argv=None):
     import getopt
@@ -252,7 +275,7 @@ def main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    t = Trace(scorep,True)
+    global_trace = Trace(scorep,True)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -263,34 +286,50 @@ def main(argv=None):
             '__package__': None,
             '__cached__': None,
         }
-        t.runctx(code, globs, globs)
+        global_trace.runctx(code, globs, globs)
         #t.flush_scorep_groups()
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     except SystemExit:
         pass
 
-def user_region_begin(name):
-    _scorep.region_begin(name)
-    
-def user_region_end(name):
-    _scorep.region_end(name)
-    
-def user_enable_recording():
-    _scorep.enable_recording()
-
-def user_disable_recording():
-    _scorep.disable_recording()
-    
-def user_parameter_int(name, val):
-    _scorep.parameter_int(name, val)
-
-def user_parameter_uint(name, val):
-    _scorep.parameter_string(name, val)
-
-def user_parameter_string(name, string):
-    _scorep.parameter_string(name, string)
-
 if __name__=='__main__':
     main()
+else:
+    '''
+    If Score-P is not intialised using the tracing module (`python -m scorep <script.py>`),
+    we need to make sure that, if a user call gets called, scorep is still loaded.
+    Moreover, if the module is loaded with `import scorep` we can't do any mpi support anymore
+    '''
+    scorep = __import__("_scorep")
+    global_trace = Trace(scorep,True)
+    
+
+    
+def register():
+    '''
+    If the module is impored using `import scorep` a call to register is requred to register the traing.
+    '''
+    global_trace.register()
+
+def user_region_begin(name):
+    global_trace.user_region_begin(name)
+    
+def user_region_end(name):
+    global_trace.user_region_end(name)
+    
+def user_enable_recording():
+    global_trace.user_enable_recording()
+
+def user_disable_recording():
+    global_trace.user_disable_recording()
+    
+def user_parameter_int(name, val):
+    global_trace.user_parameter_int(name, val)
+
+def user_parameter_uint(name, val):
+    global_trace.user_parameter_uint(name, val)
+
+def user_parameter_string(name, string):
+    global_trace.user_parameter_string(name, string)
 

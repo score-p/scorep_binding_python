@@ -30,13 +30,13 @@ return a tuple with (returncode,stdout) from the call to subprocess
 def call(arguments):
     result = ()
     if sys.version_info > (3,5):
-        out = subprocess.run(arguments,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
-        result = (out.returncode, out.stdout.decode("utf-8"))
+        out = subprocess.run(arguments,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        result = (out.returncode, out.stdout.decode("utf-8"), out.stderr.decode("utf-8"))
     else:
-        p = subprocess.Popen(arguments,stdout=subprocess.PIPE,stderr=None)
-        stdout, _ = p.communicate()
+        p = subprocess.Popen(arguments,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
         p.wait()
-        result = (p.returncode,stdout.decode("utf-8"))
+        result = (p.returncode,stdout.decode("utf-8"), stderr.decode("utf-8"))
     return result
          
 
@@ -44,7 +44,7 @@ scorep_config = ["scorep-config","--nocompiler", "--user", "--thread=pthread", "
 scorep_config_mpi = ["scorep-config","--nocompiler", "--user", "--thread=pthread", "--mpp=mpi"]
 
 def get_config(scorep_config):
-    (retrun_code, _) = call(scorep_config + ["--cuda"])
+    (retrun_code, _ ,_) = call(scorep_config + ["--cuda"])
     if retrun_code == 0:
         scorep_config.append("--cuda")
         print("Cuda is supported, building with cuda")
@@ -52,7 +52,7 @@ def get_config(scorep_config):
         print("Cuda is not supported, building without cuda")
         scorep_config.append("--nocuda")
         
-    (retrun_code, _) = call(scorep_config + ["--opencl"])
+    (retrun_code, _ ,_) = call(scorep_config + ["--opencl"])
     if retrun_code == 0:
         scorep_config.append("--opencl")
         print("OpenCL is supported, building with OpenCL")
@@ -61,12 +61,12 @@ def get_config(scorep_config):
         scorep_config.append("--noopencl")
                   
     
-    (_, ldflags) = call(scorep_config + ["--ldflags"])
-    (_, libs)    = call(scorep_config + ["--libs"])
-    (_, mgmt_libs)    = call(scorep_config + ["--mgmt-libs"])
-    (_, cflags)  = call(scorep_config + ["--cflags"])
+    (_, ldflags, _) = call(scorep_config + ["--ldflags"])
+    (_, libs, _)    = call(scorep_config + ["--libs"])
+    (_, mgmt_libs, _)    = call(scorep_config + ["--mgmt-libs"])
+    (_, cflags, _)  = call(scorep_config + ["--cflags"])
      
-    (_, scorep_adapter_init) = call(scorep_config + ["--adapter-init"])
+    (_, scorep_adapter_init, _) = call(scorep_config + ["--adapter-init"])
      
     libs = libs + " " + mgmt_libs
 
@@ -89,8 +89,58 @@ def get_config(scorep_config):
     
     return (include, lib, lib_dir, macro, linker_flags, scorep_adapter_init)
 
+def get_mpi_config():
+    (_,mpi_version, mpi_version2) = call(["mpiexec", "--version"])
+    mpi_version = mpi_version + mpi_version2
+    if "OpenRTE" in mpi_version:
+        print("OpenMPI detected")
+        (_,ldflags,_) = call(["mpicc", "-showme:link"])
+        (_,compile_flags,_) = call(["mpicc", "-showme:compile"])
+    elif ("Intel" in mpi_version) or ("MPICH" in mpi_version):
+        print("Intel or MPICH detected")
+        (_,ldflags,_) = call(["mpicc", "-link_info"])
+        (_,compile_flags,_) = call(["mpicc", "-compile_info"])
+    else:
+        print("cannot determine mpi version: \"{}\"".format(mpi_version))
+        exit(-1)
+    
+    print(ldflags)
+    lib_dir = re.findall("-L[/+-@.\w]*",ldflags)
+    lib     = re.findall("-l[/+-@.\w]*",ldflags)
+    include = re.findall("-I[/+-@.\w]*",compile_flags)
+    macro   = re.findall("-D[/+-@.\w]*",compile_flags)
+    linker_flags = re.findall("-Wl[/+-@.\w]*",ldflags)
+    linker_flags_2 = re.findall("-Xlinker [/+-@.\w]*",ldflags)
+    
+    
+    remove_flag3 = lambda x: x[2:]
+    remove_x_linker = lambda x: x[9:]
+    remove_space1 = lambda x: x[0:]
+    
+    lib_dir      = list(map(remove_flag3, lib_dir))
+    lib          = list(map(remove_flag3, lib))
+    include      = list(map(remove_flag3, include))
+    macro        = list(map(remove_flag3, macro))
+    linker_flags = list(map(remove_space1, linker_flags)) 
+    linker_flags_2 = list(map(remove_x_linker, linker_flags))
+    
+    macro   = list(map(lambda x: tuple([x,1]), macro))
+    
+    linker_flags.extend(linker_flags_2)
+    
+    return (include, lib, lib_dir, macro, linker_flags)
+
 (include, lib, lib_dir, macro, linker_flags, scorep_adapter_init) = get_config(scorep_config)
 (include_mpi, lib_mpi, lib_dir_mpi, macro_mpi, linker_flags_mpi, scorep_adapter_init_mpi) = get_config(scorep_config_mpi)
+(include_mpi_, lib_mpi_, lib_dir_mpi_, macro_mpi_, linker_flags_mpi_) = get_mpi_config()
+
+include_mpi.extend(include_mpi_)
+lib_mpi.extend(lib_mpi_)
+lib_dir_mpi.extend(lib_dir_mpi_)
+macro_mpi.extend(macro_mpi_)
+linker_flags_mpi.extend(linker_flags_mpi_)
+
+print(lib_dir_mpi)
 
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)

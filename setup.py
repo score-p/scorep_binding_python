@@ -25,7 +25,7 @@ import platform
 import functools
 
 """
-return a tuple with (returncode,stdout) from the call to subprocess
+return a triple with (returncode, stdout, stderr) from the call to subprocess
 """
 def call(arguments):
     result = ()

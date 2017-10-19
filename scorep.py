@@ -66,7 +66,26 @@ def _usage(outfile):
     outfile.write("""TODO
 """ % sys.argv[0])
 
-global_trace = None
+global_trace    = None
+
+cuda_support    = None
+opencl_support  = None
+
+"""
+return a triple with (returncode, stdout, stderr) from the call to subprocess
+"""
+def call(arguments):
+    result = ()
+    if sys.version_info > (3,5):
+        out = subprocess.run(arguments,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        result = (out.returncode, out.stdout.decode("utf-8"), out.stderr.decode("utf-8"))
+    else:
+        p = subprocess.Popen(arguments,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        p.wait()
+        result = (p.returncode,stdout.decode("utf-8"), stderr.decode("utf-8"))
+    return result
+
 
 class Trace:
     def __init__(self, _scorep, trace=1):
@@ -225,18 +244,12 @@ def main(argv=None):
         scorep = __import__("_scorep_mpi")
         
         scorep_subsystem = "/usr/local/lib/libscorep_init_mpi.so"
-        
-        p = subprocess.Popen(["which","scorep"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        p.wait()
-        if p.returncode != 0:
-            raise Exception("which scorep: " + stderr.decode("utf-8"))
+        (_, scorep_location, _) = call(["which","scorep"])
+
         #TODO this is dirty ... find a better way
-        path = stdout.decode("utf-8").replace("bin/scorep\n","",1).strip()
+        path = scorep_location.replace("bin/scorep\n","",1).strip()
         path = path + "lib"
         scorep_libs = [ "libscorep_adapter_user_event.so",
-            "libscorep_adapter_cuda_event.so",
-            "libscorep_adapter_opencl_event_static.so",
             "libscorep_adapter_mpi_event.so",
             "libscorep_adapter_pthread_event.so",
             "libscorep_measurement.so",
@@ -251,6 +264,11 @@ def main(argv=None):
             "libscorep_alloc_metric.so",
             "libscorep_adapter_utils.so",
             "libscorep_adapter_pthread_mgmt.so"]
+        
+        if cuda_support:
+            scorep_libs.append("libscorep_adapter_cuda_event.so")
+        if opencl_support:
+            scorep_libs.append("libscorep_adapter_opencl_event_static.so")
         
         preload = scorep_subsystem
         for scorep_lib in scorep_libs:
@@ -293,19 +311,6 @@ def main(argv=None):
     except SystemExit:
         pass
 
-if __name__=='__main__':
-    main()
-else:
-    '''
-    If Score-P is not intialised using the tracing module (`python -m scorep <script.py>`),
-    we need to make sure that, if a user call gets called, scorep is still loaded.
-    Moreover, if the module is loaded with `import scorep` we can't do any mpi support anymore
-    '''
-    scorep = __import__("_scorep")
-    global_trace = Trace(scorep,True)
-    
-
-    
 def register():
     '''
     If the module is impored using `import scorep` a call to register is requred to register the traing.
@@ -332,4 +337,33 @@ def user_parameter_uint(name, val):
 
 def user_parameter_string(name, string):
     global_trace.user_parameter_string(name, string)
+
+try:
+    (_, scorep_config, _) = call(["scorep-info", "config-summary"])
+except FileNotFoundError:
+    sys.stderr.write("Cannot find scorep-info. Please check your Score-P installation. Exiting.")
+    exit(-1)
+
+for line in scorep_config.split("\n"):
+    if "CUDA support:" in line:
+        if "yes" in line:
+            cuda_support = True
+        else:
+            cuda_support = False
+    if "OpenCL support:" in line:
+        if "yes" in line:
+            opencl_support = True
+        else:
+            opencl_support = False
+
+if __name__=='__main__':
+    main()
+else:
+    '''
+    If Score-P is not intialised using the tracing module (`python -m scorep <script.py>`),
+    we need to make sure that, if a user call gets called, scorep is still loaded.
+    Moreover, if the module is loaded with `import scorep` we can't do any mpi support anymore
+    '''
+    scorep = __import__("_scorep")
+    global_trace = Trace(scorep,True)
 

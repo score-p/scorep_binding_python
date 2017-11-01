@@ -139,25 +139,6 @@ lib_dir_mpi.extend(lib_dir_mpi_)
 macro_mpi.extend(macro_mpi_)
 linker_flags_mpi.extend(linker_flags_mpi_)
 
-print("MPI-------------------------------------------------------------")
-print(lib_dir_mpi)
-print(include_mpi)
-print(lib_mpi)
-print(lib_dir_mpi)
-print(macro_mpi)
-print(linker_flags_mpi)
-print("MPI-------------------------------------------------------------")
-
-print("NO-MPI-------------------------------------------------------------")
-print(lib_dir)
-print(include)
-print(lib)
-print(lib_dir)
-print(macro)
-print(linker_flags)
-print("NO-MPI-------------------------------------------------------------")
-
-
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)
     

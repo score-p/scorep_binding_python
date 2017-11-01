@@ -104,7 +104,6 @@ def get_mpi_config():
         print("cannot determine mpi version: \"{}\"".format(mpi_version))
         exit(-1)
     
-    print(ldflags)
     lib_dir = re.findall("-L[/+-@.\w]*",ldflags)
     lib     = re.findall("-l[/+-@.\w]*",ldflags)
     include = re.findall("-I[/+-@.\w]*",compile_flags)
@@ -122,8 +121,8 @@ def get_mpi_config():
     include      = list(map(remove_flag3, include))
     macro        = list(map(remove_flag3, macro))
     linker_flags = list(map(remove_space1, linker_flags)) 
-    linker_flags_2 = list(map(remove_x_linker, linker_flags))
-    
+    linker_flags_2 = list(map(remove_x_linker, linker_flags_2))
+ 
     macro   = list(map(lambda x: tuple([x,1]), macro))
     
     linker_flags.extend(linker_flags_2)
@@ -140,7 +139,24 @@ lib_dir_mpi.extend(lib_dir_mpi_)
 macro_mpi.extend(macro_mpi_)
 linker_flags_mpi.extend(linker_flags_mpi_)
 
+print("MPI-------------------------------------------------------------")
 print(lib_dir_mpi)
+print(include_mpi)
+print(lib_mpi)
+print(lib_dir_mpi)
+print(macro_mpi)
+print(linker_flags_mpi)
+print("MPI-------------------------------------------------------------")
+
+print("NO-MPI-------------------------------------------------------------")
+print(lib_dir)
+print(include)
+print(lib)
+print(lib_dir)
+print(macro)
+print(linker_flags)
+print("NO-MPI-------------------------------------------------------------")
+
 
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)

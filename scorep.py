@@ -254,8 +254,6 @@ def main(argv=None):
             "libscorep_adapter_pthread_event.so",
             "libscorep_measurement.so",
             "libscorep_adapter_user_mgmt.so",
-            "libscorep_adapter_cuda_mgmt.so",
-            "libscorep_adapter_opencl_mgmt_static.so",
             "libscorep_adapter_mpi_mgmt.so",
             "libscorep_mpp_mpi.so",
             "libscorep_online_access_mpp_mpi.so",
@@ -269,8 +267,10 @@ def main(argv=None):
         
         if cuda_support:
             scorep_libs.append("libscorep_adapter_cuda_event.so")
+            scorep_libs.append("libscorep_adapter_cuda_mgmt.so")
         if opencl_support:
             scorep_libs.append("libscorep_adapter_opencl_event_static.so")
+            scorep_libs.append("libscorep_adapter_opencl_mgmt_static.so")
         
         preload = scorep_subsystem
         for scorep_lib in scorep_libs:

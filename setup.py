@@ -40,8 +40,8 @@ def call(arguments):
     return result
          
 
-scorep_config = ["scorep-config","--nocompiler", "--user", "--thread=pthread", "--mpp=none"]
-scorep_config_mpi = ["scorep-config","--nocompiler", "--user", "--thread=pthread", "--mpp=mpi"]
+scorep_config = ["scorep-config","--compiler", "--user", "--thread=pthread", "--mpp=none"]
+scorep_config_mpi = ["scorep-config","--compiler", "--user", "--thread=pthread", "--mpp=mpi"]
 
 def get_config(scorep_config):
     (retrun_code, _ ,_) = call(scorep_config + ["--cuda"])

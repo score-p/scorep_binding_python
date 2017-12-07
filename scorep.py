@@ -263,7 +263,9 @@ def main(argv=None):
             "libscorep_mutex_pthread_wrap.so",
             "libscorep_alloc_metric.so",
             "libscorep_adapter_utils.so",
-            "libscorep_adapter_pthread_mgmt.so"]
+            "libscorep_adapter_pthread_mgmt.so",
+            "libscorep_adapter_compiler_event.so",
+            "libscorep_adapter_compiler_mgmt.so"]
         
         if cuda_support:
             scorep_libs.append("libscorep_adapter_cuda_event.so")

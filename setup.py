@@ -69,18 +69,19 @@ def get_config(scorep_config):
     (_, scorep_adapter_init, _) = call(scorep_config + ["--adapter-init"])
      
     libs = libs + " " + mgmt_libs
+    
 
     lib_dir = re.findall(" -L[/+-@.\w]*",ldflags)
     lib     = re.findall(" -l[/+-@.\w]*",libs)
     include = re.findall(" -I[/+-@.\w]*",cflags)
     macro   = re.findall(" -D[/+-@.\w]*",cflags)
     linker_flags = re.findall(" -Wl[/+-@.\w]*",ldflags)
-    
+        
     remove_flag3 = lambda x: x[3:]
     remove_space1 = lambda x: x[1:]
     
     lib_dir      = list(map(remove_flag3, lib_dir))
-    lib          = list(map(remove_flag3, lib))
+    lib          = list(map(remove_space1, lib))
     include      = list(map(remove_flag3, include))
     macro        = list(map(remove_flag3, macro))
     linker_flags = list(map(remove_space1, linker_flags)) 
@@ -117,7 +118,7 @@ def get_mpi_config():
     remove_space1 = lambda x: x[0:]
     
     lib_dir      = list(map(remove_flag3, lib_dir))
-    lib          = list(map(remove_flag3, lib))
+    lib          = list(map(remove_space1, lib))
     include      = list(map(remove_flag3, include))
     macro        = list(map(remove_flag3, macro))
     linker_flags = list(map(remove_space1, linker_flags)) 
@@ -129,15 +130,25 @@ def get_mpi_config():
     
     return (include, lib, lib_dir, macro, linker_flags)
 
-(include, lib, lib_dir, macro, linker_flags, scorep_adapter_init) = get_config(scorep_config)
-(include_mpi, lib_mpi, lib_dir_mpi, macro_mpi, linker_flags_mpi, scorep_adapter_init_mpi) = get_config(scorep_config_mpi)
-(include_mpi_, lib_mpi_, lib_dir_mpi_, macro_mpi_, linker_flags_mpi_) = get_mpi_config()
+(include, lib, lib_dir, macro, linker_flags_tmp, scorep_adapter_init) = get_config(scorep_config)
+(include_mpi, lib_mpi, lib_dir_mpi, macro_mpi, linker_flags_mpi_tmp, scorep_adapter_init_mpi) = get_config(scorep_config_mpi)
+(include_mpi_, lib_mpi_, lib_dir_mpi_, macro_mpi_, linker_flags_mpi_tmp_) = get_mpi_config()
+
+# add -Wl,-no-as-needed to tell the compiler that we really want to link these. Actually this sould be default.
+# as distutils adds extra args at the very end we need to add all the libs after this and skipt the libs later in the extension module
+linker_flags = ["-Wl,-no-as-needed"]
+linker_flags.extend(lib)
+linker_flags.extend(linker_flags_tmp)
 
 include_mpi.extend(include_mpi_)
-lib_mpi.extend(lib_mpi_)
 lib_dir_mpi.extend(lib_dir_mpi_)
 macro_mpi.extend(macro_mpi_)
-linker_flags_mpi.extend(linker_flags_mpi_)
+
+linker_flags_mpi = ["-Wl,-no-as-needed"]
+linker_flags_mpi.extend(linker_flags_mpi_tmp)
+linker_flags_mpi.extend(linker_flags_mpi_tmp_)
+linker_flags_mpi.extend(lib_mpi)
+linker_flags_mpi.extend(lib_mpi_)
 
 with open("./scorep_init.c","w") as f:
     f.write(scorep_adapter_init)
@@ -155,16 +166,17 @@ for arg in sys.argv:
         prefix = arg[9:]
         prefix = os.path.expandvars(prefix)
 
-
 # build scorep with mpi for ld_prealod
 cc = distutils.ccompiler.new_compiler()
 cc.compile(["./scorep_init_mpi.c"])
 cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = "./libscorep_init_mpi.so",\
-        library_dirs = lib_dir_mpi, libraries = lib_mpi)
+        library_dirs = lib_dir_mpi, extra_postargs = linker_flags_mpi)
+
+linker_flags_mpi.append("-lscorep_init_mpi")
 
 module1 = Extension('_scorep',
                     include_dirs = include,
-                    libraries = lib,
+                    libraries = [],
                     library_dirs = lib_dir,
                     define_macros = macro,
                     extra_link_args = linker_flags,
@@ -172,7 +184,7 @@ module1 = Extension('_scorep',
 
 module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
-                    libraries = lib_mpi + ["scorep_init_mpi"],
+                    libraries = [],
                     library_dirs = lib_dir_mpi + ["./"],
                     runtime_library_dirs = ["{}/lib/".format(prefix)],
                     define_macros = macro_mpi + [("USE_MPI",None)],

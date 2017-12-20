@@ -27,11 +27,10 @@ Alternatively, you can kick of the tracing from inside your script by using:
 
 ```
 import scorep
-t = scorep.Trace(True)
-t.register()
+scorep.register()
 ```
 
-Then all code after the call to `t.register()` is traced. This might be helpful to avoid tracing the initialisation of some imported modules.
+Then all code after the call to `scorep.register()` is traced. This might be helpful to avoid tracing the initialisation of some imported modules.
 
 The usual Score-P environment Variables will be respected. Please have a look at:
 
@@ -61,8 +60,7 @@ However, you can trace master-processes. To do so you must need to do:
 
 ```
 import scorep
-t = scorep.Trace(True)
-t.register()
+scorep.register()
 ```
 
 Using the ```python -m scorep <script.py>``` won't work (but the python tracing doesn't work in this case either.). 
@@ -75,8 +73,7 @@ You need to do the following:
 import os
 os.environ["SCOREP_EXPERIMENT_DIRECTORY"] = "/some/dir/with/<process_num>"
 import scorep
-t = scorep.Trace(True)
-t.register()
+scorep.register()
 ```
 
 How you determine the process_num is up to you. You will end up with different traces for each process.
@@ -113,4 +110,11 @@ The tracing uses Score-P User instrumentation. The python trace module was rewor
 
 # MPI
 
-For MPI support please check the branch `mpi` (https://github.com/score-p/scorep_binding_python/tree/mpi2)
+
+This version of the Score-P python tracing plugin supports MPI. To use it please specify `--mpi`:
+
+```
+python -m scorep --mpi <script.py>
+```
+
+This will ensure, that the right Score-P libs are in `LD_PRELOAD`. It will re-execute the tracing script, with the preloaded libs. Please be aware that during installation the shebang of scorep.py is rewritten to match your current python version.

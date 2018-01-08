@@ -276,18 +276,21 @@ def main(argv=None):
         for scorep_lib in scorep_libs:
             preload = preload + " " +path + "/" + scorep_lib
             
-        if "LD_PRELOAD" not in os.environ:
+        if ("LD_PRELOAD" not in os.environ) or ("libscorep" not in os.environ["LD_PRELOAD"]):
             os.environ["LD_PRELOAD"] = preload
-
-            # pay attention for shebang the python version must be match
-
-            # Module __file__ attributes (and related values) should now
-            # always contain absolute paths by default
-            # https://docs.python.org/3.4/whatsnew/3.4.html#other-language-changes
-            os.execve(os.path.realpath(__file__), sys.argv, os.environ)
-        elif("libscorep" not in os.environ["LD_PRELOAD"]): 
-            os.environ["LD_PRELOAD"] = preload
-            os.execve(os.path.realpath(__file__), sys.argv, os.environ)
+            """
+            python -m starts the module as skript. i.e. sys.argv will loke like:
+            ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']
+            
+            To restart python we need to remove this line, and add python -m scorep ... again
+            """
+            new_args = [sys.executable, "-m", "scorep"]
+            for elem in sys.argv:
+                if "scorep.py" in elem:
+                    continue
+                else:
+                    new_args.append(elem)
+            os.execve(sys.executable, new_args, os.environ)
         
 
     # everything is ready

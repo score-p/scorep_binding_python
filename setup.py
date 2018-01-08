@@ -191,35 +191,6 @@ module2 = Extension('_scorep_mpi',
                     extra_link_args = linker_flags_mpi, 
                     sources = ['scorep.c'])
 
-
-## modify scorep.py for a shebang with the right python version
-# fix python interpreter 
-# from https://stackoverflow.com/a/17099342
-def fix_shebang(file_path, python_version):
-    """Rewrite the  shebang for the used major python version of the install,
-    use simply sed from OS"""
-    print("fix python version")
-    # accept array of python version from platform.python_version_tuple()
-    # fix shebang only with major python version
-    sed = "sed -i 's/#!.*\/usr\/bin\/.*python.*$/#!\/usr\/bin\/env python{}/'"\
-            .format(python_version[0], python_version[1])
-    # bring command together with file path
-    cmd = ' '.join([sed, file_path])
-    # execute the sed command and replace in place
-    os.system(cmd)
-
-# Get current Python version
-fix_shebang_curr = functools.partial(fix_shebang, python_version=platform.python_version_tuple())
-
-# add execution rights to file
-def add_exec(file_path):
-    """Add execution rights for user, group and others to the given file"""
-
-    print("change permissions")
-    # change Permission with bitwies or and the constants from stat modul
-    os.chmod(file_path, stat.S_IRUSR | stat.S_IWUSR|  stat.S_IXUSR | \
-            stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-
 # global vars are very bad but I think the only solution for this
 all_data_files = None
 
@@ -267,7 +238,7 @@ class my_install(install):
     # Dict with a filename and the function that should be executed 
     # upon the matching files
     # function must have only one parameter, the file path
-    files_and_commands = {'scorep.py' : (add_exec, fix_shebang_curr, fix_init_mpi)}
+    files_and_commands = {'scorep.py' : (fix_init_mpi)}
 
     def run(self):
         # standard install routine

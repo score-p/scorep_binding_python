@@ -105,17 +105,17 @@ def get_mpi_config():
         print("cannot determine mpi version: \"{}\"".format(mpi_version))
         exit(-1)
     
-    lib_dir = re.findall("-L[/+-@.\w]*",ldflags)
-    lib     = re.findall("-l[/+-@.\w]*",ldflags)
-    include = re.findall("-I[/+-@.\w]*",compile_flags)
-    macro   = re.findall("-D[/+-@.\w]*",compile_flags)
-    linker_flags = re.findall("-Wl[/+-@.\w]*",ldflags)
-    linker_flags_2 = re.findall("-Xlinker [/+-@.\w]*",ldflags)
+    lib_dir = re.findall(" -L[/+-@.\w]*",ldflags)
+    lib     = re.findall(" -l[/+-@.\w]*",ldflags)
+    include = re.findall(" -I[/+-@.\w]*",compile_flags)
+    macro   = re.findall(" -D[/+-@.\w]*",compile_flags)
+    linker_flags = re.findall(" -Wl[/+-@.\w]*",ldflags)
+    linker_flags_2 = re.findall(" -Xlinker [/+-@.\w]*",ldflags)
     
     
-    remove_flag3 = lambda x: x[2:]
-    remove_x_linker = lambda x: x[9:]
-    remove_space1 = lambda x: x[0:]
+    remove_flag3 = lambda x: x[3:]
+    remove_x_linker = lambda x: x[10:]
+    remove_space1 = lambda x: x[1:]
     
     lib_dir      = list(map(remove_flag3, lib_dir))
     lib          = list(map(remove_space1, lib))

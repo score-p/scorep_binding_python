@@ -185,19 +185,16 @@ module2 = Extension('_scorep_mpi',
 
 setup (
     name = 'scorep',
-    version = '0.5',
-    description = 'This is a scorep tracing package',
+    version = '0.6',
+    description = 'This is a scorep tracing package for python',
     author = 'Andreas Gocht',
     author_email = 'andreas.gocht@tu-dresden.de',
-    url = '',
+    url = 'https://github.com/score-p/scorep_binding_python',
     long_description = '''
-This package allows taring of python code using Score-P]
-
-The Package just uses Score-P user regions.
-
-Differnend python theads are not differentiated, but using MPI should work (not tested).
-
-This module is more or less similar to the python trace module. 
+This package allows tracing of python code using Score-P.
+A working Score-P version is required.
+For MPI tracing it uses LD_PREALOAD.
+Besides this, it uses the traditional python-tracing infrastructure.
 ''',
     py_modules = ['scorep'],
     data_files = [("lib",[mpi_lib_name])],

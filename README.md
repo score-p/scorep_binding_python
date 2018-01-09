@@ -49,7 +49,7 @@ and
 
 ## Partly working
 * threaded applications
-    * Please have a look to the Score-P IO branch. This Branch supports orphan threads, which are needed here
+    * Please have a look to the Score-P IO branch. This Branch supports orphan threads, which are needed here. To get access please contact support@score-p.org.
 * python multiprocessing
     * Please have a look to [multiprocessing](#multiprocessing).
 
@@ -117,4 +117,4 @@ This version of the Score-P python tracing plugin supports MPI. To use it please
 python -m scorep --mpi <script.py>
 ```
 
-This will ensure, that the right Score-P libs are in `LD_PRELOAD`. It will re-execute the tracing script, with the preloaded libs. Please be aware that during installation the shebang of scorep.py is rewritten to match your current python version.
+This will ensure, that the right Score-P libs are in `LD_PRELOAD`. It will re-execute the tracing script, with the preloaded libs.

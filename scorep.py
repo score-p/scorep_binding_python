@@ -86,6 +86,24 @@ def call(arguments):
         result = (p.returncode,stdout.decode("utf-8"), stderr.decode("utf-8"))
     return result
 
+def find_lib(lib, lookup_path, recursive):
+    """
+    searches for the given lib along the given path.
+    @param lib name of the lib including the leading lib and final .so
+    @param lookup_path path to start the lookup
+    @param recursive if ture search along the given path, if false search just in the given path
+    @return path to the lib or None if not found
+    """
+    lib_path = ""
+
+    if os.path.isfile(lookup_path + "/" + lib):
+        return lookup_path + "/" + lib
+    else:
+        if recursive:
+            if lookup_path != "/":
+                lookup_path, tail = os.path.split(lookup_path)
+                return find_lib(lib, lookup_path, recursive)
+    return None
 
 class Trace:
     def __init__(self, _scorep, trace=1):
@@ -243,10 +261,26 @@ def main(argv=None):
     else:
         scorep = __import__("_scorep_mpi")
         
-        scorep_subsystem = "/usr/local/lib/libscorep_init_mpi.so"
+        # find the libscorep_init_mpi.so
+        version = "{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
+        mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
+
+        scorep_subsystem = find_lib(mpi_lib_name, os.path.realpath(__file__), True)
+        if scorep_subsystem == None:
+            ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
+            for path in ld_library_paths:
+                scorep_subsystem = find_lib(mpi_lib_name, path, False)
+                if scorep_subsystem is not None:
+                    break
+        
+        if scorep_subsystem == None:
+            sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
+            exit(-1)
+        
         (_, scorep_location, _) = call(["which","scorep"])
 
         #TODO this is dirty ... find a better way
+        #can be fixed with IO branch, once release.
         path = scorep_location.replace("bin/scorep\n","",1).strip()
         path = path + "lib"
         scorep_libs = [ "libscorep_adapter_user_event.so",
@@ -346,7 +380,7 @@ def user_parameter_string(name, string):
 try:
     (_, scorep_config, _) = call(["scorep-info", "config-summary"])
 except FileNotFoundError:
-    sys.stderr.write("Cannot find scorep-info. Please check your Score-P installation. Exiting.")
+    sys.stderr.write("Cannot find scorep-info. Please check your Score-P installation. Exiting.\n")
     exit(-1)
 
 for line in scorep_config.split("\n"):

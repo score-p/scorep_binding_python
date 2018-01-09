@@ -156,20 +156,13 @@ with open("./scorep_init.c","w") as f:
 with open("./scorep_init_mpi.c","w") as f:
     f.write(scorep_adapter_init_mpi)
 
-## black magic to find prefix
-# Setup the default install prefix
-prefix = sys.prefix
-
-# Get the install prefix if one is specified from the command line
-for arg in sys.argv:
-    if arg.startswith('--prefix='):
-        prefix = arg[9:]
-        prefix = os.path.expandvars(prefix)
-
 # build scorep with mpi for ld_prealod
+version = "{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
+mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
+print(mpi_lib_name)
 cc = distutils.ccompiler.new_compiler()
 cc.compile(["./scorep_init_mpi.c"])
-cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = "./libscorep_init_mpi.so",\
+cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = mpi_lib_name,\
         library_dirs = lib_dir_mpi, extra_postargs = linker_flags_mpi)
 
 linker_flags_mpi.append("-lscorep_init_mpi")
@@ -186,77 +179,9 @@ module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
                     libraries = [],
                     library_dirs = lib_dir_mpi + ["./"],
-                    runtime_library_dirs = ["{}/lib/".format(prefix)],
                     define_macros = macro_mpi + [("USE_MPI",None)],
                     extra_link_args = linker_flags_mpi, 
                     sources = ['scorep.c'])
-
-# global vars are very bad but I think the only solution for this
-all_data_files = None
-
-# fix the path of an installed file in another file
-def fix_path(file_path, fix_file_name):
-    """Setting the correct path in the given file with the matching file from
-    the list of all files from own install_data, use simply sed from OS"""
-    
-    global all_data_files
-
-    print("change path for " + fix_file_name)
-    # find matching pathes in the list with the installed files
-    matching_files = list(filter(lambda x: fix_file_name in x, all_data_files))
-
-    if len(matching_files) == 0:
-        print("no matching files were installed, do nothing")
-        return
-    elif len(matching_files) > 1:
-        print("multiple files were found, make name more precise")
-        return
-    new_path = os.path.abspath(matching_files[0])
-
-    # replace all absolute paths that contains the given file name with an
-    # arbitrary filetyp postfix and surrounded by " or not
-    sed = "sed -i 's:\"*\(/.*\)*/{}\..*\"*:\"{}\":g'".format(fix_file_name, new_path)
-    # bring command together with file path
-    cmd = ' '.join([sed, file_path])
-    # execute the sed command and replace in place
-    os.system(cmd)
-    
-fix_init_mpi = functools.partial(fix_path, fix_file_name="libscorep_init_mpi") 
-
-# custom class for additional install_data instructions
-class my_install_data(install_data):
-
-    def run(self):
-        # standard install_data routine
-        install_data.run(self)
-        # get all installed data files
-        global all_data_files
-        all_data_files = self.get_outputs()
-
-# custom class for additional install instructions
-class my_install(install):
-    # Dict with a filename and the function that should be executed 
-    # upon the matching files
-    # function must have only one parameter, the file path
-    files_and_commands = {'scorep.py' : (fix_init_mpi)}
-
-    def run(self):
-        # standard install routine
-        install.run(self)
-        # get all installed files
-        install_files = self.get_outputs()
-
-        ## Parse dictionary
-        # first loop over all key of the dict
-        for key in self.files_and_commands.keys():
-            # find matching pathes in the list with the installed files
-            matching_files = list(filter(lambda x: key in x, install_files))
-            # loop over all matching files
-            for files in matching_files:
-                # and over the file operations
-                for function in self.files_and_commands[key]:
-                    # apply file operations
-                    function(files)
 
 setup (
     name = 'scorep',
@@ -275,8 +200,7 @@ Differnend python theads are not differentiated, but using MPI should work (not 
 This module is more or less similar to the python trace module. 
 ''',
     py_modules = ['scorep'],
-    data_files = [("lib",["libscorep_init_mpi.so"])],
-    ext_modules = [module1,module2],
-    cmdclass={'install': my_install, 'install_data': my_install_data}
+    data_files = [("lib",[mpi_lib_name])],
+    ext_modules = [module1,module2]
 )
 

@@ -266,13 +266,24 @@ def main(argv=None):
         mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
 
         scorep_subsystem = find_lib(mpi_lib_name, os.path.realpath(__file__), True)
+        
+        #look in ld library path
         if scorep_subsystem == None:
             ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
             for path in ld_library_paths:
                 scorep_subsystem = find_lib(mpi_lib_name, path, False)
                 if scorep_subsystem is not None:
                     break
+
+        #look in python path
+        if scorep_subsystem == None:
+            python_path = os.environ['PYTHONPATH'].split(":")
+            for path in python_path:
+                scorep_subsystem = find_lib(mpi_lib_name, path, False)
+                if scorep_subsystem is not None:
+                    break
         
+        #give up
         if scorep_subsystem == None:
             sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
             exit(-1)

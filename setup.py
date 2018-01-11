@@ -165,7 +165,7 @@ cc.compile(["./scorep_init_mpi.c"])
 cc.link("scorep_init_mpi",objects = ["./scorep_init_mpi.o"],output_filename = mpi_lib_name,\
         library_dirs = lib_dir_mpi, extra_postargs = linker_flags_mpi)
 
-linker_flags_mpi.append("-lscorep_init_mpi")
+linker_flags_mpi.append("-lscorep_init_mpi-{}".format(version))
 
 module1 = Extension('_scorep',
                     include_dirs = include,

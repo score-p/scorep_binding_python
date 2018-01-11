@@ -157,7 +157,7 @@ with open("./scorep_init_mpi.c","w") as f:
     f.write(scorep_adapter_init_mpi)
 
 # build scorep with mpi for ld_prealod
-version = "{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
+version = "{}.{}".format(sys.version_info.major, sys.version_info.minor)
 mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
 print(mpi_lib_name)
 cc = distutils.ccompiler.new_compiler()

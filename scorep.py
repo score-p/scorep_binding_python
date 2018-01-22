@@ -2,7 +2,7 @@
 
 # Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
 # Author: Andreas Gocht
-#  
+#
 # portions copyright 2001, Autonomous Zones Industries, Inc., all rights...
 # err...  reserved and offered to the public under the terms of the
 # Python 2.2 license.
@@ -62,29 +62,44 @@ else:
     def _unsettrace():
         sys.settrace(None)
         threading.settrace(None)
+
+
 def _usage(outfile):
     outfile.write("""TODO
 """ % sys.argv[0])
 
-global_trace    = None
 
-cuda_support    = None
-opencl_support  = None
+global_trace = None
+
+cuda_support = None
+opencl_support = None
 
 """
 return a triple with (returncode, stdout, stderr) from the call to subprocess
 """
+
+
 def call(arguments):
     result = ()
-    if sys.version_info > (3,5):
-        out = subprocess.run(arguments,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        result = (out.returncode, out.stdout.decode("utf-8"), out.stderr.decode("utf-8"))
+    if sys.version_info > (3, 5):
+        out = subprocess.run(
+            arguments,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        result = (
+            out.returncode,
+            out.stdout.decode("utf-8"),
+            out.stderr.decode("utf-8"))
     else:
-        p = subprocess.Popen(arguments,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        p = subprocess.Popen(
+            arguments,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         p.wait()
-        result = (p.returncode,stdout.decode("utf-8"), stderr.decode("utf-8"))
+        result = (p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
     return result
+
 
 def find_lib(lib, lookup_path, recursive):
     """
@@ -105,12 +120,13 @@ def find_lib(lib, lookup_path, recursive):
                 return find_lib(lib, lookup_path, recursive)
     return None
 
+
 class Trace:
     def __init__(self, _scorep, trace=1):
         """
         @param trace true if there shall be any tracing at all
         """
-        self.pathtobasename = {} # for memoizing os.path.basename
+        self.pathtobasename = {}  # for memoizing os.path.basename
         self.donothing = 0
         self.trace = trace
         self._scorep = _scorep
@@ -126,15 +142,16 @@ class Trace:
             _settrace(self.globaltrace)
             atexit.register(self.flush_scorep_groups)
 
-
     def run(self, cmd):
         import __main__
         dict = __main__.__dict__
         self.runctx(cmd, dict, dict)
 
     def runctx(self, cmd, globals=None, locals=None):
-        if globals is None: globals = {}
-        if locals is None: locals = {}
+        if globals is None:
+            globals = {}
+        if locals is None:
+            locals = {}
         if not self.donothing:
             _settrace(self.globaltrace)
         try:
@@ -170,23 +187,24 @@ class Trace:
                 full_file_name = "None"
             line_number = frame.f_lineno
             if self.trace and code.co_name is not "_unsettrace":
-                self._scorep.region_begin("%s:%s"% (modulename, code.co_name), full_file_name, line_number)
+                self._scorep.region_begin(
+                    "%s:%s" %
+                    (modulename, code.co_name), full_file_name, line_number)
             return self.localtrace
         else:
             return None
-
 
     def localtrace_trace(self, frame, why, arg):
         if why == "return":
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if self.trace:
-                self._scorep.region_end("%s:%s"% (modulename, code.co_name))
+                self._scorep.region_end("%s:%s" % (modulename, code.co_name))
         return self.localtrace
-    
+
     def flush_scorep_groups(self):
         modules = sys.modules.keys()
-        with open(self._scorep.get_expiriment_dir_name() + "/scorep.fgp","w") as f:
+        with open(self._scorep.get_expiriment_dir_name() + "/scorep.fgp", "w") as f:
             f.write("""
 BEGIN OPTIONS
         MATCHING_STRATEGY=FIRST
@@ -194,12 +212,12 @@ BEGIN OPTIONS
         CASE_SENSITIVITY_MANGLED_NAME=NO
         CASE_SENSITIVITY_SOURCE_FILE_NAME=NO
 END OPTIONS\n""")
-            for module in sorted(modules,reverse=True):
+            for module in sorted(modules, reverse=True):
                 f.write("BEGIN FUNCTION_GROUP {}\n".format(module))
                 f.write("\tNAME={}*\n".format(module))
                 f.write("END FUNCTION_GROUP\n")
-                
-    def user_region_begin(self, name, file_name = None, line_number = None):
+
+    def user_region_begin(self, name, file_name=None, line_number=None):
         """
         Begin of an User region. If file_name or line_number is None, both will
         bet determined automatically
@@ -215,13 +233,13 @@ END OPTIONS\n""")
             full_file_name = os.path.abspath(file_name)
         else:
             full_file_name = "None"
-        
+
         self._scorep.region_begin(name, full_file_name, line_number)
-        
+
     def user_region_end(self, name):
         self._scorep.region_end(name)
 
-    def oa_region_begin(self, name, file_name = None, line_number = None):
+    def oa_region_begin(self, name, file_name=None, line_number=None):
         """
         Begin of an Online Access region. If file_name or line_number is None, both will
         bet determined automatically
@@ -242,13 +260,13 @@ END OPTIONS\n""")
 
     def oa_region_end(self, name):
         self._scorep.oa_region_end(name)
-        
+
     def user_enable_recording(self):
         self._scorep.enable_recording()
 
     def user_disable_recording(self):
         self._scorep.disable_recording()
-        
+
     def user_parameter_int(self, name, val):
         self._scorep.parameter_int(name, val)
 
@@ -261,7 +279,8 @@ END OPTIONS\n""")
 
 def _err_exit(msg):
     sys.stderr.write("%s: %s\n" % (sys.argv[0], msg))
-    sys.exit(1)    
+    sys.exit(1)
+
 
 def main(argv=None):
     import getopt
@@ -290,86 +309,91 @@ def main(argv=None):
         if opt == "--version":
             sys.stdout.write("scorep_trace 1.0\n")
             sys.exit(0)
-        
+
         if opt == "--mpi":
             mpi = True
 
     if len(prog_argv) == 0:
         _err_exit("missing name of file to run")
-    
+
     scorep = None
 
     if not mpi:
         scorep = __import__("_scorep")
     else:
         scorep = __import__("_scorep_mpi")
-        
+
         # find the libscorep_init_mpi.so
-        version = "{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
+        version = "{}.{}.{}".format(
+            sys.version_info.major,
+            sys.version_info.minor,
+            sys.version_info.micro)
         mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
 
-        scorep_subsystem = find_lib(mpi_lib_name, os.path.realpath(__file__), True)
-        
-        #look in ld library path
-        if scorep_subsystem == None:
+        scorep_subsystem = find_lib(
+            mpi_lib_name, os.path.realpath(__file__), True)
+
+        # look in ld library path
+        if scorep_subsystem is None:
             ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
             for path in ld_library_paths:
                 scorep_subsystem = find_lib(mpi_lib_name, path, False)
                 if scorep_subsystem is not None:
                     break
 
-        #look in python path
-        if scorep_subsystem == None:
+        # look in python path
+        if scorep_subsystem is None:
             python_path = os.environ['PYTHONPATH'].split(":")
             for path in python_path:
                 scorep_subsystem = find_lib(mpi_lib_name, path, False)
                 if scorep_subsystem is not None:
                     break
-        
-        #give up
-        if scorep_subsystem == None:
+
+        # give up
+        if scorep_subsystem is None:
             sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
             exit(-1)
-        
-        (_, scorep_location, _) = call(["which","scorep"])
 
-        #TODO this is dirty ... find a better way
-        #can be fixed with IO branch, once release.
-        path = scorep_location.replace("bin/scorep\n","",1).strip()
+        (_, scorep_location, _) = call(["which", "scorep"])
+
+        # TODO this is dirty ... find a better way
+        # can be fixed with IO branch, once release.
+        path = scorep_location.replace("bin/scorep\n", "", 1).strip()
         path = path + "lib"
-        scorep_libs = [ "libscorep_adapter_user_event.so",
-            "libscorep_adapter_mpi_event.so",
-            "libscorep_adapter_pthread_event.so",
-            "libscorep_measurement.so",
-            "libscorep_adapter_user_mgmt.so",
-            "libscorep_adapter_mpi_mgmt.so",
-            "libscorep_mpp_mpi.so",
-            "libscorep_online_access_mpp_mpi.so",
-            "libscorep_thread_create_wait_pthread.so",
-            "libscorep_mutex_pthread_wrap.so",
-            "libscorep_alloc_metric.so",
-            "libscorep_adapter_utils.so",
-            "libscorep_adapter_pthread_mgmt.so",
-            "libscorep_adapter_compiler_event.so",
-            "libscorep_adapter_compiler_mgmt.so"]
-        
+        scorep_libs = ["libscorep_adapter_user_event.so",
+                       "libscorep_adapter_mpi_event.so",
+                       "libscorep_adapter_pthread_event.so",
+                       "libscorep_measurement.so",
+                       "libscorep_adapter_user_mgmt.so",
+                       "libscorep_adapter_mpi_mgmt.so",
+                       "libscorep_mpp_mpi.so",
+                       "libscorep_online_access_mpp_mpi.so",
+                       "libscorep_thread_create_wait_pthread.so",
+                       "libscorep_mutex_pthread_wrap.so",
+                       "libscorep_alloc_metric.so",
+                       "libscorep_adapter_utils.so",
+                       "libscorep_adapter_pthread_mgmt.so",
+                       "libscorep_adapter_compiler_event.so",
+                       "libscorep_adapter_compiler_mgmt.so"]
+
         if cuda_support:
             scorep_libs.append("libscorep_adapter_cuda_event.so")
             scorep_libs.append("libscorep_adapter_cuda_mgmt.so")
         if opencl_support:
             scorep_libs.append("libscorep_adapter_opencl_event_static.so")
             scorep_libs.append("libscorep_adapter_opencl_mgmt_static.so")
-        
+
         preload = scorep_subsystem
         for scorep_lib in scorep_libs:
-            preload = preload + " " +path + "/" + scorep_lib
-            
-        if ("LD_PRELOAD" not in os.environ) or ("libscorep" not in os.environ["LD_PRELOAD"]):
+            preload = preload + " " + path + "/" + scorep_lib
+
+        if ("LD_PRELOAD" not in os.environ) or (
+                "libscorep" not in os.environ["LD_PRELOAD"]):
             os.environ["LD_PRELOAD"] = preload
             """
             python -m starts the module as skript. i.e. sys.argv will loke like:
             ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']
-            
+
             To restart python we need to remove this line, and add python -m scorep ... again
             """
             new_args = [sys.executable, "-m", "scorep"]
@@ -379,14 +403,13 @@ def main(argv=None):
                 else:
                     new_args.append(elem)
             os.execve(sys.executable, new_args, os.environ)
-        
 
     # everything is ready
     sys.argv = prog_argv
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    global_trace = Trace(scorep,True)
+    global_trace = Trace(scorep, True)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -398,11 +421,12 @@ def main(argv=None):
             '__cached__': None,
         }
         global_trace.runctx(code, globs, globs)
-        #t.flush_scorep_groups()
+        # t.flush_scorep_groups()
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     except SystemExit:
         pass
+
 
 def register():
     '''
@@ -410,7 +434,8 @@ def register():
     '''
     global_trace.register()
 
-def user_region_begin(name, file_name = None, line_number = None):
+
+def user_region_begin(name, file_name=None, line_number=None):
     """
     Begin of an User region. If file_name or line_number is None, both will
     bet determined automatically
@@ -428,11 +453,13 @@ def user_region_begin(name, file_name = None, line_number = None):
         full_file_name = "None"
 
     global_trace.user_region_begin(name, full_file_name, line_number)
-    
+
+
 def user_region_end(name):
     global_trace.user_region_end(name)
 
-def oa_region_begin(name, file_name = None, line_number = None):
+
+def oa_region_begin(name, file_name=None, line_number=None):
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
     bet determined automatically
@@ -448,31 +475,39 @@ def oa_region_begin(name, file_name = None, line_number = None):
         full_file_name = os.path.abspath(file_name)
     else:
         full_file_name = "None"
-        
+
     global_trace.oa_region_begin(name, full_file_name, line_number)
+
 
 def oa_region_end(name):
     global_trace.oa_region_end(name)
-    
+
+
 def user_enable_recording():
     global_trace.user_enable_recording()
 
+
 def user_disable_recording():
     global_trace.user_disable_recording()
-    
+
+
 def user_parameter_int(name, val):
     global_trace.user_parameter_int(name, val)
+
 
 def user_parameter_uint(name, val):
     global_trace.user_parameter_uint(name, val)
 
+
 def user_parameter_string(name, string):
     global_trace.user_parameter_string(name, string)
+
 
 try:
     (_, scorep_config, _) = call(["scorep-info", "config-summary"])
 except FileNotFoundError:
-    sys.stderr.write("Cannot find scorep-info. Please check your Score-P installation. Exiting.\n")
+    sys.stderr.write(
+        "Cannot find scorep-info. Please check your Score-P installation. Exiting.\n")
     exit(-1)
 
 for line in scorep_config.split("\n"):
@@ -487,7 +522,7 @@ for line in scorep_config.split("\n"):
         else:
             opencl_support = False
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
 else:
     '''
@@ -496,5 +531,4 @@ else:
     Moreover, if the module is loaded with `import scorep` we can't do any mpi support anymore
     '''
     scorep = __import__("_scorep")
-    global_trace = Trace(scorep,True)
-
+    global_trace = Trace(scorep, True)

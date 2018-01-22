@@ -173,7 +173,7 @@ module1 = Extension('_scorep',
                     library_dirs = lib_dir,
                     define_macros = macro,
                     extra_link_args = linker_flags,
-                    sources = ['scorep.c','scorep_init.c'])
+                    sources = ['scorep.cpp','scorep_init.c'])
 
 module2 = Extension('_scorep_mpi',
                     include_dirs = include_mpi,
@@ -181,7 +181,7 @@ module2 = Extension('_scorep_mpi',
                     library_dirs = lib_dir_mpi + ["./"],
                     define_macros = macro_mpi + [("USE_MPI",None)],
                     extra_link_args = linker_flags_mpi, 
-                    sources = ['scorep.c'])
+                    sources = ['scorep.cpp'])
 
 setup (
     name = 'scorep',

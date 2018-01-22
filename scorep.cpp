@@ -13,20 +13,86 @@
  */
 
 #include <Python.h>
-#include <scorep/SCOREP_User.h>
+#include <iostream>
+#include <map>
+#include <scorep/SCOREP_User_Functions.h>
+#include <scorep/SCOREP_User_Variables.h>
+#include <string>
+
+namespace scorep
+{
+// SCOREP_User_RegionHandle handle = SCOREP_USER_INVALID_REGION
+
+struct region_handle
+{
+    region_handle() = default;
+    ~region_handle() = default;
+    SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
+};
+
+static std::map<std::string, region_handle> regions;
+
+void region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
+{
+    auto& handle = regions[region_name];
+    SCOREP_User_RegionBegin(&handle.value, NULL, &SCOREP_User_LastFileHandle, region_name.c_str(),
+                            SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
+}
+
+void region_end(std::string region_name)
+{
+    auto& handle = regions[region_name];
+    SCOREP_User_RegionEnd(handle.value);
+}
+
+void parameter_int(std::string name, int64_t value)
+{
+    static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
+    SCOREP_User_ParameterInt64(&scorep_param, name.c_str(), value);
+}
+
+void parameter_uint(std::string name, uint64_t value)
+{
+    static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
+    SCOREP_User_ParameterUint64(&scorep_param, name.c_str(), value);
+}
+
+void parameter_string(std::string name, std::string value)
+{
+    static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
+    SCOREP_User_ParameterString(&scorep_param, name.c_str(), value.c_str());
+}
+
+void oa_region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
+{
+    auto& handle = regions[region_name];
+    SCOREP_User_OaPhaseBegin(&handle.value, &SCOREP_User_LastFileName, &SCOREP_User_LastFileHandle,
+                             region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                             file_name.c_str(), line_number);
+}
+
+void oa_region_end(std::string region_name)
+{
+    auto& handle = regions[region_name];
+    SCOREP_User_OaPhaseEnd(handle.value);
+}
+}
+
+extern "C" {
 
 extern const char* SCOREP_GetExperimentDirName(void);
 
 static PyObject* enable_recording(PyObject* self, PyObject* args)
 {
-    SCOREP_RECORDING_ON();
+    SCOREP_User_EnableRecording();
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 static PyObject* disable_recording(PyObject* self, PyObject* args)
 {
-    SCOREP_RECORDING_OFF();
+
+    SCOREP_User_DisableRecording();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -34,11 +100,13 @@ static PyObject* disable_recording(PyObject* self, PyObject* args)
 static PyObject* region_begin(PyObject* self, PyObject* args)
 {
     const char* region;
+    const char* file_name;
+    std::uint64_t line_number = 0;
 
-    if (!PyArg_ParseTuple(args, "s", &region))
+    if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
         return NULL;
 
-    SCOREP_USER_REGION_BY_NAME_BEGIN(region, SCOREP_USER_REGION_TYPE_FUNCTION)
+    scorep::region_begin(region, file_name, line_number);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -51,7 +119,35 @@ static PyObject* region_end(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "s", &region))
         return NULL;
 
-    SCOREP_USER_REGION_BY_NAME_END(region)
+    scorep::region_end(region);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* oa_region_begin(PyObject* self, PyObject* args)
+{
+    const char* region;
+    const char* file_name;
+    std::uint64_t line_number = 0;
+
+    if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
+        return NULL;
+
+    scorep::oa_region_begin(region, file_name, line_number);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* oa_region_end(PyObject* self, PyObject* args)
+{
+    const char* region;
+
+    if (!PyArg_ParseTuple(args, "s", &region))
+        return NULL;
+
+    scorep::oa_region_end(region);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -65,7 +161,7 @@ static PyObject* parameter_string(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "ss", &name, &value))
         return NULL;
 
-    SCOREP_USER_PARAMETER_STRING(name, value)
+    scorep::parameter_string(name, value);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -79,7 +175,7 @@ static PyObject* parameter_int(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "sL", &name, &value))
         return NULL;
 
-    SCOREP_USER_PARAMETER_INT64(name, value)
+    scorep::parameter_int(name, value);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -93,7 +189,7 @@ static PyObject* parameter_uint(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "sK", &name, &value))
         return NULL;
 
-    SCOREP_USER_PARAMETER_UINT64(name, value)
+    scorep::parameter_uint(name, value);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -108,6 +204,8 @@ static PyObject* get_expiriment_dir_name(PyObject* self, PyObject* args)
 static PyMethodDef ScorePMethods[] = {
     { "region_begin", region_begin, METH_VARARGS, "enter a region." },
     { "region_end", region_end, METH_VARARGS, "exit a region." },
+    { "oa_region_begin", oa_region_begin, METH_VARARGS, "enter an online access region." },
+    { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
     { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },
     { "disable_recording", disable_recording, METH_VARARGS, "disable scorep recording." },
     { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
@@ -156,3 +254,4 @@ PyMODINIT_FUNC PyInit__scorep_mpi(void)
 }
 #endif /*USE_MPI*/
 #endif /*python 3*/
+}

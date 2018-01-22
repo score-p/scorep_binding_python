@@ -163,8 +163,14 @@ class Trace:
         if why == 'call':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
+            file_name = frame.f_globals.get('__file__', None)
+            if file_name is not None:
+                full_file_name = os.path.abspath(file_name)
+            else:
+                full_file_name = "None"
+            line_number = frame.f_lineno
             if self.trace and code.co_name is not "_unsettrace":
-                self._scorep.region_begin("%s:%s"% (modulename, code.co_name))
+                self._scorep.region_begin("%s:%s"% (modulename, code.co_name), full_file_name, line_number)
             return self.localtrace
         else:
             return None
@@ -193,12 +199,49 @@ END OPTIONS\n""")
                 f.write("\tNAME={}*\n".format(module))
                 f.write("END FUNCTION_GROUP\n")
                 
-
-    def user_region_begin(self, name):
-        self._scorep.region_begin(name)
+    def user_region_begin(self, name, file_name = None, line_number = None):
+        """
+        Begin of an User region. If file_name or line_number is None, both will
+        bet determined automatically
+        @param name name of the user region
+        @param file_name file name of the user region
+        @param line_number line number of the user region
+        """
+        if file_name is None or line_number is None:
+            frame = inspect.currentframe().f_back
+            file_name = frame.f_globals.get('__file__', None)
+            line_number = frame.f_lineno
+        if file_name is not None:
+            full_file_name = os.path.abspath(file_name)
+        else:
+            full_file_name = "None"
+        
+        self._scorep.region_begin(name, full_file_name, line_number)
         
     def user_region_end(self, name):
         self._scorep.region_end(name)
+
+    def oa_region_begin(self, name, file_name = None, line_number = None):
+        """
+        Begin of an Online Access region. If file_name or line_number is None, both will
+        bet determined automatically
+        @param name name of the user region
+        @param file_name file name of the user region
+        @param line_number line number of the user region
+        """
+        if file_name is None or line_number is None:
+            frame = inspect.currentframe().f_back
+            file_name = frame.f_globals.get('__file__', None)
+            line_number = frame.f_lineno
+        if file_name is not None:
+            full_file_name = os.path.abspath(file_name)
+        else:
+            full_file_name = "None"
+
+        self._scorep.oa_region_begin(name, full_file_name, line_number)
+
+    def oa_region_end(self, name):
+        self._scorep.oa_region_end(name)
         
     def user_enable_recording(self):
         self._scorep.enable_recording()
@@ -367,11 +410,49 @@ def register():
     '''
     global_trace.register()
 
-def user_region_begin(name):
-    global_trace.user_region_begin(name)
+def user_region_begin(name, file_name = None, line_number = None):
+    """
+    Begin of an User region. If file_name or line_number is None, both will
+    bet determined automatically
+    @param name name of the user region
+    @param file_name file name of the user region
+    @param line_number line number of the user region
+    """
+    if file_name is None or line_number is None:
+        frame = inspect.currentframe().f_back
+        file_name = frame.f_globals.get('__file__', None)
+        line_number = frame.f_lineno
+    if file_name is not None:
+        full_file_name = os.path.abspath(file_name)
+    else:
+        full_file_name = "None"
+
+    global_trace.user_region_begin(name, full_file_name, line_number)
     
 def user_region_end(name):
     global_trace.user_region_end(name)
+
+def oa_region_begin(name, file_name = None, line_number = None):
+    """
+    Begin of an Online Access region. If file_name or line_number is None, both will
+    bet determined automatically
+    @param name name of the user region
+    @param file_name file name of the user region
+    @param line_number line number of the user region
+    """
+    if file_name is None or line_number is None:
+        frame = inspect.currentframe().f_back
+        file_name = frame.f_globals.get('__file__', None)
+        line_number = frame.f_lineno
+    if file_name is not None:
+        full_file_name = os.path.abspath(file_name)
+    else:
+        full_file_name = "None"
+        
+    global_trace.oa_region_begin(name, full_file_name, line_number)
+
+def oa_region_end(name):
+    global_trace.oa_region_end(name)
     
 def user_enable_recording():
     global_trace.user_enable_recording()

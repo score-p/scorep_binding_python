@@ -324,10 +324,9 @@ def main(argv=None):
         scorep = __import__("_scorep_mpi")
 
         # find the libscorep_init_mpi.so
-        version = "{}.{}.{}".format(
+        version = "{}.{}".format(
             sys.version_info.major,
-            sys.version_info.minor,
-            sys.version_info.micro)
+            sys.version_info.minor)
         mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
 
         scorep_subsystem = find_lib(

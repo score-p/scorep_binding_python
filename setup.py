@@ -208,6 +208,7 @@ module1 = Extension('_scorep',
                     library_dirs=lib_dir,
                     define_macros=macro,
                     extra_link_args=linker_flags,
+                    extra_compile_args=["-std=c++11"],
                     sources=['scorep.cpp', 'scorep_init.c'])
 
 module2 = Extension('_scorep_mpi',
@@ -216,6 +217,7 @@ module2 = Extension('_scorep_mpi',
                     library_dirs=lib_dir_mpi + ["./"],
                     define_macros=macro_mpi + [("USE_MPI", None)],
                     extra_link_args=linker_flags_mpi,
+                    extra_compile_args=["-std=c++11"],
                     sources=['scorep.cpp'])
 
 setup(

@@ -222,7 +222,7 @@ module2 = Extension('_scorep_mpi',
 
 setup(
     name='scorep',
-    version='0.6',
+    version='0.7',
     description='This is a scorep tracing package for python',
     author='Andreas Gocht',
     author_email='andreas.gocht@tu-dresden.de',

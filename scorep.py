@@ -504,9 +504,9 @@ def user_parameter_string(name, string):
 
 try:
     (_, scorep_config, _) = call(["scorep-info", "config-summary"])
-except FileNotFoundError:
+except OSError as err:
     sys.stderr.write(
-        "Cannot find scorep-info. Please check your Score-P installation. Exiting.\n")
+        "Cannot open scorep-info. Please check your Score-P installation.\nError was: {}\nExiting.\n".format(err))
     exit(-1)
 
 for line in scorep_config.split("\n"):

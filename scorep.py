@@ -120,6 +120,80 @@ def find_lib(lib, lookup_path, recursive):
                 return find_lib(lib, lookup_path, recursive)
     return None
 
+def generate_ld_preload():
+    """
+    This functions generate a string that needs to be passed to $LD_PRELOAD and the path to the scorep subsystem.
+    This is needed it MPI tracing is requested.
+    After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
+    
+    @return ld_preload, scorep_subsystem
+        ld_preload ... string which needs to be passed to LD_PRELOAD
+        scorep_subsystem ... path to the scorep subsystem (e.g. libscorep_init_mpi)
+    """
+    # find the libscorep_init_mpi.so
+    version = "{}.{}".format(
+        sys.version_info.major,
+        sys.version_info.minor)
+    mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
+
+    scorep_subsystem = find_lib(
+        mpi_lib_name, os.path.realpath(__file__), True)
+
+    # look in ld library path
+    if scorep_subsystem is None:
+        ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
+        for path in ld_library_paths:
+            scorep_subsystem = find_lib(mpi_lib_name, path, False)
+            if scorep_subsystem is not None:
+                break
+
+    # look in python path
+    if scorep_subsystem is None:
+        python_path = os.environ['PYTHONPATH'].split(":")
+        for path in python_path:
+            scorep_subsystem = find_lib(mpi_lib_name, path, False)
+            if scorep_subsystem is not None:
+                break
+
+    # give up
+    if scorep_subsystem is None:
+        sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
+        exit(-1)
+
+    (_, scorep_location, _) = call(["which", "scorep"])
+
+    # TODO this is dirty ... find a better way
+    # can be fixed with IO branch, once release.
+    path = scorep_location.replace("bin/scorep\n", "", 1).strip()
+    path = path + "lib"
+    scorep_libs = ["libscorep_adapter_user_event.so",
+                    "libscorep_adapter_mpi_event.so",
+                    "libscorep_adapter_pthread_event.so",
+                    "libscorep_measurement.so",
+                    "libscorep_adapter_user_mgmt.so",
+                    "libscorep_adapter_mpi_mgmt.so",
+                    "libscorep_mpp_mpi.so",
+                    "libscorep_online_access_mpp_mpi.so",
+                    "libscorep_thread_create_wait_pthread.so",
+                    "libscorep_mutex_pthread_wrap.so",
+                    "libscorep_alloc_metric.so",
+                    "libscorep_adapter_utils.so",
+                    "libscorep_adapter_pthread_mgmt.so",
+                    "libscorep_adapter_compiler_event.so",
+                    "libscorep_adapter_compiler_mgmt.so"]
+
+    if cuda_support:
+        scorep_libs.append("libscorep_adapter_cuda_event.so")
+        scorep_libs.append("libscorep_adapter_cuda_mgmt.so")
+    if opencl_support:
+        scorep_libs.append("libscorep_adapter_opencl_event_static.so")
+        scorep_libs.append("libscorep_adapter_opencl_mgmt_static.so")
+
+    preload = scorep_subsystem
+    for scorep_lib in scorep_libs:
+        preload = preload + " " + path + "/" + scorep_lib
+    return preload, scorep_subsystem
+
 
 class Trace:
     def __init__(self, _scorep, trace=1):
@@ -321,74 +395,16 @@ def main(argv=None):
     if not mpi:
         scorep = __import__("_scorep")
     else:
-        scorep = __import__("_scorep_mpi")
-
-        # find the libscorep_init_mpi.so
-        version = "{}.{}".format(
-            sys.version_info.major,
-            sys.version_info.minor)
-        mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
-
-        scorep_subsystem = find_lib(
-            mpi_lib_name, os.path.realpath(__file__), True)
-
-        # look in ld library path
-        if scorep_subsystem is None:
-            ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
-            for path in ld_library_paths:
-                scorep_subsystem = find_lib(mpi_lib_name, path, False)
-                if scorep_subsystem is not None:
-                    break
-
-        # look in python path
-        if scorep_subsystem is None:
-            python_path = os.environ['PYTHONPATH'].split(":")
-            for path in python_path:
-                scorep_subsystem = find_lib(mpi_lib_name, path, False)
-                if scorep_subsystem is not None:
-                    break
-
-        # give up
-        if scorep_subsystem is None:
-            sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
-            exit(-1)
-
-        (_, scorep_location, _) = call(["which", "scorep"])
-
-        # TODO this is dirty ... find a better way
-        # can be fixed with IO branch, once release.
-        path = scorep_location.replace("bin/scorep\n", "", 1).strip()
-        path = path + "lib"
-        scorep_libs = ["libscorep_adapter_user_event.so",
-                       "libscorep_adapter_mpi_event.so",
-                       "libscorep_adapter_pthread_event.so",
-                       "libscorep_measurement.so",
-                       "libscorep_adapter_user_mgmt.so",
-                       "libscorep_adapter_mpi_mgmt.so",
-                       "libscorep_mpp_mpi.so",
-                       "libscorep_online_access_mpp_mpi.so",
-                       "libscorep_thread_create_wait_pthread.so",
-                       "libscorep_mutex_pthread_wrap.so",
-                       "libscorep_alloc_metric.so",
-                       "libscorep_adapter_utils.so",
-                       "libscorep_adapter_pthread_mgmt.so",
-                       "libscorep_adapter_compiler_event.so",
-                       "libscorep_adapter_compiler_mgmt.so"]
-
-        if cuda_support:
-            scorep_libs.append("libscorep_adapter_cuda_event.so")
-            scorep_libs.append("libscorep_adapter_cuda_mgmt.so")
-        if opencl_support:
-            scorep_libs.append("libscorep_adapter_opencl_event_static.so")
-            scorep_libs.append("libscorep_adapter_opencl_mgmt_static.so")
-
-        preload = scorep_subsystem
-        for scorep_lib in scorep_libs:
-            preload = preload + " " + path + "/" + scorep_lib
-
         if ("LD_PRELOAD" not in os.environ) or (
                 "libscorep" not in os.environ["LD_PRELOAD"]):
-            os.environ["LD_PRELOAD"] = preload
+            ld_preload, scorep_subsystem = generate_ld_preload()
+            
+            os.environ["LD_PRELOAD"] = ld_preload
+            if os.environ["LD_LIBRARY_PATH"] == "":
+                os.environ["LD_LIBRARY_PATH"] = os.path.dirname(scorep_subsystem)
+            else:
+                os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + ":" + os.path.dirname(scorep_subsystem)
+            
             """
             python -m starts the module as skript. i.e. sys.argv will loke like:
             ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']
@@ -402,6 +418,8 @@ def main(argv=None):
                 else:
                     new_args.append(elem)
             os.execve(sys.executable, new_args, os.environ)
+        else:
+            scorep = __import__("_scorep_mpi")
 
     # everything is ready
     sys.argv = prog_argv

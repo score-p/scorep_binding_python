@@ -89,6 +89,33 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(out.stdout.decode("utf-8"),
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
 
+    def test_mpi(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_mpi"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+        out = subprocess.run(["mpirun",
+                              "-n",
+                              "2",
+                              "python3",
+                              "-m",
+                              "scorep",
+                              "--mpi",
+                              "test_mpi.py"],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             env=env)
+        expected_std_err = \
+            "[Score-P] src/adapters/compiler/scorep_compiler_symbol_table_libbfd.c:118: Error: The given size cannot be used: BFD: bfd_canonicalize_symtab(): < 1\n" + \
+            "[Score-P] src/adapters/compiler/scorep_compiler_symbol_table_libbfd.c:118: Error: The given size cannot be used: BFD: bfd_canonicalize_symtab(): < 1\n"
+
+        expected_std_out = \
+            "[00] [0. 1. 2. 3. 4.]\n" +\
+            "[01] [0. 1. 2. 3. 4.]\n"
+
+        # TODO
+        #self.assertEqual(out.stderr.decode("utf-8"), expected_std_err)
+        #self.assertEqual(out.stdout.decode("utf-8"), "hello world\n")
+
     def tearDown(self):
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],

@@ -120,12 +120,13 @@ def find_lib(lib, lookup_path, recursive):
                 return find_lib(lib, lookup_path, recursive)
     return None
 
+
 def generate_ld_preload():
     """
     This functions generate a string that needs to be passed to $LD_PRELOAD and the path to the scorep subsystem.
     This is needed it MPI tracing is requested.
     After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
-    
+
     @return ld_preload, scorep_subsystem
         ld_preload ... string which needs to be passed to LD_PRELOAD
         scorep_subsystem ... path to the scorep subsystem (e.g. libscorep_init_mpi)
@@ -134,7 +135,7 @@ def generate_ld_preload():
     version = "{}.{}".format(
         sys.version_info.major,
         sys.version_info.minor)
-    mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
+    mpi_lib_name = "libscorep_init_mpi-{}.so".format(version)
 
     scorep_subsystem = find_lib(
         mpi_lib_name, os.path.realpath(__file__), True)
@@ -167,20 +168,20 @@ def generate_ld_preload():
     path = scorep_location.replace("bin/scorep\n", "", 1).strip()
     path = path + "lib"
     scorep_libs = ["libscorep_adapter_user_event.so",
-                    "libscorep_adapter_mpi_event.so",
-                    "libscorep_adapter_pthread_event.so",
-                    "libscorep_measurement.so",
-                    "libscorep_adapter_user_mgmt.so",
-                    "libscorep_adapter_mpi_mgmt.so",
-                    "libscorep_mpp_mpi.so",
-                    "libscorep_online_access_mpp_mpi.so",
-                    "libscorep_thread_create_wait_pthread.so",
-                    "libscorep_mutex_pthread_wrap.so",
-                    "libscorep_alloc_metric.so",
-                    "libscorep_adapter_utils.so",
-                    "libscorep_adapter_pthread_mgmt.so",
-                    "libscorep_adapter_compiler_event.so",
-                    "libscorep_adapter_compiler_mgmt.so"]
+                   "libscorep_adapter_mpi_event.so",
+                   "libscorep_adapter_pthread_event.so",
+                   "libscorep_measurement.so",
+                   "libscorep_adapter_user_mgmt.so",
+                   "libscorep_adapter_mpi_mgmt.so",
+                   "libscorep_mpp_mpi.so",
+                   "libscorep_online_access_mpp_mpi.so",
+                   "libscorep_thread_create_wait_pthread.so",
+                   "libscorep_mutex_pthread_wrap.so",
+                   "libscorep_alloc_metric.so",
+                   "libscorep_adapter_utils.so",
+                   "libscorep_adapter_pthread_mgmt.so",
+                   "libscorep_adapter_compiler_event.so",
+                   "libscorep_adapter_compiler_mgmt.so"]
 
     if cuda_support:
         scorep_libs.append("libscorep_adapter_cuda_event.so")
@@ -398,13 +399,29 @@ def main(argv=None):
         if ("LD_PRELOAD" not in os.environ) or (
                 "libscorep" not in os.environ["LD_PRELOAD"]):
             ld_preload, scorep_subsystem = generate_ld_preload()
-            
+
             os.environ["LD_PRELOAD"] = ld_preload
             if os.environ["LD_LIBRARY_PATH"] == "":
-                os.environ["LD_LIBRARY_PATH"] = os.path.dirname(scorep_subsystem)
+                os.environ["LD_LIBRARY_PATH"] = os.path.dirname(
+                    scorep_subsystem)
             else:
-                os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + ":" + os.path.dirname(scorep_subsystem)
+                os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + \
+                    ":" + os.path.dirname(scorep_subsystem)
+
+            vampir_groups_writer_lib = "libscorep_substrate_vampir_groups_writer.so"
+            vampir_groups_writer = None
+            ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
+            for path in ld_library_paths:
+                vampir_groups_writer = find_lib(vampir_groups_writer_lib, path, False)
+                if vampir_groups_writer is not None:
+                    break
             
+            if vampir_groups_writer is not None:
+                if ("SCOREP_SUBSTRATE_PLUGINS" not in os.environ) or (os.environ["SCOREP_SUBSTRATE_PLUGINS"]==""):
+                    os.environ["SCOREP_SUBSTRATE_PLUGINS"] = "vampir_groups_writer"
+                else:
+                    os.environ["SCOREP_SUBSTRATE_PLUGINS"] += ",vampir_groups_writer"
+
             """
             python -m starts the module as skript. i.e. sys.argv will loke like:
             ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']

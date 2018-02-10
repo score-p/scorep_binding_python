@@ -142,19 +142,21 @@ def generate_ld_preload():
 
     # look in ld library path
     if scorep_subsystem is None:
-        ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
-        for path in ld_library_paths:
-            scorep_subsystem = find_lib(mpi_lib_name, path, False)
-            if scorep_subsystem is not None:
-                break
+        if 'LD_LIBRARY_PATH' in os.environ:
+            ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
+            for path in ld_library_paths:
+                 scorep_subsystem = find_lib(mpi_lib_name, path, False)
+                 if scorep_subsystem is not None:
+                     break
 
     # look in python path
     if scorep_subsystem is None:
-        python_path = os.environ['PYTHONPATH'].split(":")
-        for path in python_path:
-            scorep_subsystem = find_lib(mpi_lib_name, path, False)
-            if scorep_subsystem is not None:
-                break
+        if "PYTHONPATH" in os.environ: 
+            python_path = os.environ['PYTHONPATH'].split(":")
+            for path in python_path:
+                scorep_subsystem = find_lib(mpi_lib_name, path, False)
+                if scorep_subsystem is not None:
+                    break
 
     # give up
     if scorep_subsystem is None:
@@ -410,11 +412,12 @@ def main(argv=None):
 
             vampir_groups_writer_lib = "libscorep_substrate_vampir_groups_writer.so"
             vampir_groups_writer = None
-            ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
-            for path in ld_library_paths:
-                vampir_groups_writer = find_lib(vampir_groups_writer_lib, path, False)
-                if vampir_groups_writer is not None:
-                    break
+            if 'LD_LIBRARY_PATH' in os.environ:
+                ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
+                for path in ld_library_paths:
+                    vampir_groups_writer = find_lib(vampir_groups_writer_lib, path, False)
+                    if vampir_groups_writer is not None:
+                        break
             
             if vampir_groups_writer is not None:
                 if ("SCOREP_SUBSTRATE_PLUGINS" not in os.environ) or (os.environ["SCOREP_SUBSTRATE_PLUGINS"]==""):

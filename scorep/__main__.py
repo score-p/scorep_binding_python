@@ -104,6 +104,25 @@ def main(argv=None):
         _err_exit("missing name of file to run")
 
     scorep_bindings = None
+    
+    """
+    look for vampir_groups_writer, which will produce a groups file for vampir.
+    This allows collored output.
+    """
+    vampir_groups_writer_lib = "libscorep_substrate_vampir_groups_writer.so"
+    vampir_groups_writer = None
+    ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
+    for path in ld_library_paths:
+        vampir_groups_writer = scorep.helper.find_lib(vampir_groups_writer_lib, path, False)
+        if vampir_groups_writer is not None:
+            break
+    
+    if vampir_groups_writer is not None:
+        if ("SCOREP_SUBSTRATE_PLUGINS" not in os.environ) or (os.environ["SCOREP_SUBSTRATE_PLUGINS"]==""):
+            os.environ["SCOREP_SUBSTRATE_PLUGINS"] = "vampir_groups_writer"
+        else:
+            os.environ["SCOREP_SUBSTRATE_PLUGINS"] += ",vampir_groups_writer"
+    
 
     if not mpi:
         scorep_bindings = importlib.import_module("scorep.scorep_bindings")
@@ -119,20 +138,6 @@ def main(argv=None):
             else:
                 os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + \
                     ":" + os.path.dirname(scorep_subsystem)
-
-            vampir_groups_writer_lib = "libscorep_substrate_vampir_groups_writer.so"
-            vampir_groups_writer = None
-            ld_library_paths = os.environ['LD_LIBRARY_PATH'].split(":")
-            for path in ld_library_paths:
-                vampir_groups_writer = scorep.helper.find_lib(vampir_groups_writer_lib, path, False)
-                if vampir_groups_writer is not None:
-                    break
-            
-            if vampir_groups_writer is not None:
-                if ("SCOREP_SUBSTRATE_PLUGINS" not in os.environ) or (os.environ["SCOREP_SUBSTRATE_PLUGINS"]==""):
-                    os.environ["SCOREP_SUBSTRATE_PLUGINS"] = "vampir_groups_writer"
-                else:
-                    os.environ["SCOREP_SUBSTRATE_PLUGINS"] += ",vampir_groups_writer"
 
             """
             python -m starts the module as skript. i.e. sys.argv will loke like:

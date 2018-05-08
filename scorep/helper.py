@@ -98,4 +98,5 @@ def generate_ld_preload():
         return "", "" 
         
     (_, preload, _) = call(["scorep-config", "--preload-libs"])
+    preload += " " + scorep_subsystem_path
     return preload, scorep_subsystem_path

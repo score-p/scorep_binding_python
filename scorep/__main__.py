@@ -1,37 +1,3 @@
-#!/usr/bin/env python
-
-# Copyright 2017-2018, Technische Universitaet Dresden, Germany, all rights reserved.
-# Author: Andreas Gocht
-#
-# portions copyright 2001, Autonomous Zones Industries, Inc., all rights...
-# err...  reserved and offered to the public under the terms of the
-# Python 2.2 license.
-# Author: Zooko O'Whielacronx
-# http://zooko.com/
-# mailto:zooko@zooko.com
-#
-# Copyright 2000, Mojam Media, Inc., all rights reserved.
-# Author: Skip Montanaro
-#
-# Copyright 1999, Bioreason, Inc., all rights reserved.
-# Author: Andrew Dalke
-#
-# Copyright 1995-1997, Automatrix, Inc., all rights reserved.
-# Author: Skip Montanaro
-#
-# Copyright 1991-1995, Stichting Mathematisch Centrum, all rights reserved.
-#
-#
-# Permission to use, copy, modify, and distribute this Python software and
-# its associated documentation for any purpose without fee is hereby
-# granted, provided that the above copyright notice appears in all copies,
-# and that both that copyright notice and this permission notice appear in
-# supporting documentation, and that the name of neither Automatrix,
-# Bioreason, Mojam Media or TU Dresden be used in advertising or publicity
-# pertaining to distribution of the software without specific, written
-# prior permission.
-#
-
 import os
 import sys
 
@@ -105,9 +71,19 @@ def main(argv=None):
 
     scorep_bindings = None
     
+   
+    ld_preload, scorep_subsystem = scorep.helper.generate_ld_preload()
+    if (os.path.dirname(scorep_subsystem) not in os.environ["LD_LIBRARY_PATH"]):
+        if os.environ["LD_LIBRARY_PATH"] == "":
+            os.environ["LD_LIBRARY_PATH"] = os.path.dirname(
+                scorep_subsystem)
+        else:
+            os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + \
+                ":" + os.path.dirname(scorep_subsystem)
+
     """
     look for vampir_groups_writer, which will produce a groups file for vampir.
-    This allows collored output.
+    This allows collored traces.
     """
     vampir_groups_writer_lib = "libscorep_substrate_vampir_groups_writer.so"
     vampir_groups_writer = None
@@ -122,22 +98,15 @@ def main(argv=None):
             os.environ["SCOREP_SUBSTRATE_PLUGINS"] = "vampir_groups_writer"
         else:
             os.environ["SCOREP_SUBSTRATE_PLUGINS"] += ",vampir_groups_writer"
-    
 
+    
     if not mpi:
         scorep_bindings = importlib.import_module("scorep.scorep_bindings")
     else:
         if ("LD_PRELOAD" not in os.environ) or (
                 "libscorep" not in os.environ["LD_PRELOAD"]):
-            ld_preload, scorep_subsystem = scorep.helper.generate_ld_preload()
 
             os.environ["LD_PRELOAD"] = ld_preload
-            if os.environ["LD_LIBRARY_PATH"] == "":
-                os.environ["LD_LIBRARY_PATH"] = os.path.dirname(
-                    scorep_subsystem)
-            else:
-                os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + \
-                    ":" + os.path.dirname(scorep_subsystem)
 
             """
             python -m starts the module as skript. i.e. sys.argv will loke like:

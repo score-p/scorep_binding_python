@@ -1,17 +1,3 @@
-
-/*
- * Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
- * Author: Andreas Gocht
- *
- * Permission to use, copy, modify, and distribute this Python software and
- * its associated documentation for any purpose without fee is hereby
- * granted, provided that the above copyright notice appears in all copies,
- * and that both that copyright notice and this permission notice appear in
- * supporting documentation, and that the name of TU Dresden is not used in
- * advertising or publicity pertaining to distribution of the software
- * without specific, written prior permission.
- */
-
 #include <Python.h>
 #include <iostream>
 #include <scorep/SCOREP_User_Functions.h>

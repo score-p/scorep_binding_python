@@ -1,4 +1,3 @@
-
 import inspect
 import os.path
 import scorep.strace

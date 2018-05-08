@@ -1,16 +1,3 @@
-#
-# Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
-# Author: Andreas Gocht
-#
-# Permission to use, copy, modify, and distribute this Python software and
-# its associated documentation for any purpose without fee is hereby
-# granted, provided that the above copyright notice appears in all copies,
-# and that both that copyright notice and this permission notice appear in
-# supporting documentation, and that the name of TU Dresden is not used in
-# advertising or publicity pertaining to distribution of the software
-# without specific, written prior permission.
-
-
 from distutils.core import setup, Extension
 from distutils.command.install import install
 from distutils.command.install_data import install_data
@@ -127,6 +114,35 @@ def get_mpi_config():
 
     return (include, lib, lib_dir, macro, linker_flags)
 
+def build_vampir_groups_writer():
+    """
+    Tries to build the vampir_groups_writer for collered vampir traces.
+    
+    @return return_val, message
+        return_val ... return value of the most recent executed command. 0 on success.
+        message ... error message if return_val =! 0 else the path to the build lib, which should be installed. 
+    """
+    
+    scorep_substrate_vampir_groups_writer = None
+    if(len(os.listdir("scorep_substrate_vampir_groups_writer/")) == 0):
+        (return_val, _, error) = scorep.helper.call(["git", "submodule", "init"])
+        if return_val != 0:
+            return return_val, error 
+
+    (return_val, _, error) = scorep.helper.call(["git", "submodule", "update"])
+    if return_val != 0:
+        return return_val, error
+    
+    (return_val, _, error) = scorep.helper.call(["cmake", "-Btmp_build", "-Hscorep_substrate_vampir_groups_writer"])
+    if return_val != 0:
+        return return_val, error
+    
+    (return_val, _, error) = scorep.helper.call(["make", "-C", "tmp_build"])
+    if return_val != 0:
+        return return_val, error
+    else:
+        return return_val, "tmp_build/libscorep_substrate_vampir_groups_writer.so"
+
 
 (include, lib, lib_dir, macro, linker_flags_tmp,
  scorep_adapter_init) = get_config(scorep_config)
@@ -175,6 +191,17 @@ mpi_link_name = scorep.helper.gen_mpi_link_name()
 
 linker_flags_mpi.append("-l{}".format(mpi_link_name))
 
+libs = [mpi_lib_name]
+
+(ret_val, message) = build_vampir_groups_writer()
+
+print("Download and build vampir gouprs writer")
+if ret_val != 0:
+    print("Error building vampir groups writer:\n{}".format(message))
+    print("Continuing without")
+else:
+    libs.append(message)
+
 module1 = Extension('scorep.scorep_bindings',
                     include_dirs=include,
                     libraries=[],
@@ -207,6 +234,6 @@ For MPI tracing it uses LD_PREALOAD.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
     packages = ['scorep'],
-    data_files=[("lib", [mpi_lib_name])],
+    data_files=[("lib", libs)],
     ext_modules=[module1, module2]
 )

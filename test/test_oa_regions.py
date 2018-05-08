@@ -1,10 +1,8 @@
-import scorep
-
+import scorep.user
 
 def foo():
-    scorep.oa_region_begin("test_region")
+    scorep.user.oa_region_begin("test_region")
     print("hello world")
-    scorep.oa_region_end("test_region")
-
+    scorep.user.oa_region_end("test_region")
 
 foo()

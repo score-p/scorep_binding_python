@@ -17,7 +17,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.env["SCOREP_TOTAL_MEMORY"] = "3G"
         self.env["SCOREP_EXPERIMENT_DIRECTORY"] = "test_bindings_dir"
 
-        self.expected_std_err = "[Score-P] src/adapters/compiler/scorep_compiler_symbol_table_libbfd.c:118: Error: The given size cannot be used: BFD: bfd_canonicalize_symtab(): < 1\n"
+        self.expected_std_err = ""
 
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
@@ -41,9 +41,9 @@ class TestScorepBindingsPython(unittest.TestCase):
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.assertEqual(out.stderr.decode("utf-8"), "")
         self.assertRegex(out.stdout.decode("utf-8"),
-                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "test_region"')
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
         self.assertRegex(out.stdout.decode("utf-8"),
-                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "test_region"')
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
 
     def test_oa_regions(self):
         env = self.env

@@ -23,33 +23,7 @@ import sys
 import stat
 import platform
 import functools
-
-"""
-return a triple with (returncode, stdout, stderr) from the call to subprocess
-"""
-
-
-def call(arguments):
-    result = ()
-    if sys.version_info > (3, 5):
-        out = subprocess.run(
-            arguments,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        result = (
-            out.returncode,
-            out.stdout.decode("utf-8"),
-            out.stderr.decode("utf-8"))
-    else:
-        p = subprocess.Popen(
-            arguments,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        p.wait()
-        result = (p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
-    return result
-
+import scorep.helper 
 
 scorep_config = [
     "scorep-config",
@@ -66,7 +40,7 @@ scorep_config_mpi = [
 
 
 def get_config(scorep_config):
-    (retrun_code, _, _) = call(scorep_config + ["--cuda"])
+    (retrun_code, _, _) = scorep.helper.call(scorep_config + ["--cuda"])
     if retrun_code == 0:
         scorep_config.append("--cuda")
         print("Cuda is supported, building with cuda")
@@ -74,7 +48,7 @@ def get_config(scorep_config):
         print("Cuda is not supported, building without cuda")
         scorep_config.append("--nocuda")
 
-    (retrun_code, _, _) = call(scorep_config + ["--opencl"])
+    (retrun_code, _, _) = scorep.helper.call(scorep_config + ["--opencl"])
     if retrun_code == 0:
         scorep_config.append("--opencl")
         print("OpenCL is supported, building with OpenCL")
@@ -82,12 +56,12 @@ def get_config(scorep_config):
         print("OpenCl is not supported, building without OpenCL")
         scorep_config.append("--noopencl")
 
-    (_, ldflags, _) = call(scorep_config + ["--ldflags"])
-    (_, libs, _) = call(scorep_config + ["--libs"])
-    (_, mgmt_libs, _) = call(scorep_config + ["--mgmt-libs"])
-    (_, cflags, _) = call(scorep_config + ["--cflags"])
+    (_, ldflags, _) = scorep.helper.call(scorep_config + ["--ldflags"])
+    (_, libs, _) = scorep.helper.call(scorep_config + ["--libs"])
+    (_, mgmt_libs, _) = scorep.helper.call(scorep_config + ["--mgmt-libs"])
+    (_, cflags, _) = scorep.helper.call(scorep_config + ["--cflags"])
 
-    (_, scorep_adapter_init, _) = call(scorep_config + ["--adapter-init"])
+    (_, scorep_adapter_init, _) = scorep.helper.call(scorep_config + ["--adapter-init"])
 
     libs = libs + " " + mgmt_libs
 
@@ -113,16 +87,16 @@ def get_config(scorep_config):
 
 
 def get_mpi_config():
-    (_, mpi_version, mpi_version2) = call(["mpiexec", "--version"])
+    (_, mpi_version, mpi_version2) = scorep.helper.call(["mpiexec", "--version"])
     mpi_version = mpi_version + mpi_version2
     if "OpenRTE" in mpi_version:
         print("OpenMPI detected")
-        (_, ldflags, _) = call(["mpicc", "-showme:link"])
-        (_, compile_flags, _) = call(["mpicc", "-showme:compile"])
+        (_, ldflags, _) = scorep.helper.call(["mpicc", "-showme:link"])
+        (_, compile_flags, _) = scorep.helper.call(["mpicc", "-showme:compile"])
     elif ("Intel" in mpi_version) or ("MPICH" in mpi_version):
         print("Intel or MPICH detected")
-        (_, ldflags, _) = call(["mpicc", "-link_info"])
-        (_, compile_flags, _) = call(["mpicc", "-compile_info"])
+        (_, ldflags, _) = scorep.helper.call(["mpicc", "-link_info"])
+        (_, compile_flags, _) = scorep.helper.call(["mpicc", "-compile_info"])
     else:
         print("cannot determine mpi version: \"{}\"".format(mpi_version))
         exit(-1)
@@ -186,11 +160,8 @@ with open("./scorep_init_mpi.c", "w") as f:
 
 # build scorep with mpi for ld_prealod
 
-version = "{}.{}".format(
-    sys.version_info.major,
-    sys.version_info.minor)
-mpi_lib_name = "./libscorep_init_mpi-{}.so".format(version)
-print(mpi_lib_name)
+mpi_lib_name = scorep.helper.gen_mpi_lib_name()
+
 cc = distutils.ccompiler.new_compiler()
 cc.compile(["./scorep_init_mpi.c"])
 cc.link(
@@ -200,25 +171,27 @@ cc.link(
     library_dirs=lib_dir_mpi,
     extra_postargs=linker_flags_mpi)
 
-linker_flags_mpi.append("-lscorep_init_mpi-{}".format(version))
+mpi_link_name = scorep.helper.gen_mpi_link_name()
 
-module1 = Extension('_scorep',
+linker_flags_mpi.append("-l{}".format(mpi_link_name))
+
+module1 = Extension('scorep.scorep_bindings',
                     include_dirs=include,
                     libraries=[],
                     library_dirs=lib_dir,
                     define_macros=macro,
                     extra_link_args=linker_flags,
                     extra_compile_args=["-std=c++11"],
-                    sources=['scorep.cpp', 'scorep_init.c'])
+                    sources=['src/scorep.cpp', 'scorep_init.c'])
 
-module2 = Extension('_scorep_mpi',
+module2 = Extension('scorep.scorep_bindings_mpi',
                     include_dirs=include_mpi,
                     libraries=[],
                     library_dirs=lib_dir_mpi + ["./"],
                     define_macros=macro_mpi + [("USE_MPI", None)],
                     extra_link_args=linker_flags_mpi,
                     extra_compile_args=["-std=c++11"],
-                    sources=['scorep.cpp'])
+                    sources=['src/scorep.cpp'])
 
 setup(
     name='scorep',
@@ -233,7 +206,7 @@ A working Score-P version is required.
 For MPI tracing it uses LD_PREALOAD.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
-    py_modules=['scorep'],
+    packages = ['scorep'],
     data_files=[("lib", [mpi_lib_name])],
     ext_modules=[module1, module2]
 )

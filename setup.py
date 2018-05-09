@@ -140,6 +140,11 @@ def build_vampir_groups_writer():
     (return_val, _, error) = scorep.helper.call(["make", "-C", "tmp_build"])
     if return_val != 0:
         return return_val, error
+    
+    #for local install i.e. pip3 install -e .
+    (return_val, _, error) = scorep.helper.call(["cp", "tmp_build/libscorep_substrate_vampir_groups_writer.so", "."])
+    if return_val != 0:
+        return return_val, error
     else:
         return return_val, "tmp_build/libscorep_substrate_vampir_groups_writer.so"
 
@@ -201,7 +206,7 @@ if ret_val != 0:
     print("Continuing without")
 else:
     libs.append(message)
-
+    
 module1 = Extension('scorep.scorep_bindings',
                     include_dirs=include,
                     libraries=[],

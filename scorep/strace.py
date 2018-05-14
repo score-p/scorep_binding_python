@@ -80,6 +80,8 @@ class ScorepTrace:
         if why == 'call':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
+            if modulename == None:
+                modulename = "None"
             file_name = frame.f_globals.get('__file__', None)
             if file_name is not None:
                 full_file_name = os.path.abspath(file_name)
@@ -97,6 +99,8 @@ class ScorepTrace:
         if why == "return":
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
+            if modulename == None:
+                modulename = "None"
             if self.trace:
                 self.scorep_bindings.region_end(modulename, code.co_name)
         return self.localtrace

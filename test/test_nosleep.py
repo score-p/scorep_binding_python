@@ -6,9 +6,9 @@ def pointless_sleep():
 def baz():
     print("Nice you are here.")
     
-def foo():
+def foo(sleep = False):
     print("Hello world.")
-    if True:
+    if sleep:
         pointless_sleep()
     baz()
     print("Good by.")

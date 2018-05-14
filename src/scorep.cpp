@@ -223,12 +223,12 @@ static PyMethodDef ScorePMethods[] = {
 
 #if PY_VERSION_HEX < 0x03000000
 #ifndef USE_MPI
-PyMODINIT_FUNC init_scorep_bindings(void)
+PyMODINIT_FUNC initscorep_bindings(void)
 {
     (void)Py_InitModule("scorep_bindings", ScorePMethods);
 }
 #else  /*USE_MPI*/
-PyMODINIT_FUNC init_scorep_bindings_mpi(void)
+PyMODINIT_FUNC initscorep_bindings_mpi(void)
 {
     (void)Py_InitModule("scorep_bindings_mpi", ScorePMethods);
 }

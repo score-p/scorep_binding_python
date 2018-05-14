@@ -71,15 +71,16 @@ def main(argv=None):
     mpi = False
 
     for opt in opts:
-        if opt == "--help":
+        key, value = opt
+        if key == "--help":
             _usage(sys.stdout)
             sys.exit(0)
 
-        if opt == "--version":
+        if key == "--version":
             sys.stdout.write("scorep_trace 1.0\n")
             sys.exit(0)
 
-        if opt == "--mpi":
+        if key == "--mpi":
             mpi = True
 
     if len(prog_argv) == 0:

@@ -56,7 +56,6 @@ def set_init_environment(mpi):
 
 
 def main(argv=None):
-
     if argv is None:
         argv = sys.argv
     try:
@@ -97,15 +96,15 @@ def main(argv=None):
         """
         new_args = [sys.executable, "-m", "scorep"]
         for elem in sys.argv:
-            if "scorep.py" in elem:
+            if "scorep/__main__.py" in elem:
                 continue
             else:
                 new_args.append(elem)
         os.execve(sys.executable, new_args, os.environ)
-    
+
     scorep_bindings = None
     if mpi:
-        scorep_bindings = importlib.import_module("scorep_bindings_mpi")
+        scorep_bindings = importlib.import_module("scorep.scorep_bindings_mpi")
     else:
         scorep_bindings = importlib.import_module("scorep.scorep_bindings")
         
@@ -113,7 +112,7 @@ def main(argv=None):
     sys.argv = prog_argv
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
-
+    
     global_trace = scorep.strace.ScorepTrace(scorep_bindings, True)
     try:
         with open(progname) as fp:

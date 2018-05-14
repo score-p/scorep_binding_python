@@ -66,7 +66,7 @@ void oa_region_end(std::string region_name)
 }
 namespace scorep_python
 {
-std::set<std::string> filter_modules = { "scorep.user" };
+std::set<std::string> filter_modules = { "scorep.user", "scorep.strace" };
 }
 
 extern "C" {

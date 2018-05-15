@@ -36,9 +36,10 @@ There is also a small HowTo in the wiki [[https://github.com/score-p/scorep_bind
 * python multiprocessing
     * Score-P does currently not support any non MPI or non SHMEM communication. So the different processes will not know from each other. You might want to take a look to https://mpi4py.readthedocs.io/en/stable/mpi4py.futures.html .
 
-## Partly working
+## Partialy working
 * threaded applications
-    * Please have a look to the Score-P IO branch. This Branch supports orphan threads, which are needed here. To get access please contact support@score-p.org.
+    * Please have a look to a Score-P trunk package with revision at least 13560 here:
+      http://scorepci.pages.jsc.fz-juelich.de/scorep-pipelines/.
     
 # User instrumentation
 

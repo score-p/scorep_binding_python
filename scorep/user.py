@@ -1,6 +1,6 @@
 import inspect
 import os.path
-import scorep.strace
+import scorep.trace
 
 from scorep.__main__ import global_trace
 
@@ -20,7 +20,7 @@ def region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    scorep.strace._unsettrace()
+    scorep.trace._unsettrace()
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -35,13 +35,13 @@ def region_begin(name, file_name=None, line_number=None):
 
 
 def region_end(name):
-    scorep.strace._unsettrace()
+    scorep.trace._unsettrace()
     global_trace.user_region_end(name)
     global_trace.register()
 
 
 def oa_region_begin(name, file_name=None, line_number=None):
-    scorep.strace._unsettrace()
+    scorep.trace._unsettrace()
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
     bet determined automatically
@@ -63,7 +63,7 @@ def oa_region_begin(name, file_name=None, line_number=None):
 
 
 def oa_region_end(name):
-    scorep.strace._unsettrace()
+    scorep.trace._unsettrace()
     global_trace.oa_region_end(name)
     global_trace.register()
 

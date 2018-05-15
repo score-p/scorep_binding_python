@@ -2,7 +2,7 @@
 scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 
 # Install
-You need to have scorep-config in your ```PATH``` variable.
+You need to have scorep-config in your `PATH` variable.
 
 Then simply run
 ```
@@ -23,6 +23,8 @@ The usual Score-P environment Variables will be respected. Please have a look at
 and
 
 [Score-P Documentation](https://silc.zih.tu-dresden.de/scorep-current/pdf/scorep.pdf)
+
+There is also a small HowTo in the wiki [[https://github.com/score-p/scorep_binding_python/wiki]]
 
 # Compatibility
 ## Working

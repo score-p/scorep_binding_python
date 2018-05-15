@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 
+
 def call(arguments):
     """
     return a triple with (returncode, stdout, stderr) from the call to subprocess
@@ -26,6 +27,7 @@ def call(arguments):
         result = (p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
     return result
 
+
 def lookup_lib(lib, lookup_path, recursive):
     """
     searches for the given lib along the given path.
@@ -44,11 +46,12 @@ def lookup_lib(lib, lookup_path, recursive):
                 return lookup_lib(lib, lookup_path, recursive)
     return None
 
-def find_lib(lib_name, additional_lookup_path = []):
+
+def find_lib(lib_name, additional_lookup_path=[]):
     """
     Tries to find the path the the given list.
     Searches additional_lookup_path, sys.path, LD_LIBRARY_PATH, and PYTHONPATH.
-    
+
     @param lib_name full name of the list
     @param additional_lookup_path list of additional paths to look up
     @return path to the given library
@@ -56,12 +59,12 @@ def find_lib(lib_name, additional_lookup_path = []):
     target_path = None
     if target_path is None:
         for path in additional_lookup_path:
-            target_path  = lookup_lib(lib_name, path, True)
+            target_path = lookup_lib(lib_name, path, True)
             if target_path is not None:
                 break
-    
+
     if target_path is None:
-        for path in sys.path: 
+        for path in sys.path:
             target_path = lookup_lib(lib_name, path, True)
             if target_path is not None:
                 break
@@ -84,33 +87,39 @@ def find_lib(lib_name, additional_lookup_path = []):
                 if target_path is not None:
                     break
 
-    return target_path 
+    return target_path
 
 
 def get_version():
     version = "{}.{}".format(
         sys.version_info.major,
         sys.version_info.minor)
-    return version;
+    return version
+
 
 def gen_mpi_lib_name():
     mpi_lib_name = "libscorep_init_mpi-{}.so".format(get_version())
     return mpi_lib_name
 
+
 def gen_mpi_link_name():
     mpi_link_name = "scorep_init_mpi-{}".format(get_version())
     return mpi_link_name
+
 
 def add_to_ld_library_path(path):
     """
     adds the path to the LD_LIBRARY_PATH.
     @param path path to be added
     """
-    if ("LD_LIBRARY_PATH" not in os.environ) or (path not in os.environ["LD_LIBRARY_PATH"]):
+    if ("LD_LIBRARY_PATH" not in os.environ) or (
+            path not in os.environ["LD_LIBRARY_PATH"]):
         if os.environ["LD_LIBRARY_PATH"] == "":
             os.environ["LD_LIBRARY_PATH"] = path
         else:
-            os.environ["LD_LIBRARY_PATH"] = path + ":" + os.environ["LD_LIBRARY_PATH"]
+            os.environ["LD_LIBRARY_PATH"] = path + \
+                ":" + os.environ["LD_LIBRARY_PATH"]
+
 
 def generate_ld_preload():
     """
@@ -125,11 +134,12 @@ def generate_ld_preload():
     # find the libscorep_init_mpi.so
     mpi_lib_name = gen_mpi_lib_name()
 
-    scorep_subsystem_path = find_lib(mpi_lib_name, [os.path.realpath(__file__)])
+    scorep_subsystem_path = find_lib(
+        mpi_lib_name, [os.path.realpath(__file__)])
     if scorep_subsystem_path is None:
         sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
-        return "", "" 
-        
+        return "", ""
+
     (_, preload, _) = call(["scorep-config", "--preload-libs"])
     preload += " " + scorep_subsystem_path
     return preload, scorep_subsystem_path

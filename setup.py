@@ -10,7 +10,7 @@ import sys
 import stat
 import platform
 import functools
-import scorep.helper 
+import scorep.helper
 
 scorep_config = [
     "scorep-config",
@@ -48,7 +48,8 @@ def get_config(scorep_config):
     (_, mgmt_libs, _) = scorep.helper.call(scorep_config + ["--mgmt-libs"])
     (_, cflags, _) = scorep.helper.call(scorep_config + ["--cflags"])
 
-    (_, scorep_adapter_init, _) = scorep.helper.call(scorep_config + ["--adapter-init"])
+    (_, scorep_adapter_init, _) = scorep.helper.call(
+        scorep_config + ["--adapter-init"])
 
     libs = " " + libs + " " + mgmt_libs
     ldflags = " " + ldflags
@@ -76,12 +77,14 @@ def get_config(scorep_config):
 
 
 def get_mpi_config():
-    (_, mpi_version, mpi_version2) = scorep.helper.call(["mpiexec", "--version"])
+    (_, mpi_version, mpi_version2) = scorep.helper.call(
+        ["mpiexec", "--version"])
     mpi_version = mpi_version + mpi_version2
     if "OpenRTE" in mpi_version:
         print("OpenMPI detected")
         (_, ldflags, _) = scorep.helper.call(["mpicc", "-showme:link"])
-        (_, compile_flags, _) = scorep.helper.call(["mpicc", "-showme:compile"])
+        (_, compile_flags, _) = scorep.helper.call(
+            ["mpicc", "-showme:compile"])
     elif ("Intel" in mpi_version) or ("MPICH" in mpi_version):
         print("Intel or MPICH detected")
         (_, ldflags, _) = scorep.helper.call(["mpicc", "-link_info"])
@@ -119,35 +122,39 @@ def get_mpi_config():
 
     return (include, lib, lib_dir, macro, linker_flags)
 
+
 def build_vampir_groups_writer():
     """
     Tries to build the vampir_groups_writer for collered vampir traces.
-    
+
     @return return_val, message
         return_val ... return value of the most recent executed command. 0 on success.
-        message ... error message if return_val =! 0 else the path to the build lib, which should be installed. 
+        message ... error message if return_val =! 0 else the path to the build lib, which should be installed.
     """
-    
+
     scorep_substrate_vampir_groups_writer = None
     if(len(os.listdir("scorep_substrate_vampir_groups_writer/")) == 0):
-        (return_val, _, error) = scorep.helper.call(["git", "submodule", "init"])
+        (return_val, _, error) = scorep.helper.call(
+            ["git", "submodule", "init"])
         if return_val != 0:
-            return return_val, error 
+            return return_val, error
 
     (return_val, _, error) = scorep.helper.call(["git", "submodule", "update"])
     if return_val != 0:
         return return_val, error
-    
-    (return_val, _, error) = scorep.helper.call(["cmake", "-Btmp_build", "-Hscorep_substrate_vampir_groups_writer"])
+
+    (return_val, _, error) = scorep.helper.call(
+        ["cmake", "-Btmp_build", "-Hscorep_substrate_vampir_groups_writer"])
     if return_val != 0:
         return return_val, error
-    
+
     (return_val, _, error) = scorep.helper.call(["make", "-C", "tmp_build"])
     if return_val != 0:
         return return_val, error
-    
-    #for local install i.e. pip3 install -e .
-    (return_val, _, error) = scorep.helper.call(["cp", "tmp_build/libscorep_substrate_vampir_groups_writer.so", "."])
+
+    # for local install i.e. pip3 install -e .
+    (return_val, _, error) = scorep.helper.call(
+        ["cp", "tmp_build/libscorep_substrate_vampir_groups_writer.so", "."])
     if return_val != 0:
         return return_val, error
     else:
@@ -211,7 +218,7 @@ if ret_val != 0:
     print("Continuing without")
 else:
     libs.append(message)
-    
+
 module1 = Extension('scorep.scorep_bindings',
                     include_dirs=include,
                     libraries=[],
@@ -243,7 +250,7 @@ A working Score-P version is required.
 For MPI tracing it uses LD_PREALOAD.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
-    packages = ['scorep'],
+    packages=['scorep'],
     data_files=[("lib", libs)],
     ext_modules=[module1, module2]
 )

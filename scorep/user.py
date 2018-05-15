@@ -2,7 +2,8 @@ import inspect
 import os.path
 import scorep.strace
 
-from scorep.__main__ import global_trace 
+from scorep.__main__ import global_trace
+
 
 def register():
     '''
@@ -36,7 +37,7 @@ def region_begin(name, file_name=None, line_number=None):
 def region_end(name):
     scorep.strace._unsettrace()
     global_trace.user_region_end(name)
-    global_trace.register()    
+    global_trace.register()
 
 
 def oa_region_begin(name, file_name=None, line_number=None):

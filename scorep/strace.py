@@ -10,7 +10,7 @@ except ImportError:
 
     def _unsettrace():
         sys.settrace(None)
-        
+
 else:
     def _settrace(func):
         threading.settrace(func)
@@ -20,7 +20,6 @@ else:
         sys.settrace(None)
         threading.settrace(None)
 
-        
 
 class ScorepTrace:
     def __init__(self, scorep_bindings, trace=True):
@@ -80,7 +79,7 @@ class ScorepTrace:
         if why == 'call':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
-            if modulename == None:
+            if modulename is None:
                 modulename = "None"
             file_name = frame.f_globals.get('__file__', None)
             if file_name is not None:
@@ -99,7 +98,7 @@ class ScorepTrace:
         if why == "return":
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
-            if modulename == None:
+            if modulename is None:
                 modulename = "None"
             if self.trace:
                 self.scorep_bindings.region_end(modulename, code.co_name)
@@ -122,7 +121,8 @@ class ScorepTrace:
         else:
             full_file_name = "None"
 
-        self.scorep_bindings.region_begin("user", name, full_file_name, line_number)
+        self.scorep_bindings.region_begin(
+            "user", name, full_file_name, line_number)
 
     def user_region_end(self, name):
         self.scorep_bindings.region_end("user", name)

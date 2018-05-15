@@ -18,7 +18,7 @@ else:
     A = np.empty(N, dtype=np.float64)     # all other just an empty array
 
 # Broadcast A from rank 0 to everybody
-comm.Bcast( [A, MPI.DOUBLE] )
+comm.Bcast([A, MPI.DOUBLE])
 
 # Everybody should now have the same...
 print("[%02d] %s" % (comm.rank, A))

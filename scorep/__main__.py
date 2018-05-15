@@ -3,7 +3,7 @@ import sys
 import importlib
 import getopt
 
-import scorep.strace
+import scorep.trace
 import scorep.helper
 
 
@@ -122,7 +122,7 @@ def main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    global_trace = scorep.strace.ScorepTrace(scorep_bindings, True)
+    global_trace = scorep.trace.ScorepTrace(scorep_bindings, True)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -150,4 +150,4 @@ else:
     Moreover, if the module is loaded with `import scorep` we can't do any mpi support anymore
     '''
     scorep_bindings = importlib.import_module("scorep.scorep_bindings")
-    global_trace = scorep.strace.ScorepTrace(scorep_bindings, False)
+    global_trace = scorep.trace.ScorepTrace(scorep_bindings, False)

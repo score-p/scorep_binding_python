@@ -50,7 +50,9 @@ def get_config(scorep_config):
 
     (_, scorep_adapter_init, _) = scorep.helper.call(scorep_config + ["--adapter-init"])
 
-    libs = libs + " " + mgmt_libs
+    libs = " " + libs + " " + mgmt_libs
+    ldflags = " " + ldflags
+    cflags = " " + cflags
 
     lib_dir = re.findall(" -L[/+-@.\w]*", ldflags)
     lib = re.findall(" -l[/+-@.\w]*", libs)
@@ -87,6 +89,9 @@ def get_mpi_config():
     else:
         print("cannot determine mpi version: \"{}\"".format(mpi_version))
         exit(-1)
+
+    ldflags = " " + ldflags
+    compile_flags = " " + compile_flags
 
     lib_dir = re.findall(" -L[/+-@.\w]*", ldflags)
     lib = re.findall(" -l[/+-@.\w]*", ldflags)

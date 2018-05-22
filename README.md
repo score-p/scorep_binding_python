@@ -24,7 +24,7 @@ and
 
 [Score-P Documentation](https://silc.zih.tu-dresden.de/scorep-current/pdf/scorep.pdf)
 
-There is also a small HowTo in the wiki [[https://github.com/score-p/scorep_binding_python/wiki]]
+There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/wiki) in the wiki.
 
 # Compatibility
 ## Working

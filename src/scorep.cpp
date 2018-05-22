@@ -1,23 +1,10 @@
-
-/*
- * Copyright 2017, Technische Universitaet Dresden, Germany, all rights reserved.
- * Author: Andreas Gocht
- *
- * Permission to use, copy, modify, and distribute this Python software and
- * its associated documentation for any purpose without fee is hereby
- * granted, provided that the above copyright notice appears in all copies,
- * and that both that copyright notice and this permission notice appear in
- * supporting documentation, and that the name of TU Dresden is not used in
- * advertising or publicity pertaining to distribution of the software
- * without specific, written prior permission.
- */
-
 #include <Python.h>
 #include <iostream>
-#include <map>
 #include <scorep/SCOREP_User_Functions.h>
 #include <scorep/SCOREP_User_Variables.h>
+#include <set>
 #include <string>
+#include <unordered_map>
 
 namespace scorep
 {
@@ -30,7 +17,7 @@ struct region_handle
     SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
 };
 
-static std::map<std::string, region_handle> regions;
+static std::unordered_map<std::string, region_handle> regions;
 
 void region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
 {
@@ -77,6 +64,10 @@ void oa_region_end(std::string region_name)
     SCOREP_User_OaPhaseEnd(handle.value);
 }
 }
+namespace scorep_python
+{
+std::set<std::string> filter_modules = { "scorep.user", "scorep.strace" };
+}
 
 extern "C" {
 
@@ -99,14 +90,21 @@ static PyObject* disable_recording(PyObject* self, PyObject* args)
 
 static PyObject* region_begin(PyObject* self, PyObject* args)
 {
-    const char* region;
+    const char* module;
+    const char* region_name;
     const char* file_name;
     std::uint64_t line_number = 0;
 
-    if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
+    if (!PyArg_ParseTuple(args, "sssK", &module, &region_name, &file_name, &line_number))
         return NULL;
 
-    scorep::region_begin(region, file_name, line_number);
+    if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
+    {
+        char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
+        sprintf(region, "%s:%s", module, region_name);
+        scorep::region_begin(region, file_name, line_number);
+        free(region);
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -114,12 +112,19 @@ static PyObject* region_begin(PyObject* self, PyObject* args)
 
 static PyObject* region_end(PyObject* self, PyObject* args)
 {
-    const char* region;
+    const char* module;
+    const char* region_name;
 
-    if (!PyArg_ParseTuple(args, "s", &region))
+    if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
         return NULL;
 
-    scorep::region_end(region);
+    if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
+    {
+        char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
+        sprintf(region, "%s:%s", module, region_name);
+        scorep::region_end(region);
+        free(region);
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -218,37 +223,38 @@ static PyMethodDef ScorePMethods[] = {
 
 #if PY_VERSION_HEX < 0x03000000
 #ifndef USE_MPI
-PyMODINIT_FUNC init_scorep(void)
+PyMODINIT_FUNC initscorep_bindings(void)
 {
-    (void)Py_InitModule("_scorep", ScorePMethods);
+    (void)Py_InitModule("scorep_bindings", ScorePMethods);
 }
 #else  /*USE_MPI*/
-PyMODINIT_FUNC init_scorep_mpi(void)
+PyMODINIT_FUNC initscorep_bindings_mpi(void)
 {
-    (void)Py_InitModule("_scorep_mpi", ScorePMethods);
+    (void)Py_InitModule("scorep_bindings_mpi", ScorePMethods);
 }
 #endif /*USE_MPI*/
 #else  /*python 3*/
 #ifndef USE_MPI
-static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT, "_scorep", /* name of module */
+static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT,
+                                           "scorep_bindings", /* name of module */
                                            NULL, /* module documentation, may be NULL */
                                            -1,   /* size of per-interpreter state of the module,
                                                     or -1 if the module keeps state in global
                                                     variables. */
                                            ScorePMethods };
-PyMODINIT_FUNC PyInit__scorep(void)
+PyMODINIT_FUNC PyInit_scorep_bindings(void)
 {
     return PyModule_Create(&scorepmodule);
 }
 #else  /*USE_MPI*/
 static struct PyModuleDef scorepmodule_mpi = { PyModuleDef_HEAD_INIT,
-                                               "_scorep_mpi", /* name of module */
+                                               "scorep_bindings_mpi", /* name of module */
                                                NULL, /* module documentation, may be NULL */
                                                -1,   /* size of per-interpreter state of the module,
                                                         or -1 if the module keeps state in global
                                                         variables. */
                                                ScorePMethods };
-PyMODINIT_FUNC PyInit__scorep_mpi(void)
+PyMODINIT_FUNC PyInit_scorep_bindings_mpi(void)
 {
     return PyModule_Create(&scorepmodule_mpi);
 }

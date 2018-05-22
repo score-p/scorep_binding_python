@@ -1,10 +1,11 @@
-import scorep
+import scorep.user
+import os
 
 
 def foo():
-    scorep.user_region_begin("test_region")
+    scorep.user.region_begin("test_region")
     print("hello world")
-    scorep.user_region_end("test_region")
+    scorep.user.region_end("test_region")
 
 
 foo()

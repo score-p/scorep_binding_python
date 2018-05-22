@@ -1,0 +1,3 @@
+[submodule "scorep_substrate_vampir_groups_writer"]
+	path = scorep_substrate_vampir_groups_writer
+	url = https://github.com/score-p/scorep_substrate_vampir_groups_writer.git

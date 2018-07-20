@@ -27,6 +27,11 @@ scorep_config_mpi = [
 
 
 def get_config(scorep_config):
+    (retrun_code, _, _) = scorep.helper.call(scorep_config)
+    if retrun_code != 0:
+        raise ValueError(
+            "given config {} is not supported".format(scorep_config))
+
     (retrun_code, _, _) = scorep.helper.call(scorep_config + ["--cuda"])
     if retrun_code == 0:
         scorep_config.append("--cuda")
@@ -161,12 +166,11 @@ def build_vampir_groups_writer():
         return return_val, "tmp_build/libscorep_substrate_vampir_groups_writer.so"
 
 
+cmodules = []
+additonal_libs = []
+
 (include, lib, lib_dir, macro, linker_flags_tmp,
  scorep_adapter_init) = get_config(scorep_config)
-(include_mpi, lib_mpi, lib_dir_mpi, macro_mpi, linker_flags_mpi_tmp,
- scorep_adapter_init_mpi) = get_config(scorep_config_mpi)
-(include_mpi_, lib_mpi_, lib_dir_mpi_, macro_mpi_,
- linker_flags_mpi_tmp_) = get_mpi_config()
 
 # add -Wl,-no-as-needed to tell the compiler that we really want to link these. Actually this sould be default.
 # as distutils adds extra args at the very end we need to add all the libs
@@ -175,40 +179,70 @@ linker_flags = ["-Wl,-no-as-needed"]
 linker_flags.extend(lib)
 linker_flags.extend(linker_flags_tmp)
 
-include_mpi.extend(include_mpi_)
-lib_dir_mpi.extend(lib_dir_mpi_)
-macro_mpi.extend(macro_mpi_)
-
-linker_flags_mpi = ["-Wl,-no-as-needed"]
-linker_flags_mpi.extend(linker_flags_mpi_tmp)
-linker_flags_mpi.extend(linker_flags_mpi_tmp_)
-linker_flags_mpi.extend(lib_mpi)
-linker_flags_mpi.extend(lib_mpi_)
-
 with open("./scorep_init.c", "w") as f:
     f.write(scorep_adapter_init)
 
-with open("./scorep_init_mpi.c", "w") as f:
-    f.write(scorep_adapter_init_mpi)
+cmodules.append(Extension('scorep.scorep_bindings',
+                          include_dirs=include,
+                          libraries=[],
+                          library_dirs=lib_dir,
+                          define_macros=macro,
+                          extra_link_args=linker_flags,
+                          extra_compile_args=["-std=c++11"],
+                          sources=['src/scorep.cpp', 'scorep_init.c']))
+
+# MPI is treated differently than CUDA and OpenCL, as it needs to build
+# its own module
+try:
+    (include_mpi, lib_mpi, lib_dir_mpi, macro_mpi, linker_flags_mpi_tmp,
+     scorep_adapter_init_mpi) = get_config(scorep_config_mpi)
+    (include_mpi_, lib_mpi_, lib_dir_mpi_, macro_mpi_,
+     linker_flags_mpi_tmp_) = get_mpi_config()
+    include_mpi.extend(include_mpi_)
+    lib_dir_mpi.extend(lib_dir_mpi_)
+    macro_mpi.extend(macro_mpi_)
+
+    linker_flags_mpi = ["-Wl,-no-as-needed"]
+    linker_flags_mpi.extend(linker_flags_mpi_tmp)
+    linker_flags_mpi.extend(linker_flags_mpi_tmp_)
+    linker_flags_mpi.extend(lib_mpi)
+    linker_flags_mpi.extend(lib_mpi_)
+
+    with open("./scorep_init_mpi.c", "w") as f:
+        f.write(scorep_adapter_init_mpi)
+
+    mpi_lib_name = scorep.helper.gen_mpi_lib_name()
+
+    cc = distutils.ccompiler.new_compiler()
+    cc.compile(["./scorep_init_mpi.c"])
+    cc.link(
+        "scorep_init_mpi",
+        objects=["./scorep_init_mpi.o"],
+        output_filename=mpi_lib_name,
+        library_dirs=lib_dir_mpi,
+        extra_postargs=linker_flags_mpi)
+
+    mpi_link_name = scorep.helper.gen_mpi_link_name()
+
+    linker_flags_mpi.append("-l{}".format(mpi_link_name))
+
+    additonal_libs.append(mpi_lib_name)
+
+    cmodules.append(Extension('scorep.scorep_bindings_mpi',
+                              include_dirs=include_mpi,
+                              libraries=[],
+                              library_dirs=lib_dir_mpi + ["./"],
+                              define_macros=macro_mpi + [("USE_MPI", None)],
+                              extra_link_args=linker_flags_mpi,
+                              extra_compile_args=["-std=c++11"],
+                              sources=['src/scorep.cpp']))
+
+
+except ValueError:
+    print("MPI is not supported, build without MPI")
 
 # build scorep with mpi for ld_prealod
 
-mpi_lib_name = scorep.helper.gen_mpi_lib_name()
-
-cc = distutils.ccompiler.new_compiler()
-cc.compile(["./scorep_init_mpi.c"])
-cc.link(
-    "scorep_init_mpi",
-    objects=["./scorep_init_mpi.o"],
-    output_filename=mpi_lib_name,
-    library_dirs=lib_dir_mpi,
-    extra_postargs=linker_flags_mpi)
-
-mpi_link_name = scorep.helper.gen_mpi_link_name()
-
-linker_flags_mpi.append("-l{}".format(mpi_link_name))
-
-libs = [mpi_lib_name]
 
 (ret_val, message) = build_vampir_groups_writer()
 
@@ -217,25 +251,7 @@ if ret_val != 0:
     print("Error building vampir groups writer:\n{}".format(message))
     print("Continuing without")
 else:
-    libs.append(message)
-
-module1 = Extension('scorep.scorep_bindings',
-                    include_dirs=include,
-                    libraries=[],
-                    library_dirs=lib_dir,
-                    define_macros=macro,
-                    extra_link_args=linker_flags,
-                    extra_compile_args=["-std=c++11"],
-                    sources=['src/scorep.cpp', 'scorep_init.c'])
-
-module2 = Extension('scorep.scorep_bindings_mpi',
-                    include_dirs=include_mpi,
-                    libraries=[],
-                    library_dirs=lib_dir_mpi + ["./"],
-                    define_macros=macro_mpi + [("USE_MPI", None)],
-                    extra_link_args=linker_flags_mpi,
-                    extra_compile_args=["-std=c++11"],
-                    sources=['src/scorep.cpp'])
+    additonal_libs.append(message)
 
 setup(
     name='scorep',
@@ -251,6 +267,6 @@ For MPI tracing it uses LD_PREALOAD.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
     packages=['scorep'],
-    data_files=[("lib", libs)],
-    ext_modules=[module1, module2]
+    data_files=[("lib", additonal_libs)],
+    ext_modules=cmodules
 )

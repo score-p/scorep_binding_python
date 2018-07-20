@@ -113,7 +113,12 @@ def main(argv=None):
 
     scorep_bindings = None
     if mpi:
-        scorep_bindings = importlib.import_module("scorep.scorep_bindings_mpi")
+        try:
+            scorep_bindings = importlib.import_module(
+                "scorep.scorep_bindings_mpi")
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "The MPI bindings are missing. Did you build Score-P with '--without-mpi'?")
     else:
         scorep_bindings = importlib.import_module("scorep.scorep_bindings")
 

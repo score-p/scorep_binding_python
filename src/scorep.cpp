@@ -19,11 +19,21 @@ struct region_handle
 
 static std::unordered_map<std::string, region_handle> regions;
 
-void region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
+void region_begin(std::string region_name, std::string module, std::string file_name,
+                  std::uint64_t line_number)
 {
-    auto& handle = regions[region_name];
-    SCOREP_User_RegionBegin(&handle.value, NULL, &SCOREP_User_LastFileHandle, region_name.c_str(),
-                            SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
+    auto pair = regions.emplace(make_pair(region_name, region_handle()));
+    bool inserted_new = pair.second;
+    auto& handle = pair.first->second;
+    if (inserted_new)
+    {
+        std::cout << "module:" << module << std::endl;
+        SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
+                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                               file_name.c_str(), line_number);
+        SCOREP_User_RegionSetGroup(handle.value, module.c_str());
+    }
+    SCOREP_User_RegionEnter(handle.value);
 }
 
 void region_end(std::string region_name)
@@ -102,7 +112,7 @@ static PyObject* region_begin(PyObject* self, PyObject* args)
     {
         char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
         sprintf(region, "%s:%s", module, region_name);
-        scorep::region_begin(region, file_name, line_number);
+        scorep::region_begin(region, module, file_name, line_number);
         free(region);
     }
 

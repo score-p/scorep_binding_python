@@ -17,9 +17,8 @@ global_trace = None
 cuda_support = None
 opencl_support = None
 
-
 def _err_exit(msg):
-    sys.stderr.write("%s: %s\n" % (sys.argv[0], msg))
+    sys.stderr.write("%s: %s\n" % ("scorep", msg))
     sys.exit(1)
 
 
@@ -62,7 +61,8 @@ def set_init_environment(mpi):
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
 
-def main(argv=None):
+def scorep_main(argv=None):
+    global target_code
     if argv is None:
         argv = sys.argv
     try:
@@ -131,6 +131,7 @@ def main(argv=None):
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
+            target_code = code
         # try to emulate __main__ namespace as much as possible
         globs = {
             '__file__': progname,
@@ -138,15 +139,26 @@ def main(argv=None):
             '__package__': None,
             '__cached__': None,
         }
+        
         global_trace.runctx(code, globs, globs)
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     except SystemExit:
         pass
 
+def main(argv=None):
+    import traceback
+    call_stack = traceback.extract_stack()
+    call_stack_array = traceback.format_list(call_stack)
+    call_stack_string = ""
+    for elem in call_stack_array[:-1]:
+        call_stack_string+=elem
+    _err_exit("Someone called scorep.__main__.main(argv).\n"
+              "This is not supposed to happen, but might be triggered, if your application calls \"sys.modules['__main__'].main\".\n"
+              "This python stacktrace might be helpfull to find the reason:\n%s" % call_stack_string)
 
 if __name__ == '__main__':
-    main()
+    scorep_main()
 
 else:
     '''

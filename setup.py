@@ -248,7 +248,7 @@ except ValueError:
 
 print("Download and build vampir gouprs writer")
 if ret_val != 0:
-    print("Error building vampir groups writer:\n{}".format(message))
+    print("Error building vampir groups writer:\n{}".format(message.encode('utf-8')))
     print("Continuing without")
 else:
     additonal_libs.append(message)

@@ -128,7 +128,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                              stderr=subprocess.PIPE,
                              env=env)
         expected_std_err = """scorep: Someone called scorep.__main__.main(argv).
-This is not supposed to happen, but might be triggered, if your application calls "_sys.modules['__main__'].main".
+This is not supposed to happen, but might be triggered, if your application calls "sys.modules['__main__'].main".
 This python stacktrace might be helpfull to find the reason:
   File "/usr/lib/python3.6/runpy.py", line 193, in _run_module_as_main
     "__main__", mod_spec)

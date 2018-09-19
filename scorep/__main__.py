@@ -154,7 +154,7 @@ def main(argv=None):
     for elem in call_stack_array[:-1]:
         call_stack_string+=elem
     _err_exit("Someone called scorep.__main__.main(argv).\n"
-              "This is not supposed to happen, but might be triggered, if your application calls \"_sys.modules['__main__'].main\".\n"
+              "This is not supposed to happen, but might be triggered, if your application calls \"sys.modules['__main__'].main\".\n"
               "This python stacktrace might be helpfull to find the reason:\n%s" % call_stack_string)
 
 if __name__ == '__main__':

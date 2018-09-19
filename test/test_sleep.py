@@ -2,7 +2,7 @@ import time
 
 
 def pointless_sleep():
-    time.sleep(60)
+    time.sleep(5)
 
 
 def baz():

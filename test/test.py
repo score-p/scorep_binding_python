@@ -116,6 +116,38 @@ class TestScorepBindingsPython(unittest.TestCase):
         #self.assertEqual(out.stderr.decode("utf-8"), expected_std_err)
         #self.assertEqual(out.stdout.decode("utf-8"), "hello world\n")
 
+    def test_call_main(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_call_main"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+        out = subprocess.run(["python3",
+                              "-m",
+                              "scorep",
+                              "test_call_main.py"],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             env=env)
+        expected_std_err = """scorep: Someone called scorep.__main__.main(argv).
+This is not supposed to happen, but might be triggered, if your application calls "sys.modules['__main__'].main".
+This python stacktrace might be helpfull to find the reason:
+  File "/usr/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/gocht/virtenv/test_scorep_python_3.6/lib/python3.6/site-packages/scorep/__main__.py", line 161, in <module>
+    scorep_main()
+  File "/home/gocht/virtenv/test_scorep_python_3.6/lib/python3.6/site-packages/scorep/__main__.py", line 143, in scorep_main
+    global_trace.runctx(code, globs, globs)
+  File "/home/gocht/virtenv/test_scorep_python_3.6/lib/python3.6/site-packages/scorep/trace.py", line 57, in runctx
+    exec(cmd, globals, locals)
+  File "test_call_main.py", line 6, in <module>
+    sys.modules['__main__'].main(sys.argv)
+
+"""
+        expected_std_out = ""
+        self.assertEqual(out.stderr.decode("utf-8"), expected_std_err)
+        self.assertEqual(out.stdout.decode("utf-8"), expected_std_out)
+
     def tearDown(self):
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],

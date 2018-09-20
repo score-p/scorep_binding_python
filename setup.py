@@ -128,43 +128,6 @@ def get_mpi_config():
     return (include, lib, lib_dir, macro, linker_flags)
 
 
-# def build_vampir_groups_writer():
-#     """
-#     Tries to build the vampir_groups_writer for collered vampir traces.
-# 
-#     @return return_val, message
-#         return_val ... return value of the most recent executed command. 0 on success.
-#         message ... error message if return_val =! 0 else the path to the build lib, which should be installed.
-#     """
-# 
-#     scorep_substrate_vampir_groups_writer = None
-#     if(len(os.listdir("scorep_substrate_vampir_groups_writer/")) == 0):
-#         (return_val, _, error) = scorep.helper.call(
-#             ["git", "submodule", "init"])
-#         if return_val != 0:
-#             return return_val, error
-# 
-#     (return_val, _, error) = scorep.helper.call(["git", "submodule", "update"])
-#     if return_val != 0:
-#         return return_val, error
-# 
-#     (return_val, _, error) = scorep.helper.call(
-#         ["cmake", "-Btmp_build", "-Hscorep_substrate_vampir_groups_writer"])
-#     if return_val != 0:
-#         return return_val, error
-# 
-#     (return_val, _, error) = scorep.helper.call(["make", "-C", "tmp_build"])
-#     if return_val != 0:
-#         return return_val, error
-# 
-#     # for local install i.e. pip3 install -e .
-#     (return_val, _, error) = scorep.helper.call(
-#         ["cp", "tmp_build/libscorep_substrate_vampir_groups_writer.so", "."])
-#     if return_val != 0:
-#         return return_val, error
-#     else:
-#         return return_val, "tmp_build/libscorep_substrate_vampir_groups_writer.so"
-
 
 cmodules = []
 additonal_libs = []
@@ -240,17 +203,6 @@ try:
 
 except ValueError:
     print("MPI is not supported, build without MPI")
-
-# build scorep with mpi for ld_prealod
-
-# (ret_val, message) = build_vampir_groups_writer()
-# 
-# print("Download and build vampir gouprs writer")
-# if ret_val != 0:
-#     print("Error building vampir groups writer:\n{}".format(message))
-#     print("Continuing without")
-# else:
-#     libs.append(message)
 
 setup(
     name='scorep',

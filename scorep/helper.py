@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import os
+import re
 
 
 def call(arguments):
@@ -97,13 +98,13 @@ def get_version():
     return version
 
 
-def gen_mpi_lib_name():
-    mpi_lib_name = "libscorep_init_mpi-{}.so".format(get_version())
+def gen_subsystem_lib_name():
+    mpi_lib_name = "libscorep_init_subsystem-{}.so".format(get_version())
     return mpi_lib_name
 
 
-def gen_mpi_link_name():
-    mpi_link_name = "scorep_init_mpi-{}".format(get_version())
+def gen_subsystem_link_name():
+    mpi_link_name = "scorep_init_subsystem-{}".format(get_version())
     return mpi_link_name
 
 
@@ -121,25 +122,115 @@ def add_to_ld_library_path(path):
                 ":" + os.environ["LD_LIBRARY_PATH"]
 
 
-def generate_ld_preload():
+def generate_ld_preload(scorep_config):
     """
-    This functions generate a string that needs to be passed to $LD_PRELOAD and the path to the scorep subsystem.
-    This is needed it MPI tracing is requested.
+    This functions generate a string that needs to be passed to $LD_PRELOAD.
     After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
-
-    @return ld_preload, scorep_subsystem_path
-        ld_preload ... string which needs to be passed to LD_PRELOAD
-        scorep_subsystem_path ... path to the scorep subsystem (e.g. libscorep_init_mpi)
+    
+    @return ld_preload string which needs to be passed to LD_PRELOAD
     """
-    # find the libscorep_init_mpi.so
-    mpi_lib_name = gen_mpi_lib_name()
+    
+    (_, preload, _) = call(["scorep-config"] + scorep_config + ["--user", "--preload-libs"])
+    return preload
 
-    scorep_subsystem_path = find_lib(
-        mpi_lib_name, [os.path.realpath(__file__)])
-    if scorep_subsystem_path is None:
-        sys.stderr.write("cannot find {}.\n".format(mpi_lib_name))
-        return "", ""
+def generate_compile_deps(config = []):
+    """
+    Generates the data needed for compilation.
+    """
+    
+    scorep_config = ["scorep-config"] + config + ["--user"]
+    
+    (retrun_code, _, _) = call(scorep_config)
+    if retrun_code != 0:
+        raise ValueError(
+            "given config {} is not supported".format(config))
 
-    (_, preload, _) = call(["scorep-config", "--preload-libs"])
-    preload += " " + scorep_subsystem_path
-    return preload, scorep_subsystem_path
+    (_, ldflags, _) = call(scorep_config + ["--ldflags"])
+    (_, libs, _) = call(scorep_config + ["--libs"])
+    (_, mgmt_libs, _) = call(scorep_config + ["--mgmt-libs"])
+    (_, cflags, _) = call(scorep_config + ["--cflags"])
+
+    libs = " " + libs + " " + mgmt_libs
+    ldflags = " " + ldflags
+    cflags = " " + cflags
+
+    lib_dir = re.findall(" -L[/+-@.\w]*", ldflags)
+    lib = re.findall(" -l[/+-@.\w]*", libs)
+    include = re.findall(" -I[/+-@.\w]*", cflags)
+    macro = re.findall(" -D[/+-@.\w]*", cflags)
+    linker_flags = re.findall(" -Wl[/+-@.\w]*", ldflags)
+
+    def remove_flag3(x): return x[3:]
+    def remove_space1(x): return x[1:]
+
+    lib_dir = list(map(remove_flag3, lib_dir))
+    lib = list(map(remove_space1, lib))
+    include = list(map(remove_flag3, include))
+    macro = list(map(remove_flag3, macro))
+    linker_flags = list(map(remove_space1, linker_flags))
+
+    macro = list(map(lambda x: tuple([x, 1]), macro))
+
+    return (include, lib, lib_dir, macro, linker_flags)
+
+def generate_compile_init(config = []):
+    """
+    Generates the data needed to be preloaded.
+    """
+    
+    scorep_config = ["scorep-config"] + config + ["--user"]
+    
+    (retrun_code, _, _) = call(scorep_config)
+    if retrun_code != 0:
+        raise ValueError(
+            "given config {} is not supported".format(scorep_config))
+    (_, scorep_adapter_init, _) = call(scorep_config + ["--adapter-init"])
+    
+    return scorep_adapter_init
+        
+def generate_compile_deps_mpi():
+    (_, mpi_version, mpi_version2) = scorep.helper.call(
+        ["mpiexec", "--version"])
+    mpi_version = mpi_version + mpi_version2
+    if "OpenRTE" in mpi_version:
+        print("OpenMPI detected")
+        (_, ldflags, _) = scorep.helper.call(["mpicc", "-showme:link"])
+        (_, compile_flags, _) = scorep.helper.call(
+            ["mpicc", "-showme:compile"])
+    elif ("Intel" in mpi_version) or ("MPICH" in mpi_version):
+        print("Intel or MPICH detected")
+        (_, ldflags, _) = scorep.helper.call(["mpicc", "-link_info"])
+        (_, compile_flags, _) = scorep.helper.call(["mpicc", "-compile_info"])
+    else:
+        print("cannot determine mpi version: \"{}\"".format(mpi_version))
+        exit(-1)
+
+    ldflags = " " + ldflags
+    compile_flags = " " + compile_flags
+
+    lib_dir = re.findall(" -L[/+-@.\w]*", ldflags)
+    lib = re.findall(" -l[/+-@.\w]*", ldflags)
+    include = re.findall(" -I[/+-@.\w]*", compile_flags)
+    macro = re.findall(" -D[/+-@.\w]*", compile_flags)
+    linker_flags = re.findall(" -Wl[/+-@.\w]*", ldflags)
+    linker_flags_2 = re.findall(" -Xlinker [/+-@.\w]*", ldflags)
+
+    def remove_flag3(x): return x[3:]
+
+    def remove_x_linker(x): return x[10:]
+
+    def remove_space1(x): return x[1:]
+
+    lib_dir = list(map(remove_flag3, lib_dir))
+    lib = list(map(remove_space1, lib))
+    include = list(map(remove_flag3, include))
+    macro = list(map(remove_flag3, macro))
+    linker_flags = list(map(remove_space1, linker_flags))
+    linker_flags_2 = list(map(remove_x_linker, linker_flags_2))
+
+    macro = list(map(lambda x: tuple([x, 1]), macro))
+
+    linker_flags.extend(linker_flags_2)
+
+    return (include, lib, lib_dir, macro, linker_flags)
+

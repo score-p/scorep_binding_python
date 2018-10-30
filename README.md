@@ -1,3 +1,7 @@
+<!-- # TODO cleanup of tmp dir -->
+<!-- # TODO MPI test -->
+<!-- # TODO Update Doc -->
+
 # scorep
 scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 

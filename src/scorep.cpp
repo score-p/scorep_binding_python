@@ -73,201 +73,181 @@ void oa_region_end(std::string region_name)
     auto& handle = regions[region_name];
     SCOREP_User_OaPhaseEnd(handle.value);
 }
-}
+} // namespace scorep
 namespace scorep_python
 {
 std::set<std::string> filter_modules = { "scorep.user", "scorep.strace" };
 }
 
-extern "C" {
-
-extern const char* SCOREP_GetExperimentDirName(void);
-
-static PyObject* enable_recording(PyObject* self, PyObject* args)
-{
-    SCOREP_User_EnableRecording();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-static PyObject* disable_recording(PyObject* self, PyObject* args)
+extern "C"
 {
 
-    SCOREP_User_DisableRecording();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    extern const char* SCOREP_GetExperimentDirName(void);
 
-static PyObject* region_begin(PyObject* self, PyObject* args)
-{
-    const char* module;
-    const char* region_name;
-    const char* file_name;
-    std::uint64_t line_number = 0;
-
-    if (!PyArg_ParseTuple(args, "sssK", &module, &region_name, &file_name, &line_number))
-        return NULL;
-
-    if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
+    static PyObject* enable_recording(PyObject* self, PyObject* args)
     {
-        char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-        sprintf(region, "%s:%s", module, region_name);
-        scorep::region_begin(region, module, file_name, line_number);
-        free(region);
+        SCOREP_User_EnableRecording();
+        Py_INCREF(Py_None);
+        return Py_None;
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-static PyObject* region_end(PyObject* self, PyObject* args)
-{
-    const char* module;
-    const char* region_name;
-
-    if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
-        return NULL;
-
-    if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
+    static PyObject* disable_recording(PyObject* self, PyObject* args)
     {
-        char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-        sprintf(region, "%s:%s", module, region_name);
-        scorep::region_end(region);
-        free(region);
+
+        SCOREP_User_DisableRecording();
+        Py_INCREF(Py_None);
+        return Py_None;
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    static PyObject* region_begin(PyObject* self, PyObject* args)
+    {
+        const char* module;
+        const char* region_name;
+        const char* file_name;
+        std::uint64_t line_number = 0;
 
-static PyObject* oa_region_begin(PyObject* self, PyObject* args)
-{
-    const char* region;
-    const char* file_name;
-    std::uint64_t line_number = 0;
+        if (!PyArg_ParseTuple(args, "sssK", &module, &region_name, &file_name, &line_number))
+            return NULL;
 
-    if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
-        return NULL;
+        if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
+        {
+            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
+            sprintf(region, "%s:%s", module, region_name);
+            scorep::region_begin(region, module, file_name, line_number);
+            free(region);
+        }
 
-    scorep::oa_region_begin(region, file_name, line_number);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    static PyObject* region_end(PyObject* self, PyObject* args)
+    {
+        const char* module;
+        const char* region_name;
 
-static PyObject* oa_region_end(PyObject* self, PyObject* args)
-{
-    const char* region;
+        if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
+            return NULL;
 
-    if (!PyArg_ParseTuple(args, "s", &region))
-        return NULL;
+        if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
+        {
+            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
+            sprintf(region, "%s:%s", module, region_name);
+            scorep::region_end(region);
+            free(region);
+        }
 
-    scorep::oa_region_end(region);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    static PyObject* oa_region_begin(PyObject* self, PyObject* args)
+    {
+        const char* region;
+        const char* file_name;
+        std::uint64_t line_number = 0;
 
-static PyObject* parameter_string(PyObject* self, PyObject* args)
-{
-    const char* name;
-    const char* value;
+        if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
+            return NULL;
 
-    if (!PyArg_ParseTuple(args, "ss", &name, &value))
-        return NULL;
+        scorep::oa_region_begin(region, file_name, line_number);
 
-    scorep::parameter_string(name, value);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    static PyObject* oa_region_end(PyObject* self, PyObject* args)
+    {
+        const char* region;
 
-static PyObject* parameter_int(PyObject* self, PyObject* args)
-{
-    const char* name;
-    long long value;
+        if (!PyArg_ParseTuple(args, "s", &region))
+            return NULL;
 
-    if (!PyArg_ParseTuple(args, "sL", &name, &value))
-        return NULL;
+        scorep::oa_region_end(region);
 
-    scorep::parameter_int(name, value);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    static PyObject* parameter_string(PyObject* self, PyObject* args)
+    {
+        const char* name;
+        const char* value;
 
-static PyObject* parameter_uint(PyObject* self, PyObject* args)
-{
-    const char* name;
-    unsigned long long value;
+        if (!PyArg_ParseTuple(args, "ss", &name, &value))
+            return NULL;
 
-    if (!PyArg_ParseTuple(args, "sK", &name, &value))
-        return NULL;
+        scorep::parameter_string(name, value);
 
-    scorep::parameter_uint(name, value);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+    static PyObject* parameter_int(PyObject* self, PyObject* args)
+    {
+        const char* name;
+        long long value;
 
-static PyObject* get_expiriment_dir_name(PyObject* self, PyObject* args)
-{
+        if (!PyArg_ParseTuple(args, "sL", &name, &value))
+            return NULL;
 
-    return PyUnicode_FromString(SCOREP_GetExperimentDirName());
-}
+        scorep::parameter_int(name, value);
 
-static PyMethodDef ScorePMethods[] = {
-    { "region_begin", region_begin, METH_VARARGS, "enter a region." },
-    { "region_end", region_end, METH_VARARGS, "exit a region." },
-    { "oa_region_begin", oa_region_begin, METH_VARARGS, "enter an online access region." },
-    { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
-    { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },
-    { "disable_recording", disable_recording, METH_VARARGS, "disable scorep recording." },
-    { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
-    { "parameter_uint", parameter_uint, METH_VARARGS, "User parameter uint." },
-    { "parameter_string", parameter_string, METH_VARARGS, "User parameter string." },
-    { "get_expiriment_dir_name", get_expiriment_dir_name, METH_VARARGS,
-      "Get the Score-P experiment dir." },
-    { NULL, NULL, 0, NULL } /* Sentinel */
-};
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    static PyObject* parameter_uint(PyObject* self, PyObject* args)
+    {
+        const char* name;
+        unsigned long long value;
+
+        if (!PyArg_ParseTuple(args, "sK", &name, &value))
+            return NULL;
+
+        scorep::parameter_uint(name, value);
+
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    static PyObject* get_expiriment_dir_name(PyObject* self, PyObject* args)
+    {
+
+        return PyUnicode_FromString(SCOREP_GetExperimentDirName());
+    }
+
+    static PyMethodDef ScorePMethods[] = {
+        { "region_begin", region_begin, METH_VARARGS, "enter a region." },
+        { "region_end", region_end, METH_VARARGS, "exit a region." },
+        { "oa_region_begin", oa_region_begin, METH_VARARGS, "enter an online access region." },
+        { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
+        { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },
+        { "disable_recording", disable_recording, METH_VARARGS, "disable scorep recording." },
+        { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
+        { "parameter_uint", parameter_uint, METH_VARARGS, "User parameter uint." },
+        { "parameter_string", parameter_string, METH_VARARGS, "User parameter string." },
+        { "get_expiriment_dir_name", get_expiriment_dir_name, METH_VARARGS,
+          "Get the Score-P experiment dir." },
+        { NULL, NULL, 0, NULL } /* Sentinel */
+    };
 
 #if PY_VERSION_HEX < 0x03000000
-#ifndef USE_MPI
-PyMODINIT_FUNC initscorep_bindings(void)
-{
-    (void)Py_InitModule("scorep_bindings", ScorePMethods);
-}
-#else  /*USE_MPI*/
-PyMODINIT_FUNC initscorep_bindings_mpi(void)
-{
-    (void)Py_InitModule("scorep_bindings_mpi", ScorePMethods);
-}
-#endif /*USE_MPI*/
+    PyMODINIT_FUNC initscorep_bindings(void)
+    {
+        (void)Py_InitModule("scorep_bindings", ScorePMethods);
+    }
 #else  /*python 3*/
-#ifndef USE_MPI
-static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT,
-                                           "scorep_bindings", /* name of module */
-                                           NULL, /* module documentation, may be NULL */
-                                           -1,   /* size of per-interpreter state of the module,
-                                                    or -1 if the module keeps state in global
-                                                    variables. */
-                                           ScorePMethods };
-PyMODINIT_FUNC PyInit_scorep_bindings(void)
-{
-    return PyModule_Create(&scorepmodule);
-}
-#else  /*USE_MPI*/
-static struct PyModuleDef scorepmodule_mpi = { PyModuleDef_HEAD_INIT,
-                                               "scorep_bindings_mpi", /* name of module */
+    static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT,
+                                               "scorep_bindings", /* name of module */
                                                NULL, /* module documentation, may be NULL */
                                                -1,   /* size of per-interpreter state of the module,
                                                         or -1 if the module keeps state in global
                                                         variables. */
                                                ScorePMethods };
-PyMODINIT_FUNC PyInit_scorep_bindings_mpi(void)
-{
-    return PyModule_Create(&scorepmodule_mpi);
-}
-#endif /*USE_MPI*/
+    PyMODINIT_FUNC PyInit_scorep_bindings(void)
+    {
+        return PyModule_Create(&scorepmodule);
+    }
 #endif /*python 3*/
 }

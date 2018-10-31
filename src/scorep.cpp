@@ -27,7 +27,6 @@ void region_begin(std::string region_name, std::string module, std::string file_
     auto& handle = pair.first->second;
     if (inserted_new)
     {
-        std::cout << "module:" << module << std::endl;
         SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                                file_name.c_str(), line_number);

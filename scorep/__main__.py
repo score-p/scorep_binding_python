@@ -5,7 +5,7 @@ import getopt
 
 import scorep.trace
 import scorep.helper
-import scorep.compile
+import scorep.subsystem
 
 def _usage(outfile):
     outfile.write("""TODO
@@ -37,14 +37,13 @@ def set_init_environment(scorep_config=[]):
             "libscorep" in os.environ["LD_PRELOAD"]):
         raise RuntimeError("Score-P is already loaded. This should not happen at this point")
 
-    subsystem_lib_name, temp_dir = scorep.compile.compile_scorep_subsystem(scorep_config)
+    subsystem_lib_name, temp_dir = scorep.subsystem.generate(scorep_config)
     scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
     
     scorep.helper.add_to_ld_library_path(temp_dir)
 
     os.environ["LD_PRELOAD"] = scorep_ld_preload + " " + subsystem_lib_name
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
-    os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] = temp_dir
 
 def scorep_main(argv=None):
     #print(sys.flags)
@@ -54,7 +53,11 @@ def scorep_main(argv=None):
     scorep_config = []
     prog_argv = []
     parse_scorep_commands = True
+    
     keep_files = False
+    no_default_threads = False
+    no_default_compiler = False
+    
     
     for elem in argv[1:]:
         if parse_scorep_commands:
@@ -63,6 +66,12 @@ def scorep_main(argv=None):
             elif elem == "--keep-files":
                 scorep_config.append(elem)
                 keep_files = True
+            elif "--thread=" in elem:
+                scorep_config.append(elem)
+                no_default_threads = True
+            elif elem == "--nocompiler":
+                scorep_config.append(elem)
+                no_default_compiler = True
             elif elem[0] == "-":
                 scorep_config.append(elem)
             else:
@@ -71,6 +80,12 @@ def scorep_main(argv=None):
         else:
             prog_argv.append(elem)
         
+    if not no_default_threads:
+        scorep_config.append("--thread=pthread")
+        
+    if not no_default_compiler:
+        scorep_config.append("--compiler")
+    
     if len(prog_argv) == 0:
         _err_exit("Did not find a script to run")
 
@@ -115,8 +130,9 @@ def scorep_main(argv=None):
         global_trace.runctx(code, globs, globs)
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
-    except SystemExit:
-        pass
+    finally:
+        scorep.subsystem.clean_up(keep_files)
+
 
 def main(argv=None):
     import traceback

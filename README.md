@@ -1,7 +1,3 @@
-<!-- # TODO cleanup of tmp dir -->
-<!-- # TODO MPI test -->
-<!-- # TODO Update Doc -->
-
 # scorep
 scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 
@@ -30,6 +26,46 @@ and
 
 There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/wiki) in the wiki.
 
+Since version 0.9 it is possible to pass the traditional Score-P commands to the Score-P bindings, e.g.:
+
+```
+python -m scorep --mpp=mpi --thread=pthread <script.py>
+```
+
+To see all flags simply call:
+
+```
+scorep --help
+```
+
+## Backward Compatibility
+
+In order to maintain backwards Compatibility, the following flags are set per default:
+
+```
+python -m scorep --compiler --thread=pthread <script.py>
+```
+
+The traditional `--mpi` does still work, and is similar to the following call:
+
+```
+python -m scorep --compiler --thread=pthread --mpp=mpi <script.py>
+```
+
+To disable compiler instrumentation please specify:
+
+```
+python -m scorep --nocompiler <script.py>
+```
+
+For other thread schemes just specify `--thread=<something>`. E.g. :
+
+```
+python -m scorep --thread=omp <script.py>
+```
+
+Please be aware the `--user` is always passed to Score-P, as this is needed for the python instrumentation.
+
 # Compatibility
 ## Working
 * python3 
@@ -40,7 +76,7 @@ There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/w
 * python multiprocessing
     * Score-P does currently not support any non MPI or non SHMEM communication. So the different processes will not know from each other. You might want to take a look to https://mpi4py.readthedocs.io/en/stable/mpi4py.futures.html .
 
-## Partialy working
+## Partially working
 * threaded applications
     * Please have a look to a Score-P trunk package with revision at least 13560 here:
       http://scorepci.pages.jsc.fz-juelich.de/scorep-pipelines/.
@@ -73,7 +109,7 @@ scorep.user.parameter_string(name, string)
 These functions allow passing user parameters to Score-P. These parameters can be int, uint and string. `name` defines the name of the parameter, while `val` or `string` defines the value that is passed to Score-P. 
 
 # Tracing
-The tracing uses Score-P User instrumentation. The python trace module was reworked, to pass the region names to ```SCOREP_USER_REGION_BEGIN``` and ```SCOREP_USER_REGION_END``` instead of printing. All other features of the tracing module where striped.
+The tracing uses Score-P User instrumentation. The python trace module was reworked, to pass the region names to `SCOREP_USER_REGION_BEGIN` and `SCOREP_USER_REGION_END` instead of printing. All other features of the tracing module where striped.
 
 # MPI
 

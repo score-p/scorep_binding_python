@@ -6,7 +6,7 @@ import stat
 import platform
 import functools
 import distutils.ccompiler
-import tempfile 
+import tempfile
 import shutil
 
 import scorep.helper
@@ -19,20 +19,22 @@ def gen_subsystem_lib_name():
     mpi_lib_name = "libscorep_init_subsystem-{}.so".format(scorep.helper.get_python_version())
     return mpi_lib_name
 
-def generate_subsystem_code(config = []):
+
+def generate_subsystem_code(config=[]):
     """
     Generates the data needed to be preloaded.
     """
-    
+
     scorep_config = ["scorep-config"] + config + ["--user"]
-    
+
     (retrun_code, _, _) = scorep.helper.call(scorep_config)
     if retrun_code != 0:
         raise ValueError(
             "given config {} is not supported".format(scorep_config))
     (_, scorep_adapter_init, _) = scorep.helper.call(scorep_config + ["--adapter-init"])
-    
+
     return scorep_adapter_init
+
 
 def generate(scorep_config):
     """
@@ -53,7 +55,7 @@ def generate(scorep_config):
     temp_dir = tempfile.mkdtemp(None, "scorep.", None)
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)
-        
+
     subsystem_lib_name = gen_subsystem_lib_name()
 
     cc = distutils.ccompiler.new_compiler()
@@ -61,18 +63,19 @@ def generate(scorep_config):
     cc.link(
         "scorep_init_mpi",
         objects=compiled_subsystem,
-        output_filename = subsystem_lib_name,
-        output_dir = temp_dir,
-        library_dirs = lib_dir,
+        output_filename=subsystem_lib_name,
+        output_dir=temp_dir,
+        library_dirs=lib_dir,
         extra_postargs=linker_flags)
-    
+
     os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] = temp_dir
     return(subsystem_lib_name, temp_dir)
 
-def clean_up(keep_files = True):
+
+def clean_up(keep_files=True):
     """
     deletes the files that are associated to subsystem
-    
+
     @param keep_files do not delete the generated files. For debugging.
     """
     if keep_files:
@@ -80,6 +83,3 @@ def clean_up(keep_files = True):
     else:
         if ("SCOREP_PYTHON_BINDINGS_TEMP_DIR" in os.environ) and (os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] != ""):
             shutil.rmtree(os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"])
-            
-            
-

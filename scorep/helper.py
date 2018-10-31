@@ -28,6 +28,7 @@ def call(arguments):
         result = (p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
     return result
 
+
 def get_python_version():
     version = "{}.{}".format(
         sys.version_info.major,
@@ -53,20 +54,21 @@ def generate_ld_preload(scorep_config):
     """
     This functions generate a string that needs to be passed to $LD_PRELOAD.
     After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
-    
+
     @return ld_preload string which needs to be passed to LD_PRELOAD
     """
-    
+
     (_, preload, _) = call(["scorep-config"] + scorep_config + ["--user", "--preload-libs"])
     return preload
 
-def generate_compile_deps(config = []):
+
+def generate_compile_deps(config=[]):
     """
     Generates the data needed for compilation.
     """
-    
+
     scorep_config = ["scorep-config"] + config + ["--user"]
-    
+
     (retrun_code, _, _) = call(scorep_config)
     if retrun_code != 0:
         raise ValueError(
@@ -81,13 +83,14 @@ def generate_compile_deps(config = []):
     ldflags = " " + ldflags
     cflags = " " + cflags
 
-    lib_dir = re.findall(" -L[/+-@.\w]*", ldflags)
-    lib = re.findall(" -l[/+-@.\w]*", libs)
-    include = re.findall(" -I[/+-@.\w]*", cflags)
-    macro = re.findall(" -D[/+-@.\w]*", cflags)
-    linker_flags = re.findall(" -Wl[/+-@.\w]*", ldflags)
+    lib_dir = re.findall(r" -L[/+-@.\w]*", ldflags)
+    lib = re.findall(r" -l[/+-@.\w]*", libs)
+    include = re.findall(r" -I[/+-@.\w]*", cflags)
+    macro = re.findall(r" -D[/+-@.\w]*", cflags)
+    linker_flags = re.findall(r" -Wl[/+-@.\w]*", ldflags)
 
     def remove_flag3(x): return x[3:]
+
     def remove_space1(x): return x[1:]
 
     lib_dir = list(map(remove_flag3, lib_dir))

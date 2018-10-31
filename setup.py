@@ -6,10 +6,10 @@ import scorep.helper
 
 cmodules = []
 cmodules.append(Extension('scorep.scorep_bindings',
-                        include_dirs=include,
-                        libraries=[],
-                        extra_compile_args=["-std=c++11"],
-                        sources=['src/scorep.cpp']))
+                          include_dirs=include,
+                          libraries=[],
+                          extra_compile_args=["-std=c++11"],
+                          sources=['src/scorep.cpp']))
 
 
 setup(

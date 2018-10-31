@@ -7,6 +7,7 @@ import scorep.trace
 import scorep.helper
 import scorep.subsystem
 
+
 def _usage(outfile):
     outfile.write("""TODO
 """ % sys.argv[0])
@@ -16,6 +17,7 @@ global_trace = None
 
 cuda_support = None
 opencl_support = None
+
 
 def _err_exit(msg):
     sys.stderr.write("%s: %s\n" % ("scorep", msg))
@@ -39,26 +41,26 @@ def set_init_environment(scorep_config=[]):
 
     subsystem_lib_name, temp_dir = scorep.subsystem.generate(scorep_config)
     scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
-    
+
     scorep.helper.add_to_ld_library_path(temp_dir)
 
     os.environ["LD_PRELOAD"] = scorep_ld_preload + " " + subsystem_lib_name
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
+
 def scorep_main(argv=None):
-    #print(sys.flags)
+    # print(sys.flags)
     if argv is None:
         argv = sys.argv
-    
+
     scorep_config = []
     prog_argv = []
     parse_scorep_commands = True
-    
+
     keep_files = False
     no_default_threads = False
     no_default_compiler = False
-    
-    
+
     for elem in argv[1:]:
         if parse_scorep_commands:
             if elem == "--mpi":
@@ -79,13 +81,13 @@ def scorep_main(argv=None):
                 parse_scorep_commands = False
         else:
             prog_argv.append(elem)
-        
+
     if not no_default_threads:
         scorep_config.append("--thread=pthread")
-        
+
     if not no_default_compiler:
         scorep_config.append("--compiler")
-    
+
     if len(prog_argv) == 0:
         _err_exit("Did not find a script to run")
 
@@ -126,7 +128,7 @@ def scorep_main(argv=None):
             '__package__': None,
             '__cached__': None,
         }
-        
+
         global_trace.runctx(code, globs, globs)
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
@@ -140,10 +142,13 @@ def main(argv=None):
     call_stack_array = traceback.format_list(call_stack)
     call_stack_string = ""
     for elem in call_stack_array[:-1]:
-        call_stack_string+=elem
-    _err_exit("Someone called scorep.__main__.main(argv).\n"
-              "This is not supposed to happen, but might be triggered, if your application calls \"sys.modules['__main__'].main\".\n"
-              "This python stacktrace might be helpfull to find the reason:\n%s" % call_stack_string)
+        call_stack_string += elem
+    _err_exit(
+        "Someone called scorep.__main__.main(argv).\n"
+        "This is not supposed to happen, but might be triggered, if your application calls \"sys.modules['__main__'].main\".\n"
+        "This python stacktrace might be helpfull to find the reason:\n%s" %
+        call_stack_string)
+
 
 if __name__ == '__main__':
     scorep_main()

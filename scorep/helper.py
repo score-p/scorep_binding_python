@@ -41,8 +41,10 @@ def add_to_ld_library_path(path):
     adds the path to the LD_LIBRARY_PATH.
     @param path path to be added
     """
-    if ("LD_LIBRARY_PATH" not in os.environ) or (
-            path not in os.environ["LD_LIBRARY_PATH"]):
+    if ("LD_LIBRARY_PATH" not in os.environ):
+        os.environ["LD_LIBRARY_PATH"] = ""
+        
+    if (path not in os.environ["LD_LIBRARY_PATH"]):
         if os.environ["LD_LIBRARY_PATH"] == "":
             os.environ["LD_LIBRARY_PATH"] = path
         else:

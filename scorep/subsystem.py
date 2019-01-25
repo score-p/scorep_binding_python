@@ -52,14 +52,14 @@ def generate(scorep_config):
     linker_flags.extend(lib)
     linker_flags.extend(linker_flags_tmp)
 
-    temp_dir = tempfile.mkdtemp(None, "scorep.", None)
+    temp_dir = tempfile.mkdtemp(prefix="scorep.")
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)
 
     subsystem_lib_name = gen_subsystem_lib_name()
 
     cc = distutils.ccompiler.new_compiler()
-    compiled_subsystem = cc.compile([temp_dir + "/scorep_init.c"])
+    compiled_subsystem = cc.compile([temp_dir + "/scorep_init.c"], output_dir=temp_dir)
     cc.link(
         "scorep_init_mpi",
         objects=compiled_subsystem,
@@ -83,3 +83,4 @@ def clean_up(keep_files=True):
     else:
         if ("SCOREP_PYTHON_BINDINGS_TEMP_DIR" in os.environ) and (os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] != ""):
             shutil.rmtree(os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"])
+            

@@ -74,12 +74,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = subprocess.run(["python3",
                               "-m",
                               "scorep",
+                              "--nocompiler",
                               "test_instrumentation.py"],
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              env=env)
         self.assertEqual(out.stderr.decode("utf-8"), self.expected_std_err)
-        self.assertEqual(out.stdout.decode("utf-8"), "hello world\n")
+        self.assertEqual(out.stdout.decode("utf-8"), "hello world\nbaz\nbar\n")
 
         out = subprocess.run(["otf2-print", trace_path],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -99,14 +100,13 @@ class TestScorepBindingsPython(unittest.TestCase):
                               "python3",
                               "-m",
                               "scorep",
-                              "--mpi",
+                              "--mpp=mpi",
+                              "--nocompiler",
                               "test_mpi.py"],
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              env=env)
-        expected_std_err = \
-            "[Score-P] src/adapters/compiler/scorep_compiler_symbol_table_libbfd.c:118: Error: The given size cannot be used: BFD: bfd_canonicalize_symtab(): < 1\n" + \
-            "[Score-P] src/adapters/compiler/scorep_compiler_symbol_table_libbfd.c:118: Error: The given size cannot be used: BFD: bfd_canonicalize_symtab(): < 1\n"
+        expected_std_err = ""
 
         expected_std_out = \
             "[00] [0. 1. 2. 3. 4.]\n" +\
@@ -123,29 +123,14 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = subprocess.run(["python3",
                               "-m",
                               "scorep",
+                              "--nocompiler",
                               "test_call_main.py"],
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              env=env)
-        expected_std_err = """scorep: Someone called scorep.__main__.main(argv).
-This is not supposed to happen, but might be triggered, if your application calls "sys.modules['__main__'].main".
-This python stacktrace might be helpfull to find the reason:
-  File "/usr/lib/python3.6/runpy.py", line 193, in _run_module_as_main
-    "__main__", mod_spec)
-  File "/usr/lib/python3.6/runpy.py", line 85, in _run_code
-    exec(code, run_globals)
-  File "/home/gocht/virtenv/test_scorep_python_3.6/lib/python3.6/site-packages/scorep/__main__.py", line 161, in <module>
-    scorep_main()
-  File "/home/gocht/virtenv/test_scorep_python_3.6/lib/python3.6/site-packages/scorep/__main__.py", line 143, in scorep_main
-    global_trace.runctx(code, globs, globs)
-  File "/home/gocht/virtenv/test_scorep_python_3.6/lib/python3.6/site-packages/scorep/trace.py", line 57, in runctx
-    exec(cmd, globals, locals)
-  File "test_call_main.py", line 6, in <module>
-    sys.modules['__main__'].main(sys.argv)
-
-"""
+        expected_std_err = "scorep: Someone called scorep\.__main__\.main"
         expected_std_out = ""
-        self.assertEqual(out.stderr.decode("utf-8"), expected_std_err)
+        self.assertRegex(out.stderr.decode("utf-8"), expected_std_err)
         self.assertEqual(out.stdout.decode("utf-8"), expected_std_out)
 
     def tearDown(self):

@@ -56,7 +56,7 @@ def set_init_environment(mpi):
             scorep.helper.add_to_ld_library_path(
                 os.path.dirname(scorep_subsystem))
 
-            os.environ["LD_PRELOAD"] = ld_preload
+            os.environ["LD_PRELOAD"] = ld_preload + " " + os.environ["LD_PRELOAD"]
 
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 

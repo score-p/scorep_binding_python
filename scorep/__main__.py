@@ -44,7 +44,7 @@ def set_init_environment(scorep_config=[]):
 
     scorep.helper.add_to_ld_library_path(temp_dir)
 
-    os.environ["LD_PRELOAD"] = scorep_ld_preload + " " + subsystem_lib_name
+    os.environ["LD_PRELOAD"] = scorep_ld_preload + " " + subsystem_lib_name + " " + os.environ["LD_PRELOAD"]
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
 

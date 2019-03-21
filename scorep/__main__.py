@@ -13,7 +13,7 @@ def _usage(outfile):
 """ % sys.argv[0])
 
 
-global_trace = None
+
 
 cuda_support = None
 opencl_support = None
@@ -64,6 +64,7 @@ def scorep_main(argv=None):
     keep_files = False
     no_default_threads = False
     no_default_compiler = False
+    no_python = False
 
     for elem in argv[1:]:
         if parse_scorep_commands:
@@ -78,6 +79,8 @@ def scorep_main(argv=None):
             elif elem == "--nocompiler":
                 scorep_config.append(elem)
                 no_default_compiler = True
+            elif elem == "--nopython":
+                no_python = True
             elif elem[0] == "-":
                 scorep_config.append(elem)
             else:
@@ -120,7 +123,7 @@ def scorep_main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    global_trace = scorep.trace.ScorepTrace(scorep_bindings, True)
+    tracer = scorep.trace.ScorepTrace(scorep_bindings, not no_python)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -133,7 +136,7 @@ def scorep_main(argv=None):
             '__cached__': None,
         }
 
-        global_trace.runctx(code, globs, globs)
+        tracer.runctx(code, globs, globs)
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     finally:
@@ -157,10 +160,6 @@ def main(argv=None):
 if __name__ == '__main__':
     scorep_main()
 else:
-    '''
-    If Score-P is not intialised using the tracing module (`python -m scorep <script.py>`),
-    we need to make sure that, if a user call gets called, scorep is still loaded.
-    Moreover, if the module is loaded with `import scorep` we can't do any mpi support anymore
-    '''
-    scorep_bindings = importlib.import_module("scorep.scorep_bindings")
-    global_trace = scorep.trace.ScorepTrace(scorep_bindings, False)
+    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
+        os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
+            print("scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!", file=sys.stderr)

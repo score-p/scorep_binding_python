@@ -20,12 +20,15 @@ else:
         sys.settrace(None)
         threading.settrace(None)
 
-
+global_trace = None
 class ScorepTrace:
     def __init__(self, scorep_bindings, trace=True):
         """
         @param trace true if there shall be any tracing at all
         """
+        global global_trace
+        global_trace = self
+        
         self.pathtobasename = {}  # for memoizing os.path.basename
         self.donothing = False
         self.trace = trace
@@ -39,6 +42,10 @@ class ScorepTrace:
     def register(self):
         if not self.donothing:
             _settrace(self.globaltrace)
+
+    def unregister(self):
+        if not self.donothing:
+            _unsettrace()
 
     def run(self, cmd):
         #import __main__
@@ -87,7 +94,7 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if self.trace and code.co_name is not "_unsettrace":
+            if self.trace and not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return self.localtrace

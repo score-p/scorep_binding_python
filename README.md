@@ -38,6 +38,11 @@ To see all flags simply call:
 scorep --help
 ```
 
+## Additional Flags
+
+The scorep bindings now also support a `--nopython` flag, which disables the python instrumentation.
+This might be helpfull, if only user instrumentation is required, or only some instrumented libraries shall be traced.
+
 ## Backward Compatibility
 
 In order to maintain backwards Compatibility, the following flags are set per default:

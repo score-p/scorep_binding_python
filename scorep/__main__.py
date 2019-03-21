@@ -43,8 +43,12 @@ def set_init_environment(scorep_config=[]):
     scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
 
     scorep.helper.add_to_ld_library_path(temp_dir)
-
-    os.environ["LD_PRELOAD"] = scorep_ld_preload + " " + subsystem_lib_name + " " + os.environ["LD_PRELOAD"]
+    
+    preload_str = scorep_ld_preload + " " + subsystem_lib_name
+    if "LD_PRELOAD" in os.environ:
+        print("LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.", file=sys.stderr)
+        preload_str = preload_str + " " + os.environ["LD_PRELOAD"]
+    os.environ["LD_PRELOAD"] = preload_str
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
+from mpi4py import MPI
 import numpy as np
 import mpi4py
 mpi4py.rc.thread_level = "funneled"
 
-from mpi4py import MPI
 
 comm = mpi4py.MPI.COMM_WORLD
 

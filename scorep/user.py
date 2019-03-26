@@ -2,14 +2,7 @@ import inspect
 import os.path
 import scorep.trace
 
-from scorep.__main__ import global_trace
-
-
-def register():
-    '''
-    If the module is impored using `import scorep` a call to register is requred to register the traing.
-    '''
-    global_trace.register()
+from scorep.trace import global_trace
 
 
 def region_begin(name, file_name=None, line_number=None):
@@ -20,7 +13,7 @@ def region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    scorep.trace._unsettrace()
+    global_trace.unregister()
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -35,13 +28,11 @@ def region_begin(name, file_name=None, line_number=None):
 
 
 def region_end(name):
-    scorep.trace._unsettrace()
     global_trace.user_region_end(name)
-    global_trace.register()
 
 
 def oa_region_begin(name, file_name=None, line_number=None):
-    scorep.trace._unsettrace()
+    global_trace.unregister()
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
     bet determined automatically
@@ -63,9 +54,7 @@ def oa_region_begin(name, file_name=None, line_number=None):
 
 
 def oa_region_end(name):
-    scorep.trace._unsettrace()
     global_trace.oa_region_end(name)
-    global_trace.register()
 
 
 def enable_recording():

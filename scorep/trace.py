@@ -21,6 +21,8 @@ else:
         threading.settrace(None)
 
 global_trace = None
+
+
 class ScorepTrace:
     def __init__(self, scorep_bindings, trace=True):
         """
@@ -28,7 +30,7 @@ class ScorepTrace:
         """
         global global_trace
         global_trace = self
-        
+
         self.pathtobasename = {}  # for memoizing os.path.basename
         self.donothing = False
         self.trace = trace

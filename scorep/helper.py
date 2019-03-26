@@ -43,7 +43,7 @@ def add_to_ld_library_path(path):
     """
     if ("LD_LIBRARY_PATH" not in os.environ):
         os.environ["LD_LIBRARY_PATH"] = ""
-        
+
     if (path not in os.environ["LD_LIBRARY_PATH"]):
         if os.environ["LD_LIBRARY_PATH"] == "":
             os.environ["LD_LIBRARY_PATH"] = path
@@ -60,7 +60,8 @@ def generate_ld_preload(scorep_config):
     @return ld_preload string which needs to be passed to LD_PRELOAD
     """
 
-    (_, preload, _) = call(["scorep-config"] + scorep_config + ["--user", "--preload-libs"])
+    (_, preload, _) = call(["scorep-config"] +
+                           scorep_config + ["--user", "--preload-libs"])
     return preload
 
 

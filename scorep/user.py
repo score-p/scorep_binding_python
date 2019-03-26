@@ -4,6 +4,7 @@ import scorep.trace
 
 from scorep.trace import global_trace
 
+
 def region_begin(name, file_name=None, line_number=None):
     """
     Begin of an User region. If file_name or line_number is None, both will
@@ -28,7 +29,7 @@ def region_begin(name, file_name=None, line_number=None):
 
 def region_end(name):
     global_trace.user_region_end(name)
-    
+
 
 def oa_region_begin(name, file_name=None, line_number=None):
     global_trace.unregister()
@@ -54,7 +55,7 @@ def oa_region_begin(name, file_name=None, line_number=None):
 
 def oa_region_end(name):
     global_trace.oa_region_end(name)
-    
+
 
 def enable_recording():
     global_trace.user_enable_recording()

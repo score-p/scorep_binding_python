@@ -13,8 +13,6 @@ def _usage(outfile):
 """ % sys.argv[0])
 
 
-
-
 cuda_support = None
 opencl_support = None
 
@@ -24,7 +22,7 @@ def _err_exit(msg):
     sys.exit(1)
 
 
-def set_init_environment(scorep_config=[], keep_files = False):
+def set_init_environment(scorep_config=[], keep_files=False):
     """
     Set the inital needed environmet variables, to get everythin up an running.
     As a few variables interact with LD env vars, the programms needs to be restarted after this.
@@ -38,13 +36,15 @@ def set_init_environment(scorep_config=[], keep_files = False):
 
     if ("LD_PRELOAD" in os.environ) and (
             "libscorep" in os.environ["LD_PRELOAD"]):
-        raise RuntimeError("Score-P is already loaded. This should not happen at this point")
+        raise RuntimeError(
+            "Score-P is already loaded. This should not happen at this point")
 
-    subsystem_lib_name, temp_dir = scorep.subsystem.generate(scorep_config, keep_files)
+    subsystem_lib_name, temp_dir = scorep.subsystem.generate(
+        scorep_config, keep_files)
     scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
 
     scorep.helper.add_to_ld_library_path(temp_dir)
-    
+
     preload_str = scorep_ld_preload + " " + subsystem_lib_name
     if "LD_PRELOAD" in os.environ:
         print("LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.", file=sys.stderr)
@@ -160,6 +160,5 @@ def main(argv=None):
 if __name__ == '__main__':
     scorep_main()
 else:
-    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
-        os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-            print("scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!", file=sys.stderr)
+    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
+        print("scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!", file=sys.stderr)

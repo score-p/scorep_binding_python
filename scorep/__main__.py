@@ -24,7 +24,7 @@ def _err_exit(msg):
     sys.exit(1)
 
 
-def set_init_environment(scorep_config=[]):
+def set_init_environment(scorep_config=[], keep_files = False):
     """
     Set the inital needed environmet variables, to get everythin up an running.
     As a few variables interact with LD env vars, the programms needs to be restarted after this.
@@ -32,6 +32,7 @@ def set_init_environment(scorep_config=[]):
     initalising.
 
     @param scorep_config configuration flags for score-p
+    @param keep_files whether to keep the generated files, or not.
     @return temp_dir to be deleted once the script is done
     """
 
@@ -39,7 +40,7 @@ def set_init_environment(scorep_config=[]):
             "libscorep" in os.environ["LD_PRELOAD"]):
         raise RuntimeError("Score-P is already loaded. This should not happen at this point")
 
-    subsystem_lib_name, temp_dir = scorep.subsystem.generate(scorep_config)
+    subsystem_lib_name, temp_dir = scorep.subsystem.generate(scorep_config, keep_files)
     scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
 
     scorep.helper.add_to_ld_library_path(temp_dir)
@@ -71,7 +72,6 @@ def scorep_main(argv=None):
             if elem == "--mpi":
                 scorep_config.append("--mpp=mpi")
             elif elem == "--keep-files":
-                scorep_config.append(elem)
                 keep_files = True
             elif "--thread=" in elem:
                 scorep_config.append(elem)
@@ -100,7 +100,7 @@ def scorep_main(argv=None):
 
     if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
             os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-        set_init_environment(scorep_config)
+        set_init_environment(scorep_config, keep_files)
 
         """
         python -m starts the module as skript. i.e. sys.argv will loke like:

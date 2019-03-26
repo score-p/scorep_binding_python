@@ -36,10 +36,13 @@ def generate_subsystem_code(config=[]):
     return scorep_adapter_init
 
 
-def generate(scorep_config):
+def generate(scorep_config, keep_files=False):
     """
     Uses the scorep_config to compile the scorep subsystem.
     Returns the name of the compiled subsystem, and the path the the temp folder, where the lib is located
+    
+    @param scorep_config scorep configuration to build subsystem
+    @param keep_files whether to keep the generated files, or not.
     """
 
     (include, lib, lib_dir, macro, linker_flags_tmp) = scorep.helper.generate_compile_deps(scorep_config)
@@ -53,6 +56,9 @@ def generate(scorep_config):
     linker_flags.extend(linker_flags_tmp)
 
     temp_dir = tempfile.mkdtemp(prefix="scorep.")
+    if keep_files:
+        print("Score-P files are keept at: {}".format(temp_dir), file=sys.stderr)
+    
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)
 

@@ -23,7 +23,7 @@ The usual Score-P environment Variables will be respected. Please have a look at
 
 and
 
-[Score-P Documentation](https://silc.zih.tu-dresden.de/scorep-current/pdf/scorep.pdf)
+[Score-P Documentation](http://scorepci.pages.jsc.fz-juelich.de/scorep-pipelines/docs/scorep-5.0/pdf/scorep.pdf)
 
 There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/wiki) in the wiki.
 

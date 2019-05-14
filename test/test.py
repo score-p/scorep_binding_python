@@ -4,10 +4,45 @@ import unittest
 import subprocess
 import os
 import shutil
+import sys
+import pkgutil
+
+def call(arguments, env = os.environ.copy()):
+    """
+    return a triple with (returncode, stdout, stderr) from the call to subprocess
+    """
+    result = ()
+    if sys.version_info > (3, 5):
+        out = subprocess.run(
+            arguments,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        result = (
+            out.returncode,
+            out.stdout.decode("utf-8"),
+            out.stderr.decode("utf-8"))
+    else:
+        p = subprocess.Popen(
+            arguments,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        p.wait()
+        result = (p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
+    return result
 
 
 class TestScorepBindingsPython(unittest.TestCase):
     maxDiff = None
+    python = sys.executable
+    
+    def assertRegex(self, in1, in2):
+        if sys.version_info > (3, 5):
+            super().assertRegex(in1, in2)
+        else:
+            super(TestScorepBindingsPython, self).assertRegexpMatches(in1, in2)
 
     def setUp(self):
         self.env = os.environ.copy()
@@ -29,41 +64,52 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_regions"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = subprocess.run(["python3",
-                              "test_user_regions.py"],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
-        self.assertEqual(out.stderr.decode("utf-8"), self.expected_std_err)
-        self.assertEqual(out.stdout.decode("utf-8"), "hello world\n")
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nopython",                              
+                    "test_user_regions.py"],
+                    env=env)
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_out, "hello world\n")
 
-        out = subprocess.run(["otf2-print", trace_path],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.assertEqual(out.stderr.decode("utf-8"), "")
-        self.assertRegex(out.stdout.decode("utf-8"),
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertRegex(std_out,
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
-        self.assertRegex(out.stdout.decode("utf-8"),
+        self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
 
     def test_oa_regions(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_oa_regions"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nopython",
+                    "test_oa_regions.py"],
+                    env=env)
+        std_out = out[1]
+        std_err = out[2]
 
-        out = subprocess.run(["python3",
-                              "test_oa_regions.py"],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
-        self.assertEqual(out.stderr.decode("utf-8"), self.expected_std_err)
-        self.assertEqual(out.stdout.decode("utf-8"), "hello world\n")
+        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_out, "hello world\n")
 
-        out = subprocess.run(["otf2-print", trace_path],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.assertEqual(out.stderr.decode("utf-8"), "")
-        self.assertRegex(out.stdout.decode("utf-8"),
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertEqual(std_err, "")
+        self.assertRegex(std_out,
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "test_region"')
-        self.assertRegex(out.stdout.decode("utf-8"),
+        self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "test_region"')
 
     def test_instrumentation(self):
@@ -71,67 +117,76 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_instrumentation"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = subprocess.run(["python3",
-                              "-m",
-                              "scorep",
-                              "--nocompiler",
-                              "test_instrumentation.py"],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
-        self.assertEqual(out.stderr.decode("utf-8"), self.expected_std_err)
-        self.assertEqual(out.stdout.decode("utf-8"), "hello world\nbaz\nbar\n")
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nocompiler",
+                    "test_instrumentation.py"],
+                    env=env)
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_out, "hello world\nbaz\nbar\n")
 
-        out = subprocess.run(["otf2-print", trace_path],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.assertEqual(out.stderr.decode("utf-8"), "")
-        self.assertRegex(out.stdout.decode("utf-8"),
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertEqual(std_err, "")
+        self.assertRegex(std_out,
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
-        self.assertRegex(out.stdout.decode("utf-8"),
+        self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
 
+    @unittest.skipIf(len(pkgutil.extend_path([], "mpi4py")) == 0 or 
+                     len(pkgutil.extend_path([], "numpy")) == 0,
+                     "no mpi4py present")
     def test_mpi(self):
+        
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_mpi"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
-        out = subprocess.run(["mpirun",
-                              "-n",
-                              "2",
-                              "python3",
-                              "-m",
-                              "scorep",
-                              "--mpp=mpi",
-                              "--nocompiler",
-                              "test_mpi.py"],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
+        out = call(["mpirun",
+                    "-n",
+                    "2",
+                    self.python,
+                    "-m",
+                    "scorep",
+                    "--mpp=mpi",
+                    "--nocompiler",
+                    "test_mpi.py"],
+                    env=env)
+        
+        std_out = out[1]
+        std_err = out[2]
+
         expected_std_err = ""
+        expected_std_out = "\[0[0-9]\] \[0. 1. 2. 3. 4.\]\\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\\n"
 
-        expected_std_out = \
-            "[00] [0. 1. 2. 3. 4.]\n" +\
-            "[01] [0. 1. 2. 3. 4.]\n"
-
-        # TODO
-        #self.assertEqual(out.stderr.decode("utf-8"), expected_std_err)
-        #self.assertEqual(out.stdout.decode("utf-8"), "hello world\n")
+        self.assertRegex(std_err,
+                         '\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED')
+        self.assertRegex(std_out, expected_std_out)
+        
+        expected_std_out
 
     def test_call_main(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_call_main"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
-        out = subprocess.run(["python3",
-                              "-m",
-                              "scorep",
-                              "--nocompiler",
-                              "test_call_main.py"],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nocompiler",
+                    "test_call_main.py"],
+                    env=env)
+        std_out = out[1]
+        std_err = out[2]
+        
         expected_std_err = "scorep: Someone called scorep\.__main__\.main"
         expected_std_out = ""
-        self.assertRegex(out.stderr.decode("utf-8"), expected_std_err)
-        self.assertEqual(out.stdout.decode("utf-8"), expected_std_out)
+        self.assertRegex(std_err, expected_std_err)
+        self.assertEqual(std_out, expected_std_out)
 
     def tearDown(self):
         shutil.rmtree(

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/score-p/scorep_binding_python.svg?branch=master)](https://travis-ci.org/score-p/scorep_binding_python)
+
 # scorep
 scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 

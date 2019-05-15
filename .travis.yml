@@ -11,9 +11,9 @@ addons:
     update: true
  
 before_install:
- - sudo add-apt-repository ppa:andreasgocht/scorep
+ - sudo add-apt-repository ppa:andreasgocht/scorep -y
  - sudo apt-get update -q
- - sudo apt-get install -y scorep
+ - sudo apt-get install scorep -y
 
 script:
   - pip install ./ && cd test $$ python test.py

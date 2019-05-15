@@ -6,10 +6,6 @@ python:
  - "3.6"
  - "3.7"
  
-addons:
-  apt:
-    update: true
- 
 before_install:
  - sudo add-apt-repository ppa:andreasgocht/scorep -y
  - sudo apt-get update -q

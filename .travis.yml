@@ -10,6 +10,9 @@ before_install:
  - sudo add-apt-repository ppa:andreasgocht/scorep -y
  - sudo apt-get update -q
  - sudo apt-get install scorep -y
+ 
+install:
+  - pip install mpi4py numpy
 
 script:
-  - pip install ./ && cd test $$ python test.py
+  - pip install ./ && cd test && python test.py

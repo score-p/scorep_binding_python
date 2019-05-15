@@ -6,10 +6,14 @@ python:
  - "3.6"
  - "3.7"
  
-before_install:
- - sudo add-apt-repository ppa:andreasgocht/scorep -y
- - sudo apt-get update -q
- - sudo apt-get install scorep -y
+addons:
+  apt:
+    sources:
+        - sourceline: "ppa:andreasgocht/scorep"
+    packages: 
+        - scorep
+        - openmpi-common
+        - libopenmpi-dev
  
 install:
   - pip install mpi4py numpy

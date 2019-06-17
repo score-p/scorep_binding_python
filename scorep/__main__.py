@@ -31,7 +31,6 @@ def set_init_environment(scorep_config=[], keep_files=False):
 
     @param scorep_config configuration flags for score-p
     @param keep_files whether to keep the generated files, or not.
-    @return temp_dir to be deleted once the script is done
     """
 
     if ("LD_PRELOAD" in os.environ) and (

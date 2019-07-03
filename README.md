@@ -11,6 +11,18 @@ Then simply run
 ```
 pip install .
 ```
+
+## Using non default Compilers
+
+Usually, Python uses the compiler provided by `cc`. For the initialisation of the subsystem, the compiler is determined by calling Score-P. However, there is no way I am aware of to force the compiler during installation, expect by specifying the `CC` environment variable.
+
+So if you are planning to use non-default Compiler like Intel, please install the bindings using:
+
+```
+CC=`scorep-config --cc` CXX=`scorep-config --cxx` pip install . 
+```
+
+
 # Use
 
 To trace the full script you need to run

@@ -1,7 +1,7 @@
 from distutils.core import setup, Extension
 import scorep.helper
 
-(include, lib, lib_dir, macro, linker_flags) = scorep.helper.generate_compile_deps()
+(include, lib, lib_dir, macro, linker_flags, cc, cxx) = scorep.helper.generate_compile_deps()
 
 
 cmodules = []
@@ -14,7 +14,7 @@ cmodules.append(Extension('scorep.scorep_bindings',
 
 setup(
     name='scorep',
-    version='1.0',
+    version='1.2',
     description='This is a scorep tracing package for python',
     author='Andreas Gocht',
     author_email='andreas.gocht@tu-dresden.de',

@@ -48,7 +48,7 @@ def generate(scorep_config, keep_files=False):
     """
 
     (include, lib, lib_dir, macro,
-     linker_flags_tmp) = scorep.helper.generate_compile_deps(scorep_config)
+     linker_flags_tmp, cc, cxx) = scorep.helper.generate_compile_deps(scorep_config)
     scorep_adapter_init = generate_subsystem_code(scorep_config)
 
     # add -Wl,-no-as-needed to tell the compiler that we really want to link these. Actually this sould be default.
@@ -67,10 +67,13 @@ def generate(scorep_config, keep_files=False):
 
     subsystem_lib_name = gen_subsystem_lib_name()
 
-    cc = distutils.ccompiler.new_compiler()
-    compiled_subsystem = cc.compile(
+    compiler = distutils.ccompiler.new_compiler()
+    
+    # distutils UnixCCompiler as of python 3.7 simply doens not care about compiler, thats why we need to set compiler_so.
+    compiler.set_executables(compiler=cc, compiler_cxx=cxx, compiler_so=cc)    
+    compiled_subsystem = compiler.compile(
         [temp_dir + "/scorep_init.c"], output_dir=temp_dir)
-    cc.link(
+    compiler.link(
         "scorep_init_mpi",
         objects=compiled_subsystem,
         output_filename=subsystem_lib_name,
@@ -93,3 +96,4 @@ def clean_up(keep_files=True):
     else:
         if ("SCOREP_PYTHON_BINDINGS_TEMP_DIR" in os.environ) and (os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] != ""):
             shutil.rmtree(os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"])
+

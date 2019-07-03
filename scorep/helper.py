@@ -81,6 +81,8 @@ def generate_compile_deps(config=[]):
     (_, libs, _) = call(scorep_config + ["--libs"])
     (_, mgmt_libs, _) = call(scorep_config + ["--mgmt-libs"])
     (_, cflags, _) = call(scorep_config + ["--cflags"])
+    (_, cc, _) = call(scorep_config + ["--cc"])
+    (_, cxx, _) = call(scorep_config + ["--cxx"])
 
     libs = " " + libs + " " + mgmt_libs
     ldflags = " " + ldflags
@@ -104,4 +106,4 @@ def generate_compile_deps(config=[]):
 
     macro = list(map(lambda x: tuple([x, 1]), macro))
 
-    return (include, lib, lib_dir, macro, linker_flags)
+    return (include, lib, lib_dir, macro, linker_flags, cc, cxx)

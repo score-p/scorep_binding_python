@@ -85,6 +85,32 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
 
+    def test_user_rewind(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_rewind"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+        out = call([self.python,
+                    "-m",
+                    "scorep",                              
+                    "test_user_rewind.py"],
+                    env=env)
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_out, "hello world\nhello world\n")
+
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+        
+        self.assertRegex(std_out,
+                         'MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: OFF')
+        self.assertRegex(std_out,
+                         'MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON')
+
+
     def test_oa_regions(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_oa_regions"

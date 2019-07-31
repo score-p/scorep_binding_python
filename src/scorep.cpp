@@ -18,6 +18,7 @@ struct region_handle
 };
 
 static std::unordered_map<std::string, region_handle> regions;
+static std::unordered_map<std::string, region_handle> rewind_regions;
 
 void region_begin(std::string region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
@@ -39,6 +40,29 @@ void region_end(std::string region_name)
 {
     auto& handle = regions[region_name];
     SCOREP_User_RegionEnd(handle.value);
+}
+
+void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
+{
+    auto pair = rewind_regions.emplace(make_pair(region_name, region_handle()));
+    bool inserted_new = pair.second;
+    auto& handle = pair.first->second;
+    if (inserted_new)
+    {
+        SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
+                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                               file_name.c_str(), line_number);
+    }
+    SCOREP_User_RewindRegionEnter(handle.value);
+}
+
+void rewind_end(std::string region_name, bool value)
+{
+    auto& handle = rewind_regions[region_name];
+    /* don't call SCOREP_ExitRewindRegion, as
+     * SCOREP_User_RewindRegionEnd does some additional magic
+     * */
+    SCOREP_User_RewindRegionEnd(handle.value, value);
 }
 
 void parameter_int(std::string name, int64_t value)
@@ -140,6 +164,36 @@ extern "C"
         return Py_None;
     }
 
+    static PyObject* rewind_begin(PyObject* self, PyObject* args)
+    {
+        const char* region_name;
+        const char* file_name;
+        std::uint64_t line_number = 0;
+
+        if (!PyArg_ParseTuple(args, "ssK", &region_name, &file_name, &line_number))
+            return NULL;
+
+        scorep::rewind_begin(region_name, file_name, line_number);
+
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    static PyObject* rewind_end(PyObject* self, PyObject* args)
+    {
+        const char* region_name;
+        PyObject* value; // false C-Style
+
+        if (!PyArg_ParseTuple(args, "sO", &region_name, &value))
+            return NULL;
+
+        // TODO cover PyObject_IsTrue(value) == -1 (error case)
+        scorep::rewind_end(region_name, PyObject_IsTrue(value) == 1);
+
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
     static PyObject* oa_region_begin(PyObject* self, PyObject* args)
     {
         const char* region;
@@ -219,6 +273,8 @@ extern "C"
     static PyMethodDef ScorePMethods[] = {
         { "region_begin", region_begin, METH_VARARGS, "enter a region." },
         { "region_end", region_end, METH_VARARGS, "exit a region." },
+        { "rewind_begin", rewind_begin, METH_VARARGS, "rewind begin." },
+        { "rewind_end", rewind_end, METH_VARARGS, "rewind end." },
         { "oa_region_begin", oa_region_begin, METH_VARARGS, "enter an online access region." },
         { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
         { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },

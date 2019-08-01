@@ -7,19 +7,19 @@ import scorep.trace_dummy
 try:
     import threading
 except ImportError:
-    _settrace = sys.settrace
+    _settrace = sys.setprofile
 
     def _unsettrace():
-        sys.settrace(None)
+        sys.setprofile(None)
 
 else:
     def _settrace(func):
-        threading.settrace(func)
-        sys.settrace(func)
+        threading.setprofile(func)
+        sys.setprofile(func)
 
     def _unsettrace():
-        sys.settrace(None)
-        threading.settrace(None)
+        sys.setprofile(None)
+        threading.setprofile(None)
 
 global_trace = scorep.trace_dummy.ScorepTraceDummy()
 
@@ -33,10 +33,8 @@ class ScorepTrace:
         global global_trace
         global_trace = self
 
-        self.pathtobasename = {}  # for memoizing os.path.basename
         self.scorep_bindings = scorep_bindings
         self.globaltrace = self.globaltrace_lt
-        self.localtrace = self.localtrace_trace
         self.no_init_trace = not trace
 
     def register(self):
@@ -46,9 +44,6 @@ class ScorepTrace:
         _unsettrace()
 
     def run(self, cmd):
-        #import __main__
-        #dict = __main__.__dict__
-        #self.runctx(cmd, dict, dict)
         self.runctx(cmd)
 
     def runctx(self, cmd, globals=None, locals=None):
@@ -93,18 +88,15 @@ class ScorepTrace:
             if not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
-            return self.localtrace
-        else:
-            return None
-
-    def localtrace_trace(self, frame, why, arg):
-        if why == "return":
+            return
+        elif why == 'return':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
             self.scorep_bindings.region_end(modulename, code.co_name)
-        return self.localtrace
+        else:
+            return
 
     def user_region_begin(self, name, file_name=None, line_number=None):
         """

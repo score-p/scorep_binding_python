@@ -34,11 +34,10 @@ class ScorepTrace:
         global_trace = self
 
         self.pathtobasename = {}  # for memoizing os.path.basename
-        self.trace = trace
         self.scorep_bindings = scorep_bindings
         self.globaltrace = self.globaltrace_lt
         self.localtrace = self.localtrace_trace
-        self.no_init_trace = trace
+        self.no_init_trace = not trace
 
     def register(self):
         _settrace(self.globaltrace)
@@ -91,7 +90,7 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if self.trace and not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
+            if not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return self.localtrace
@@ -104,8 +103,7 @@ class ScorepTrace:
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
-            if self.trace:
-                self.scorep_bindings.region_end(modulename, code.co_name)
+            self.scorep_bindings.region_end(modulename, code.co_name)
         return self.localtrace
 
     def user_region_begin(self, name, file_name=None, line_number=None):

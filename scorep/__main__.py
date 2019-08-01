@@ -46,7 +46,8 @@ def set_init_environment(scorep_config=[], keep_files=False):
 
     preload_str = scorep_ld_preload + " " + subsystem_lib_name
     if "LD_PRELOAD" in os.environ:
-        sys.stderr.write("LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
+        sys.stderr.write(
+            "LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
         preload_str = preload_str + " " + os.environ["LD_PRELOAD"]
     os.environ["LD_PRELOAD"] = preload_str
     os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
@@ -159,5 +160,7 @@ def main(argv=None):
 if __name__ == '__main__':
     scorep_main()
 else:
-    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-        sys.stderr.write("scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!")
+    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
+            os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
+        sys.stderr.write(
+            "scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!")

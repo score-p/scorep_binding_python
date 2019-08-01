@@ -29,6 +29,7 @@ def region_begin(name, file_name=None, line_number=None):
 def region_end(name):
     global_trace.user_region_end(name)
 
+
 def rewind_begin(name, file_name=None, line_number=None):
     """
     Begin of an User region. If file_name or line_number is None, both will
@@ -56,8 +57,9 @@ def rewind_end(name, value):
     End of an Rewind region.
     @param name name of the user region
     @param value True or False, whenether the region shall be rewinded or not.
-    """            
+    """
     global_trace.rewind_end(name, value)
+
 
 def oa_region_begin(name, file_name=None, line_number=None):
     global_trace.unregister()
@@ -84,20 +86,23 @@ def oa_region_begin(name, file_name=None, line_number=None):
 def oa_region_end(name):
     global_trace.oa_region_end(name)
 
+
 def register():
     """
     Reenables the python-tracing.
-    """ 
+    """
     global_trace.register()
-    
+
+
 def unregister():
     """
     Disables the python-tracing.
     Disabling the python-tracing is more efficient than disable_recording, as python does not longer call the tracing module.
     However, all the other things that are traced by Score-P will still be recorded.
-    Please call register() to enable tracing again.    
-    """    
+    Please call register() to enable tracing again.
+    """
     global_trace.unregister()
+
 
 def enable_recording():
     global_trace.user_enable_recording()

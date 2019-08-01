@@ -60,7 +60,9 @@ def generate(scorep_config, keep_files=False):
 
     temp_dir = tempfile.mkdtemp(prefix="scorep.")
     if keep_files:
-        sys.stderr.write("Score-P files are keept at: {}".format(temp_dir), file=sys.stderr)
+        sys.stderr.write(
+            "Score-P files are keept at: {}".format(temp_dir),
+            file=sys.stderr)
 
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)
@@ -91,5 +93,6 @@ def clean_up(keep_files=True):
     if keep_files:
         return
     else:
-        if ("SCOREP_PYTHON_BINDINGS_TEMP_DIR" in os.environ) and (os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] != ""):
+        if ("SCOREP_PYTHON_BINDINGS_TEMP_DIR" in os.environ) and (
+                os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] != ""):
             shutil.rmtree(os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"])

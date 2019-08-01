@@ -7,7 +7,8 @@ import shutil
 import sys
 import pkgutil
 
-def call(arguments, env = os.environ.copy()):
+
+def call(arguments, env=os.environ.copy()):
     """
     return a triple with (returncode, stdout, stderr) from the call to subprocess
     """
@@ -37,7 +38,7 @@ def call(arguments, env = os.environ.copy()):
 class TestScorepBindingsPython(unittest.TestCase):
     maxDiff = None
     python = sys.executable
-    
+
     def assertRegex(self, in1, in2):
         if sys.version_info > (3, 5):
             super().assertRegex(in1, in2)
@@ -67,19 +68,19 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = call([self.python,
                     "-m",
                     "scorep",
-                    "--nopython",                              
+                    "--nopython",
                     "test_user_regions.py"],
-                    env=env)
+                   env=env)
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertEqual(std_err, self.expected_std_err)
         self.assertEqual(std_out, "hello world\n")
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertRegex(std_out,
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
         self.assertRegex(std_out,
@@ -92,36 +93,35 @@ class TestScorepBindingsPython(unittest.TestCase):
 
         out = call([self.python,
                     "-m",
-                    "scorep",                              
+                    "scorep",
                     "test_user_rewind.py"],
-                    env=env)
+                   env=env)
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertEqual(std_err, self.expected_std_err)
         self.assertEqual(std_out, "hello world\nhello world\n")
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertRegex(std_out,
                          'MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: OFF')
         self.assertRegex(std_out,
                          'MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON')
 
-
     def test_oa_regions(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_oa_regions"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
-    
+
         out = call([self.python,
                     "-m",
                     "scorep",
                     "--nopython",
                     "test_oa_regions.py"],
-                    env=env)
+                   env=env)
         std_out = out[1]
         std_err = out[2]
 
@@ -131,7 +131,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = call(["otf2-print", trace_path])
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertEqual(std_err, "")
         self.assertRegex(std_out,
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "test_region"')
@@ -148,28 +148,28 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "scorep",
                     "--nocompiler",
                     "test_instrumentation.py"],
-                    env=env)
+                   env=env)
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertEqual(std_err, self.expected_std_err)
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]
         std_err = out[2]
-        
+
         self.assertEqual(std_err, "")
         self.assertRegex(std_out,
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
 
-    @unittest.skipIf(len(pkgutil.extend_path([], "mpi4py")) == 0 or 
+    @unittest.skipIf(len(pkgutil.extend_path([], "mpi4py")) == 0 or
                      len(pkgutil.extend_path([], "numpy")) == 0,
                      "no mpi4py present")
     def test_mpi(self):
-        
+
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_mpi"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
@@ -182,18 +182,18 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "--mpp=mpi",
                     "--nocompiler",
                     "test_mpi.py"],
-                    env=env)
-        
+                   env=env)
+
         std_out = out[1]
         std_err = out[2]
 
         expected_std_err = ""
-        expected_std_out = "\[0[0-9]\] \[0. 1. 2. 3. 4.\]\\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\\n"
+        expected_std_out = r"\[0[0-9]\] \[0. 1. 2. 3. 4.\]\\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\\n"
 
         self.assertRegex(std_err,
                          '\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED')
         self.assertRegex(std_out, expected_std_out)
-        
+
         expected_std_out
 
     def test_call_main(self):
@@ -205,11 +205,11 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "scorep",
                     "--nocompiler",
                     "test_call_main.py"],
-                    env=env)
+                   env=env)
         std_out = out[1]
         std_err = out[2]
-        
-        expected_std_err = "scorep: Someone called scorep\.__main__\.main"
+
+        expected_std_err = r"scorep: Someone called scorep\.__main__\.main"
         expected_std_out = ""
         self.assertRegex(std_err, expected_std_err)
         self.assertEqual(std_out, expected_std_out)

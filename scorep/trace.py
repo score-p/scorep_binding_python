@@ -135,7 +135,7 @@ class ScorepTrace:
 
     def user_region_end(self, name):
         self.scorep_bindings.region_end("user", name)
-        
+
     def rewind_begin(self, name, file_name=None, line_number=None):
         """
         Begin of an Rewind region. If file_name or line_number is None, both will
@@ -162,7 +162,6 @@ class ScorepTrace:
         @param value True or False, whenether the region shall be rewinded or not.
         """
         self.scorep_bindings.rewind_end(name, value)
-        
 
     def oa_region_begin(self, name, file_name=None, line_number=None):
         """

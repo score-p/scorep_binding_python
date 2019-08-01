@@ -1,20 +1,10 @@
 import os
 import sys
 import importlib
-import getopt
 
 import scorep.trace
 import scorep.helper
 import scorep.subsystem
-
-
-def _usage(outfile):
-    outfile.write("""TODO
-""" % sys.argv[0])
-
-
-cuda_support = None
-opencl_support = None
 
 
 def _err_exit(msg):

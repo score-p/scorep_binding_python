@@ -2,6 +2,7 @@ __all__ = ['ScorepTrace']
 import sys
 import inspect
 import os.path
+import scorep.trace_dummy
 
 try:
     import threading
@@ -20,34 +21,29 @@ else:
         sys.settrace(None)
         threading.settrace(None)
 
-global_trace = None
+global_trace = scorep.trace_dummy.ScorepTraceDummy()
 
 
 class ScorepTrace:
     def __init__(self, scorep_bindings, trace=True):
         """
-        @param trace true if there shall be any tracing at all
+        @param trace true if the tracing shall be initialised.
+            Please note, that it is still possible to enable the tracing later using register()
         """
         global global_trace
         global_trace = self
 
         self.pathtobasename = {}  # for memoizing os.path.basename
-        self.donothing = False
-        self.trace = trace
         self.scorep_bindings = scorep_bindings
-        if trace:
-            self.globaltrace = self.globaltrace_lt
-            self.localtrace = self.localtrace_trace
-        else:
-            self.donothing = True
+        self.globaltrace = self.globaltrace_lt
+        self.localtrace = self.localtrace_trace
+        self.no_init_trace = not trace
 
     def register(self):
-        if not self.donothing:
-            _settrace(self.globaltrace)
+        _settrace(self.globaltrace)
 
     def unregister(self):
-        if not self.donothing:
-            _unsettrace()
+        _unsettrace()
 
     def run(self, cmd):
         #import __main__
@@ -60,23 +56,21 @@ class ScorepTrace:
             globals = {}
         if locals is None:
             locals = {}
-        if not self.donothing:
-            _settrace(self.globaltrace)
+        if not self.no_init_trace:
+            self.register()
         try:
             exec(cmd, globals, locals)
         finally:
-            if not self.donothing:
-                _unsettrace()
+            self.unregister()
 
     def runfunc(self, func, *args, **kw):
         result = None
-        if not self.donothing:
-            sys.settrace(self.globaltrace)
+        if not self.no_init_trace:
+            self.register()
         try:
             result = func(*args, **kw)
         finally:
-            if not self.donothing:
-                sys.settrace(None)
+            self.unregister()
         return result
 
     def globaltrace_lt(self, frame, why, arg):
@@ -96,7 +90,7 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if self.trace and not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
+            if not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return self.localtrace
@@ -109,8 +103,7 @@ class ScorepTrace:
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
-            if self.trace:
-                self.scorep_bindings.region_end(modulename, code.co_name)
+            self.scorep_bindings.region_end(modulename, code.co_name)
         return self.localtrace
 
     def user_region_begin(self, name, file_name=None, line_number=None):

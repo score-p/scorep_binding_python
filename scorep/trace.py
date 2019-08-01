@@ -26,28 +26,24 @@ global_trace = None
 class ScorepTrace:
     def __init__(self, scorep_bindings, trace=True):
         """
-        @param trace true if there shall be any tracing at all
+        @param trace true if the tracing shall be initialised.
+            Please note, that it is still possible to enable the tracing later using register()
         """
         global global_trace
         global_trace = self
 
         self.pathtobasename = {}  # for memoizing os.path.basename
-        self.donothing = False
         self.trace = trace
         self.scorep_bindings = scorep_bindings
-        if trace:
-            self.globaltrace = self.globaltrace_lt
-            self.localtrace = self.localtrace_trace
-        else:
-            self.donothing = True
+        self.globaltrace = self.globaltrace_lt
+        self.localtrace = self.localtrace_trace
+        self.no_init_trace = trace
 
     def register(self):
-        if not self.donothing:
-            _settrace(self.globaltrace)
+        _settrace(self.globaltrace)
 
     def unregister(self):
-        if not self.donothing:
-            _unsettrace()
+        _unsettrace()
 
     def run(self, cmd):
         #import __main__
@@ -60,23 +56,21 @@ class ScorepTrace:
             globals = {}
         if locals is None:
             locals = {}
-        if not self.donothing:
-            _settrace(self.globaltrace)
+        if not self.no_init_trace:
+            self.register()
         try:
             exec(cmd, globals, locals)
         finally:
-            if not self.donothing:
-                _unsettrace()
+            self.unregister()
 
     def runfunc(self, func, *args, **kw):
         result = None
-        if not self.donothing:
-            sys.settrace(self.globaltrace)
+        if not self.no_init_trace:
+            self.register()
         try:
             result = func(*args, **kw)
         finally:
-            if not self.donothing:
-                sys.settrace(None)
+            self.unregister()
         return result
 
     def globaltrace_lt(self, frame, why, arg):

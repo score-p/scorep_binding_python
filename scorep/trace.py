@@ -2,6 +2,7 @@ __all__ = ['ScorepTrace']
 import sys
 import inspect
 import os.path
+import scorep.trace_dummy
 
 try:
     import threading
@@ -20,7 +21,7 @@ else:
         sys.settrace(None)
         threading.settrace(None)
 
-global_trace = None
+global_trace = scorep.trace_dummy.ScorepTraceDummy()
 
 
 class ScorepTrace:

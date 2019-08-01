@@ -191,7 +191,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_err = out[2]
 
         expected_std_err = ""
-        expected_std_out = r"\[0[0-9]\] \[0. 1. 2. 3. 4.\]\\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\\n"
+        expected_std_out = u"\[0[0-9]\] \[0. 1. 2. 3. 4.\]\\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\\n"
 
         self.assertRegex(std_err,
                          '\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED')

@@ -1,15 +1,23 @@
 from distutils.core import setup, Extension
 import scorep.helper
-
-(include, lib, lib_dir, macro, linker_flags) = scorep.helper.generate_compile_deps()
-
+import os
+import logging
 
 cmodules = []
-cmodules.append(Extension('scorep.scorep_bindings',
-                          include_dirs=include,
-                          libraries=[],
-                          extra_compile_args=["-std=c++11"],
-                          sources=['src/scorep.cpp']))
+no_scorep = False
+
+# This is not documented on purpose. Only use if you know what you are doing.
+if "SCOREP_NO_SCOREP" in os.environ and os.environ["SCOREP_NO_SCOREP"] == "YES":
+    logging.warning("building without Score-P! Tracing will not work!")
+    no_scorep = True
+
+if not no_scorep:
+    (include, _, _, _, _) = scorep.helper.generate_compile_deps()
+    cmodules.append(Extension('scorep.scorep_bindings',
+                              include_dirs=include,
+                              libraries=[],
+                              extra_compile_args=["-std=c++11"],
+                              sources=['src/scorep.cpp']))
 
 
 setup(

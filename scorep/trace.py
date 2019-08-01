@@ -97,7 +97,7 @@ class ScorepTrace:
             self.scorep_bindings.region_end(modulename, code.co_name)
         else:
             return
-
+          
     def user_region_begin(self, name, file_name=None, line_number=None):
         """
         Begin of an User region. If file_name or line_number is None, both will

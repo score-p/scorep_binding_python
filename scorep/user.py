@@ -1,6 +1,5 @@
 import inspect
 import os.path
-import scorep.trace
 
 from scorep.trace import global_trace
 
@@ -85,6 +84,20 @@ def oa_region_begin(name, file_name=None, line_number=None):
 def oa_region_end(name):
     global_trace.oa_region_end(name)
 
+def register():
+    """
+    Reenables the python-tracing.
+    """ 
+    global_trace.register()
+    
+def unregister():
+    """
+    Disables the python-tracing.
+    Disabling the python-tracing is more efficient than disable_recording, as python does not longer call the tracing module.
+    However, all the other things that are traced by Score-P will still be recorded.
+    Please call register() to enable tracing again.    
+    """    
+    global_trace.unregister()
 
 def enable_recording():
     global_trace.user_enable_recording()

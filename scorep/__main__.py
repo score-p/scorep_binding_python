@@ -1,46 +1,17 @@
 import os
 import sys
 import importlib
+import logging
 
 import scorep.trace
 import scorep.helper
 import scorep.subsystem
+from scorep import subsystem
 
 
 def _err_exit(msg):
     sys.stderr.write("%s: %s\n" % ("scorep", msg))
     sys.exit(1)
-
-
-def set_init_environment(scorep_config=[], keep_files=False):
-    """
-    Set the inital needed environmet variables, to get everythin up an running.
-    As a few variables interact with LD env vars, the programms needs to be restarted after this.
-    The function set the env var `SCOREP_PYTHON_BINDINGS_INITALISED` to true, once it is done with
-    initalising.
-
-    @param scorep_config configuration flags for score-p
-    @param keep_files whether to keep the generated files, or not.
-    """
-
-    if ("LD_PRELOAD" in os.environ) and (
-            "libscorep" in os.environ["LD_PRELOAD"]):
-        raise RuntimeError(
-            "Score-P is already loaded. This should not happen at this point")
-
-    subsystem_lib_name, temp_dir = scorep.subsystem.generate(
-        scorep_config, keep_files)
-    scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
-
-    scorep.helper.add_to_ld_library_path(temp_dir)
-
-    preload_str = scorep_ld_preload + " " + subsystem_lib_name
-    if "LD_PRELOAD" in os.environ:
-        sys.stderr.write(
-            "LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
-        preload_str = preload_str + " " + os.environ["LD_PRELOAD"]
-    os.environ["LD_PRELOAD"] = preload_str
-    os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
 
 def scorep_main(argv=None):
@@ -90,13 +61,14 @@ def scorep_main(argv=None):
 
     if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
             os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-        set_init_environment(scorep_config, keep_files)
+        subsystem.init_environment(scorep_config, keep_files)
+        os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
         """
         python -m starts the module as skript. i.e. sys.argv will loke like:
         ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']
 
-        To restart python we need to remove this line, and add python -m scorep ... again
+        To restart python we need to remove this line, and add `python -m scorep ...` again
         """
         new_args = [sys.executable, "-m", "scorep"]
         for elem in sys.argv:
@@ -104,6 +76,7 @@ def scorep_main(argv=None):
                 continue
             else:
                 new_args.append(elem)
+
         os.execve(sys.executable, new_args, os.environ)
 
     scorep_bindings = importlib.import_module("scorep.scorep_bindings")
@@ -113,11 +86,10 @@ def scorep_main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    tracer = scorep.trace.ScorepTrace(scorep_bindings, not no_python)
+    tracer = scorep.trace.get_tracer(scorep_bindings, not no_python)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
-            target_code = code
         # try to emulate __main__ namespace as much as possible
         globs = {
             '__file__': progname,
@@ -152,5 +124,5 @@ if __name__ == '__main__':
 else:
     if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
             os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-        sys.stderr.write(
+        logging.warning(
             "scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!")

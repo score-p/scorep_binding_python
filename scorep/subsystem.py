@@ -79,6 +79,36 @@ def generate(scorep_config, keep_files=False):
     return(subsystem_lib_name, temp_dir)
 
 
+def init_environment(scorep_config=[], keep_files=False):  # should move to subsystem
+    """
+    Set the inital needed environmet variables, to get everythin up an running.
+    As a few variables interact with LD env vars, the programms needs to be restarted after this.
+    The function set the env var `SCOREP_PYTHON_BINDINGS_INITALISED` to true, once it is done with
+    initalising.
+
+    @param scorep_config configuration flags for score-p
+    @param keep_files whether to keep the generated files, or not.
+    """
+
+    if ("LD_PRELOAD" in os.environ) and (
+            "libscorep" in os.environ["LD_PRELOAD"]):
+        raise RuntimeError(
+            "Score-P is already loaded. This should not happen at this point")
+
+    subsystem_lib_name, temp_dir = scorep.subsystem.generate(
+        scorep_config, keep_files)
+    scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
+
+    scorep.helper.add_to_ld_library_path(temp_dir)
+
+    preload_str = scorep_ld_preload + " " + subsystem_lib_name
+    if "LD_PRELOAD" in os.environ:
+        sys.stderr.write(
+            "LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
+        preload_str = preload_str + " " + os.environ["LD_PRELOAD"]
+    os.environ["LD_PRELOAD"] = preload_str
+
+
 def clean_up(keep_files=True):
     """
     deletes the files that are associated to subsystem

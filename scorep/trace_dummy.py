@@ -1,4 +1,7 @@
-class ScorepTraceDummy:
+__all__ = ['DummyTrace']
+
+
+class DummyTrace:
     def __init__(self, scorep_bindings=None, trace=True):
         pass
 

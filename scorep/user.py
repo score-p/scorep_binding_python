@@ -1,7 +1,6 @@
 import inspect
 import os.path
-
-from scorep.trace import global_trace
+import scorep.trace
 
 
 def region_begin(name, file_name=None, line_number=None):
@@ -12,7 +11,7 @@ def region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    global_trace.unregister()
+    scorep.trace.get_tracer().unregister()
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -22,12 +21,12 @@ def region_begin(name, file_name=None, line_number=None):
     else:
         full_file_name = "None"
 
-    global_trace.user_region_begin(name, full_file_name, line_number)
-    global_trace.register()
+    scorep.trace.get_tracer().user_region_begin(name, full_file_name, line_number)
+    scorep.trace.get_tracer().register()
 
 
 def region_end(name):
-    global_trace.user_region_end(name)
+    scorep.trace.get_tracer().user_region_end(name)
 
 
 def rewind_begin(name, file_name=None, line_number=None):
@@ -38,7 +37,7 @@ def rewind_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    global_trace.unregister()
+    scorep.trace.get_tracer().unregister()
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -48,8 +47,8 @@ def rewind_begin(name, file_name=None, line_number=None):
     else:
         full_file_name = "None"
 
-    global_trace.rewind_begin(name, full_file_name, line_number)
-    global_trace.register()
+    scorep.trace.get_tracer().rewind_begin(name, full_file_name, line_number)
+    scorep.trace.get_tracer().register()
 
 
 def rewind_end(name, value):
@@ -58,11 +57,11 @@ def rewind_end(name, value):
     @param name name of the user region
     @param value True or False, whenether the region shall be rewinded or not.
     """
-    global_trace.rewind_end(name, value)
+    scorep.trace.get_tracer().rewind_end(name, value)
 
 
 def oa_region_begin(name, file_name=None, line_number=None):
-    global_trace.unregister()
+    scorep.trace.get_tracer().unregister()
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
     bet determined automatically
@@ -79,19 +78,19 @@ def oa_region_begin(name, file_name=None, line_number=None):
     else:
         full_file_name = "None"
 
-    global_trace.oa_region_begin(name, full_file_name, line_number)
-    global_trace.register()
+    scorep.trace.get_tracer().oa_region_begin(name, full_file_name, line_number)
+    scorep.trace.get_tracer().register()
 
 
 def oa_region_end(name):
-    global_trace.oa_region_end(name)
+    scorep.trace.get_tracer().oa_region_end(name)
 
 
 def register():
     """
     Reenables the python-tracing.
     """
-    global_trace.register()
+    scorep.trace.get_tracer().register()
 
 
 def unregister():
@@ -101,24 +100,24 @@ def unregister():
     However, all the other things that are traced by Score-P will still be recorded.
     Please call register() to enable tracing again.
     """
-    global_trace.unregister()
+    scorep.trace.get_tracer().unregister()
 
 
 def enable_recording():
-    global_trace.user_enable_recording()
+    scorep.trace.get_tracer().user_enable_recording()
 
 
 def disable_recording():
-    global_trace.user_disable_recording()
+    scorep.trace.get_tracer().user_disable_recording()
 
 
 def parameter_int(name, val):
-    global_trace.user_parameter_int(name, val)
+    scorep.trace.get_tracer().user_parameter_int(name, val)
 
 
 def parameter_uint(name, val):
-    global_trace.user_parameter_uint(name, val)
+    scorep.trace.get_tracer().user_parameter_uint(name, val)
 
 
 def parameter_string(name, string):
-    global_trace.user_parameter_string(name, string)
+    scorep.trace.get_tracer().user_parameter_string(name, string)

@@ -4,9 +4,7 @@ import importlib
 import logging
 
 import scorep.trace
-import scorep.helper
 import scorep.subsystem
-from scorep import subsystem
 
 
 def _err_exit(msg):
@@ -61,7 +59,7 @@ def scorep_main(argv=None):
 
     if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
             os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-        subsystem.init_environment(scorep_config, keep_files)
+        scorep.subsystem.init_environment(scorep_config, keep_files)
         os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
 
         """

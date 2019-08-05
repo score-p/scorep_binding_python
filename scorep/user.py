@@ -29,6 +29,43 @@ def region_end(name):
     scorep.trace.get_tracer().user_region_end(name)
 
 
+class region():
+    """
+    Context manager for regions:
+    ```
+    with region("some name"):
+        do stuff
+    ```
+    """
+
+    def __init__(self, region_name):
+        self.region_name = region_name
+        self.tracer_registered = None
+
+    def __enter__(self):
+        self.tracer_registered = scorep.trace.get_tracer().get_registered()
+        if self.tracer_registered:
+            scorep.trace.get_tracer().unregister()
+
+        scorep.trace.get_tracer().unregister()
+        frame = inspect.currentframe().f_back
+        file_name = frame.f_globals.get('__file__', None)
+        line_number = frame.f_lineno
+        if file_name is not None:
+            full_file_name = os.path.abspath(file_name)
+        else:
+            full_file_name = "None"
+
+        scorep.trace.get_tracer().user_region_begin(
+            self.region_name, full_file_name, line_number)
+
+        if self.tracer_registered:
+            scorep.trace.get_tracer().register()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        scorep.trace.get_tracer().user_region_end(self.region_name)
+
+
 def rewind_begin(name, file_name=None, line_number=None):
     """
     Begin of an User region. If file_name or line_number is None, both will
@@ -84,23 +121,6 @@ def oa_region_begin(name, file_name=None, line_number=None):
 
 def oa_region_end(name):
     scorep.trace.get_tracer().oa_region_end(name)
-
-
-def register():
-    """
-    Reenables the python-tracing.
-    """
-    scorep.trace.get_tracer().register()
-
-
-def unregister():
-    """
-    Disables the python-tracing.
-    Disabling the python-tracing is more efficient than disable_recording, as python does not longer call the tracing module.
-    However, all the other things that are traced by Score-P will still be recorded.
-    Please call register() to enable tracing again.
-    """
-    scorep.trace.get_tracer().unregister()
 
 
 def enable_recording():

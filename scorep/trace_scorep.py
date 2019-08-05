@@ -29,16 +29,22 @@ class ScorepTrace:
         """
         global global_trace
         global_trace = self
+        self.tracer_registered = False
 
         self.scorep_bindings = scorep_bindings
         self.globaltrace = self.globaltrace_lt
         self.no_init_trace = not trace
 
     def register(self):
+        self.tracer_registered = True
         _settrace(self.globaltrace)
 
     def unregister(self):
         _unsettrace()
+        self.tracer_registered = False
+
+    def get_registered(self):
+        return self.tracer_registered
 
     def run(self, cmd):
         self.runctx(cmd)
@@ -82,7 +88,7 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if not code.co_name == "_unsettrace" and not modulename == "scorep.trace_scorep":
+            if not code.co_name == "_unsettrace" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return

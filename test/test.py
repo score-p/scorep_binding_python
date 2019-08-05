@@ -86,6 +86,37 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
 
+    def test_context(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_context"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nopython",
+                    "test_context.py"],
+                   env=env)
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_err, self.expected_std_err)
+        print(std_out)
+        self.assertEqual(std_out, "hello world\nhello world\nhello world\n")
+
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
+
     def test_user_regions_no_scorep(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_regions_no_scorep"
@@ -230,10 +261,10 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(std_err, expected_std_err)
         self.assertEqual(std_out, expected_std_out)
 
-    def tearDown(self):
-        shutil.rmtree(
-            self.env["SCOREP_EXPERIMENT_DIRECTORY"],
-            ignore_errors=True)
+#     def tearDown(self):
+#         shutil.rmtree(
+#             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
+#             ignore_errors=True)
 
 
 if __name__ == '__main__':

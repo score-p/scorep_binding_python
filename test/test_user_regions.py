@@ -1,5 +1,4 @@
 import scorep.user
-import os
 
 
 def foo():

@@ -11,6 +11,9 @@ class DummyTrace:
     def unregister(self):
         pass
 
+    def get_registered(self):
+        return None
+
     def run(self, cmd):
         pass
 

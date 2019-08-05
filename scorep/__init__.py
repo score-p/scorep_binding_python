@@ -1,1 +1,1 @@
-__all__ = ["trace", "scorep_bindings", "user", "subsystem"]
+__all__ = ["trace", "scorep_bindings", "user", "subsystem", "instrumenter"]

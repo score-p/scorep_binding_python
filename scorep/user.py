@@ -11,6 +11,10 @@ def region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
+    tracer_registered = scorep.trace.get_tracer().get_registered()
+    if tracer_registered:
+        scorep.trace.get_tracer().unregister()
+
     scorep.trace.get_tracer().unregister()
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
@@ -22,7 +26,8 @@ def region_begin(name, file_name=None, line_number=None):
         full_file_name = "None"
 
     scorep.trace.get_tracer().user_region_begin(name, full_file_name, line_number)
-    scorep.trace.get_tracer().register()
+    if tracer_registered:
+        scorep.trace.get_tracer().register()
 
 
 def region_end(name):

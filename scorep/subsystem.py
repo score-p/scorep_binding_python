@@ -1,10 +1,5 @@
 import os
-import subprocess
-import re
 import sys
-import stat
-import platform
-import functools
 import distutils.ccompiler
 import tempfile
 import shutil

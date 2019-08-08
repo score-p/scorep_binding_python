@@ -2,57 +2,48 @@ __all__ = ['ScorepTrace']
 import sys
 import inspect
 import os.path
+import scorep.trace_dummy
 
 try:
     import threading
 except ImportError:
-    _settrace = sys.settrace
+    _settrace = sys.setprofile
 
     def _unsettrace():
-        sys.settrace(None)
+        sys.setprofile(None)
 
 else:
     def _settrace(func):
-        threading.settrace(func)
-        sys.settrace(func)
+        threading.setprofile(func)
+        sys.setprofile(func)
 
     def _unsettrace():
-        sys.settrace(None)
-        threading.settrace(None)
+        sys.setprofile(None)
+        threading.setprofile(None)
 
-global_trace = None
+global_trace = scorep.trace_dummy.ScorepTraceDummy()
 
 
 class ScorepTrace:
     def __init__(self, scorep_bindings, trace=True):
         """
-        @param trace true if there shall be any tracing at all
+        @param trace true if the tracing shall be initialised.
+            Please note, that it is still possible to enable the tracing later using register()
         """
         global global_trace
         global_trace = self
 
-        self.pathtobasename = {}  # for memoizing os.path.basename
-        self.donothing = False
-        self.trace = trace
         self.scorep_bindings = scorep_bindings
-        if trace:
-            self.globaltrace = self.globaltrace_lt
-            self.localtrace = self.localtrace_trace
-        else:
-            self.donothing = True
+        self.globaltrace = self.globaltrace_lt
+        self.no_init_trace = not trace
 
     def register(self):
-        if not self.donothing:
-            _settrace(self.globaltrace)
+        _settrace(self.globaltrace)
 
     def unregister(self):
-        if not self.donothing:
-            _unsettrace()
+        _unsettrace()
 
     def run(self, cmd):
-        #import __main__
-        #dict = __main__.__dict__
-        #self.runctx(cmd, dict, dict)
         self.runctx(cmd)
 
     def runctx(self, cmd, globals=None, locals=None):
@@ -60,23 +51,21 @@ class ScorepTrace:
             globals = {}
         if locals is None:
             locals = {}
-        if not self.donothing:
-            _settrace(self.globaltrace)
+        if not self.no_init_trace:
+            self.register()
         try:
             exec(cmd, globals, locals)
         finally:
-            if not self.donothing:
-                _unsettrace()
+            self.unregister()
 
     def runfunc(self, func, *args, **kw):
         result = None
-        if not self.donothing:
-            sys.settrace(self.globaltrace)
+        if not self.no_init_trace:
+            self.register()
         try:
             result = func(*args, **kw)
         finally:
-            if not self.donothing:
-                sys.settrace(None)
+            self.unregister()
         return result
 
     def globaltrace_lt(self, frame, why, arg):
@@ -96,23 +85,19 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if self.trace and not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
+            if not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
-            return self.localtrace
-        else:
-            return None
-
-    def localtrace_trace(self, frame, why, arg):
-        if why == "return":
+            return
+        elif why == 'return':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
-            if self.trace:
-                self.scorep_bindings.region_end(modulename, code.co_name)
-        return self.localtrace
-
+            self.scorep_bindings.region_end(modulename, code.co_name)
+        else:
+            return
+          
     def user_region_begin(self, name, file_name=None, line_number=None):
         """
         Begin of an User region. If file_name or line_number is None, both will

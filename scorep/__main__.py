@@ -3,7 +3,7 @@ import sys
 import importlib
 import logging
 
-import scorep.trace
+import scorep.instrumenter
 import scorep.subsystem
 
 
@@ -24,7 +24,7 @@ def scorep_main(argv=None):
     keep_files = False
     no_default_threads = False
     no_default_compiler = False
-    no_python = False
+    no_instrumenter = False
 
     for elem in argv[1:]:
         if parse_scorep_commands:
@@ -39,7 +39,9 @@ def scorep_main(argv=None):
                 scorep_config.append(elem)
                 no_default_compiler = True
             elif elem == "--nopython":
-                no_python = True
+                no_instrumenter = True
+            elif elem == "--noinstrumenter":
+                no_instrumenter = True
             elif elem[0] == "-":
                 scorep_config.append(elem)
             else:
@@ -84,7 +86,8 @@ def scorep_main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    tracer = scorep.trace.get_tracer(scorep_bindings, not no_python)
+    tracer = scorep.instrumenter.get_instrumenter(
+        scorep_bindings, not no_instrumenter)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')

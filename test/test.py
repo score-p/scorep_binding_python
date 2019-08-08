@@ -101,7 +101,6 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_err = out[2]
 
         self.assertEqual(std_err, self.expected_std_err)
-        print(std_out)
         self.assertEqual(std_out, "hello world\nhello world\nhello world\n")
 
         out = call(["otf2-print", trace_path])

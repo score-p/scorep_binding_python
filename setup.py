@@ -22,6 +22,6 @@ A working Score-P version is required.
 For MPI tracing it uses LD_PREALOAD.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
-    packages=['scorep'],
+    packages=['scorep', 'scorep.instrumenters'],
     ext_modules=cmodules
 )

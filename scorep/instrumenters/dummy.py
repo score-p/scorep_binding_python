@@ -2,7 +2,7 @@ __all__ = ['DummyTrace']
 
 
 class DummyTrace:
-    def __init__(self, scorep_bindings=None, trace=True):
+    def __init__(self, scorep_bindings=None, enable_instrumenter=True):
         pass
 
     def register(self):

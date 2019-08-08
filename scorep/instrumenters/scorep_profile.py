@@ -22,18 +22,18 @@ else:
 
 
 class ScorepTrace:
-    def __init__(self, scorep_bindings, trace=True):
+    def __init__(self, scorep_bindings, enable_instrumenter=True):
         """
-        @param trace true if the tracing shall be initialised.
+        @param enable_instrumenter true if the tracing shall be initialised.
             Please note, that it is still possible to enable the tracing later using register()
         """
-        global global_trace
-        global_trace = self
+        global global_instrumenter
+        global_instrumenter = self
         self.tracer_registered = False
 
         self.scorep_bindings = scorep_bindings
         self.globaltrace = self.globaltrace_lt
-        self.no_init_trace = not trace
+        self.enable_instrumenter = enable_instrumenter
 
     def register(self):
         self.tracer_registered = True
@@ -54,7 +54,7 @@ class ScorepTrace:
             globals = {}
         if locals is None:
             locals = {}
-        if not self.no_init_trace:
+        if self.enable_instrumenter:
             self.register()
         try:
             exec(cmd, globals, locals)
@@ -63,7 +63,7 @@ class ScorepTrace:
 
     def runfunc(self, func, *args, **kw):
         result = None
-        if not self.no_init_trace:
+        if self.enable_instrumenter:
             self.register()
         try:
             result = func(*args, **kw)

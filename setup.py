@@ -1,5 +1,7 @@
 from distutils.core import setup, Extension
 import scorep.helper
+import os
+import logging
 
 cmodules = []
 (include, _, _, _, _) = scorep.helper.generate_compile_deps()

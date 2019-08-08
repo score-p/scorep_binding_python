@@ -2,23 +2,24 @@ __all__ = ['ScorepTrace']
 import sys
 import inspect
 import os.path
+import scorep.trace_dummy
 
 try:
     import threading
 except ImportError:
-    _setprofile = sys.settrace
+    _settrace = sys.setprofile
 
-    def _unsetprofile():
-        sys.settrace(None)
+    def _unsettrace():
+        sys.setprofile(None)
 
 else:
-    def _setprofile(func):
-        threading.settrace(func)
-        sys.settrace(func)
+    def _settrace(func):
+        threading.setprofile(func)
+        sys.setprofile(func)
 
-    def _unsetprofile():
-        sys.settrace(None)
-        threading.settrace(None)
+    def _unsettrace():
+        sys.setprofile(None)
+        threading.setprofile(None)
 
 
 class ScorepTrace:

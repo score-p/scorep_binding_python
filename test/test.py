@@ -5,7 +5,6 @@ import subprocess
 import os
 import shutil
 import sys
-import pkgutil
 
 
 def call(arguments, env=os.environ.copy()):

@@ -1,7 +1,6 @@
 import os
 import sys
 import importlib
-import logging
 
 import scorep.instrumenter
 import scorep.subsystem

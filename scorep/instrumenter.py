@@ -1,18 +1,36 @@
 import scorep.instrumenters.dummy
 import scorep.instrumenters.scorep_profile
-
+import scorep.instrumenters.scorep_trace
 
 global_instrumenter = None
 
 
-def get_instrumenter(bindings=None, enable_instrumenter=False):
+def get_instrumenter(
+        bindings=None,
+        enable_instrumenter=False,
+        instrumenter_type="dummy"):
+    """
+    returns an instrumenter
+
+    @param bindings the c/c++ scorep bindings
+    @param enable_instrumenter True if the Instrumenter should be enabled when run is called
+    @param instrumenter_type which python tracing interface to use. Currently available: `profile` (default), `trace` and `dummy`
+    """
     global global_instrumenter
     if global_instrumenter is None:
-        if bindings is None:
-            global_instrumenter = scorep.instrumenters.dummy.DummyTrace(enable_instrumenter)
-        else:
-            global_instrumenter = scorep.instrumenters.scorep_profile.ScorepTrace(
+        if instrumenter_type == "profile":
+            global_instrumenter = scorep.instrumenters.scorep_profile.ScorepProfile(
                 bindings, enable_instrumenter)
+        elif instrumenter_type == "trace":
+            global_instrumenter = scorep.instrumenters.scorep_trace.ScorepTrace(
+                bindings, enable_instrumenter)
+        elif instrumenter_type == "dummy":
+            global_instrumenter = scorep.instrumenters.dummy.ScorepDummy(
+                enable_instrumenter)
+        else:
+            raise RuntimeError(
+                "instrumenter_type \"{}\" unkown".format(instrumenter_type))
+
     return global_instrumenter
 
 

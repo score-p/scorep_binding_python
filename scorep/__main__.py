@@ -25,6 +25,7 @@ def scorep_main(argv=None):
     no_default_threads = False
     no_default_compiler = False
     no_instrumenter = False
+    instrumenter_type = "profile"
 
     for elem in argv[1:]:
         if parse_scorep_commands:
@@ -42,6 +43,9 @@ def scorep_main(argv=None):
                 no_instrumenter = True
             elif elem == "--noinstrumenter":
                 no_instrumenter = True
+            elif "--instrumenter-type" in elem:
+                param = elem.split("=")
+                instrumenter_type = param[1]
             elif elem[0] == "-":
                 scorep_config.append(elem)
             else:
@@ -87,7 +91,7 @@ def scorep_main(argv=None):
     sys.path[0] = os.path.split(progname)[0]
 
     tracer = scorep.instrumenter.get_instrumenter(
-        scorep_bindings, not no_instrumenter)
+        scorep_bindings, not no_instrumenter, instrumenter_type)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')

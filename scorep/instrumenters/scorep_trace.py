@@ -1,4 +1,4 @@
-__all__ = ['ScorepProfile']
+__all__ = ['ScorepTrace']
 import sys
 import inspect
 import os.path
@@ -6,22 +6,22 @@ import os.path
 try:
     import threading
 except ImportError:
-    _setprofile = sys.setprofile
+    _setprofile = sys.settrace
 
     def _unsetprofile():
-        sys.setprofile(None)
+        sys.settrace(None)
 
 else:
     def _setprofile(func):
-        threading.setprofile(func)
-        sys.setprofile(func)
+        threading.settrace(func)
+        sys.settrace(func)
 
     def _unsetprofile():
-        sys.setprofile(None)
-        threading.setprofile(None)
+        sys.settrace(None)
+        threading.settrace(None)
 
 
-class ScorepProfile:
+class ScorepTrace:
     def __init__(self, scorep_bindings, enable_instrumenter=True):
         """
         @param enable_instrumenter true if the tracing shall be initialised.
@@ -33,6 +33,7 @@ class ScorepProfile:
 
         self.scorep_bindings = scorep_bindings
         self.globaltrace = self.globaltrace_lt
+        self.localtrace = self.localtrace_trace
         self.enable_instrumenter = enable_instrumenter
 
     def register(self):
@@ -91,15 +92,18 @@ class ScorepProfile:
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
-            return
-        elif why == 'return':
+            return self.localtrace
+        else:
+            return None
+
+    def localtrace_trace(self, frame, why, arg):
+        if why == 'return':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
             self.scorep_bindings.region_end(modulename, code.co_name)
-        else:
-            return
+        return self.localtrace
 
     def user_region_begin(self, name, file_name=None, line_number=None):
         """

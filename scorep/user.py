@@ -1,7 +1,6 @@
 import inspect
 import os.path
-
-from scorep.trace import global_trace
+import scorep.instrumenter
 
 
 def region_begin(name, file_name=None, line_number=None):
@@ -12,7 +11,11 @@ def region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    global_trace.unregister()
+    tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+    if tracer_registered:
+        scorep.instrumenter.get_instrumenter().unregister()
+
+    scorep.instrumenter.get_instrumenter().unregister()
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -22,12 +25,51 @@ def region_begin(name, file_name=None, line_number=None):
     else:
         full_file_name = "None"
 
-    global_trace.user_region_begin(name, full_file_name, line_number)
-    global_trace.register()
+    scorep.instrumenter.get_instrumenter().user_region_begin(
+        name, full_file_name, line_number)
+    if tracer_registered:
+        scorep.instrumenter.get_instrumenter().register()
 
 
 def region_end(name):
-    global_trace.user_region_end(name)
+    scorep.instrumenter.get_instrumenter().user_region_end(name)
+
+
+class region():
+    """
+    Context manager for regions:
+    ```
+    with region("some name"):
+        do stuff
+    ```
+    """
+
+    def __init__(self, region_name):
+        self.region_name = region_name
+        self.tracer_registered = None
+
+    def __enter__(self):
+        self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+        if self.tracer_registered:
+            scorep.instrumenter.get_instrumenter().unregister()
+
+        scorep.instrumenter.get_instrumenter().unregister()
+        frame = inspect.currentframe().f_back
+        file_name = frame.f_globals.get('__file__', None)
+        line_number = frame.f_lineno
+        if file_name is not None:
+            full_file_name = os.path.abspath(file_name)
+        else:
+            full_file_name = "None"
+
+        scorep.instrumenter.get_instrumenter().user_region_begin(
+            self.region_name, full_file_name, line_number)
+
+        if self.tracer_registered:
+            scorep.instrumenter.get_instrumenter().register()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        scorep.instrumenter.get_instrumenter().user_region_end(self.region_name)
 
 
 def rewind_begin(name, file_name=None, line_number=None):
@@ -38,7 +80,10 @@ def rewind_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    global_trace.unregister()
+    tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+    if tracer_registered:
+        scorep.instrumenter.get_instrumenter().unregister()
+
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -48,8 +93,11 @@ def rewind_begin(name, file_name=None, line_number=None):
     else:
         full_file_name = "None"
 
-    global_trace.rewind_begin(name, full_file_name, line_number)
-    global_trace.register()
+    scorep.instrumenter.get_instrumenter().rewind_begin(
+        name, full_file_name, line_number)
+
+    if tracer_registered:
+        scorep.instrumenter.get_instrumenter().register()
 
 
 def rewind_end(name, value):
@@ -58,11 +106,11 @@ def rewind_end(name, value):
     @param name name of the user region
     @param value True or False, whenether the region shall be rewinded or not.
     """
-    global_trace.rewind_end(name, value)
+    scorep.instrumenter.get_instrumenter().rewind_end(name, value)
 
 
 def oa_region_begin(name, file_name=None, line_number=None):
-    global_trace.unregister()
+    scorep.instrumenter.get_instrumenter().unregister()
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
     bet determined automatically
@@ -70,6 +118,10 @@ def oa_region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
+    tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+    if tracer_registered:
+        scorep.instrumenter.get_instrumenter().unregister()
+
     if file_name is None or line_number is None:
         frame = inspect.currentframe().f_back
         file_name = frame.f_globals.get('__file__', None)
@@ -79,46 +131,31 @@ def oa_region_begin(name, file_name=None, line_number=None):
     else:
         full_file_name = "None"
 
-    global_trace.oa_region_begin(name, full_file_name, line_number)
-    global_trace.register()
+    scorep.instrumenter.get_instrumenter().oa_region_begin(
+        name, full_file_name, line_number)
+    if tracer_registered:
+        scorep.instrumenter.get_instrumenter().register()
 
 
 def oa_region_end(name):
-    global_trace.oa_region_end(name)
-
-
-def register():
-    """
-    Reenables the python-tracing.
-    """
-    global_trace.register()
-
-
-def unregister():
-    """
-    Disables the python-tracing.
-    Disabling the python-tracing is more efficient than disable_recording, as python does not longer call the tracing module.
-    However, all the other things that are traced by Score-P will still be recorded.
-    Please call register() to enable tracing again.
-    """
-    global_trace.unregister()
+    scorep.instrumenter.get_instrumenter().oa_region_end(name)
 
 
 def enable_recording():
-    global_trace.user_enable_recording()
+    scorep.instrumenter.get_instrumenter().user_enable_recording()
 
 
 def disable_recording():
-    global_trace.user_disable_recording()
+    scorep.instrumenter.get_instrumenter().user_disable_recording()
 
 
 def parameter_int(name, val):
-    global_trace.user_parameter_int(name, val)
+    scorep.instrumenter.get_instrumenter().user_parameter_int(name, val)
 
 
 def parameter_uint(name, val):
-    global_trace.user_parameter_uint(name, val)
+    scorep.instrumenter.get_instrumenter().user_parameter_uint(name, val)
 
 
 def parameter_string(name, string):
-    global_trace.user_parameter_string(name, string)
+    scorep.instrumenter.get_instrumenter().user_parameter_string(name, string)

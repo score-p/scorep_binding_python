@@ -1,47 +1,50 @@
-__all__ = ['ScorepTrace']
+__all__ = ['ScorepProfile']
 import sys
 import inspect
 import os.path
-import scorep.trace_dummy
 
 try:
     import threading
 except ImportError:
-    _settrace = sys.setprofile
+    _setprofile = sys.setprofile
 
-    def _unsettrace():
+    def _unsetprofile():
         sys.setprofile(None)
 
 else:
-    def _settrace(func):
+    def _setprofile(func):
         threading.setprofile(func)
         sys.setprofile(func)
 
-    def _unsettrace():
+    def _unsetprofile():
         sys.setprofile(None)
         threading.setprofile(None)
 
-global_trace = scorep.trace_dummy.ScorepTraceDummy()
 
-
-class ScorepTrace:
-    def __init__(self, scorep_bindings, trace=True):
+class ScorepProfile:
+    def __init__(self, scorep_bindings, enable_instrumenter=True):
         """
-        @param trace true if the tracing shall be initialised.
+        @param enable_instrumenter true if the tracing shall be initialised.
             Please note, that it is still possible to enable the tracing later using register()
         """
-        global global_trace
-        global_trace = self
+        global global_instrumenter
+        global_instrumenter = self
+        self.tracer_registered = False
 
         self.scorep_bindings = scorep_bindings
         self.globaltrace = self.globaltrace_lt
-        self.no_init_trace = not trace
+        self.enable_instrumenter = enable_instrumenter
 
     def register(self):
-        _settrace(self.globaltrace)
+        self.tracer_registered = True
+        _setprofile(self.globaltrace)
 
     def unregister(self):
-        _unsettrace()
+        _unsetprofile()
+        self.tracer_registered = False
+
+    def get_registered(self):
+        return self.tracer_registered
 
     def run(self, cmd):
         self.runctx(cmd)
@@ -51,7 +54,7 @@ class ScorepTrace:
             globals = {}
         if locals is None:
             locals = {}
-        if not self.no_init_trace:
+        if self.enable_instrumenter:
             self.register()
         try:
             exec(cmd, globals, locals)
@@ -60,7 +63,7 @@ class ScorepTrace:
 
     def runfunc(self, func, *args, **kw):
         result = None
-        if not self.no_init_trace:
+        if self.enable_instrumenter:
             self.register()
         try:
             result = func(*args, **kw)
@@ -85,7 +88,7 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if not code.co_name == "_unsettrace" and not modulename == "scorep.trace":
+            if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return
@@ -97,7 +100,7 @@ class ScorepTrace:
             self.scorep_bindings.region_end(modulename, code.co_name)
         else:
             return
-          
+
     def user_region_begin(self, name, file_name=None, line_number=None):
         """
         Begin of an User region. If file_name or line_number is None, both will

@@ -1,5 +1,8 @@
-class ScorepTraceDummy:
-    def __init__(self, scorep_bindings=None, trace=True):
+__all__ = ['ScorepDummy']
+
+
+class ScorepDummy:
+    def __init__(self, scorep_bindings=None, enable_instrumenter=True):
         pass
 
     def register(self):
@@ -7,6 +10,9 @@ class ScorepTraceDummy:
 
     def unregister(self):
         pass
+
+    def get_registered(self):
+        return None
 
     def run(self, cmd):
         pass

@@ -5,15 +5,16 @@ scorep is a module that allows tracing of python scripts using [Score-P](http://
 
 # Install
 You need at least Score-P 5.0, build with `--enable-shared`.
-Please make sure, that `scorep-config` is in your `PATH` variable.
+Please make sure that `scorep-config` is in your `PATH` variable.
 
-Then simply run
+Then run
+
 ```
 pip install .
 ```
 # Use
 
-To trace the full script you need to run
+To trace the full script, you need to run
 
 ```
 python -m scorep <script.py>
@@ -35,12 +36,6 @@ Since version 0.9 it is possible to pass the traditional Score-P commands to the
 python -m scorep --mpp=mpi --thread=pthread <script.py>
 ```
 
-To see all flags simply call:
-
-```
-scorep --help
-```
-
 ## MPI
 
 To use trace an MPI parallel application, please specify
@@ -50,40 +45,69 @@ python -m scorep --mpp=mpi <script.py>
 ```
 
 ## User instrumentation
+### User Regions
+Since version 2.0 the python bindings support context managers for user regions:
 
-In some cases, the user might want to define a region, log some parameters, or just disable tracing for a certain area. To do so the module implements a few functions:
+```
+with scorep.user.region("region_name"):
+    do_something()
+```
+
+The traditional calls to  define a region and log some parameters, still exists:
 
 ```
 scorep.user.region_begin(name)
+scorep.user.parameter_int(name, val)
+scorep.user.parameter_uint(name, val)
+scorep.user.parameter_string(name, string)
 scorep.user.region_end(name)
 ```
 
-These functions allow the definition of user regions. `name` defines the name of a region. Each `user.region_begin` shall have a corresponding call to `user.region_end`.    
+`name` defines the name of the parameter or region, while `val` or `string` represents the value that is passed to Score-P. 
+
+Disabeling the recording with Score-P is still also possilbe:
 
 ```
 scorep.user.enable_recording()
 scorep.user.disable_recording()
 ```
 
-These functions allow enabling and disabling of the tracing.
+However, please be aware that the runtime impact is rather small, as the instrumenter is still active. For details about the instrumenter, please see [Instrumenter](#Instrumenter).  
+
+### Instrumenter
+With version 2.0 of the python bindings, the term "instrumenter" is introduced. The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P. Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).
+
+The instrumenter that shall be used for tracing can be specified using `--instrumenter-type=<type>`.
+Currently there are the following tacers available:
+ * `profile` (default) implements `call` and `return`  
+ * `trace` implements `call` and `return`
+ * `dummy` does nothing, can be used without `-m scorep` (as done by user instrumentation)
+
+The `profile` instrumenter should have a smaller overhead than `trace`. 
+
+Moreover it is possible to disable (and enable) the instrumenter in the sourcecode:
 
 ```
-scorep.user.parameter_int(name, val)
-scorep.user.parameter_uint(name, val)
-scorep.user.parameter_string(name, string)
+with scorep.instrumenter.disable():
+    do_something()
+
+with scorep.instrumenter.enable():
+    do_something()    
 ```
 
-These functions allow passing user parameters to Score-P. These parameters can be int, uint and string. `name` defines the name of the parameter, while `val` or `string` defines the value that is passed to Score-P. 
-Please be aware, that the scorep module still needs to be preloaded, i.e. by using `python -m scorep`.
+or during startup with `--noinstrumenter`. Please be aware that the function calls override the Flag.
 
-## Additional Flags
+## Overview about Flags
 
-The Score-P bindings now also support a `--nopython` flag, which disables the python instrumentation.
-This might be helpful, if only user instrumentation is required, or only some instrumented libraries shall be traced.
+The following flags are special to the python bindings:
+
+ * `--noinstrumenter` disables the instrumentation of python code. Usefull for user instrumentation and to trace only specific code regions using `scorep.instrumenter.enable`.
+ * `--instrumenter-type=<type>` choose an instrumenter. See  [Instrumenter](#Instrumenter).
+ * `--keep-files` temporary files are kept.
 
 ## Backward Compatibility
 
-In order to maintain backwards Compatibility, the following flags are set per default:
+To maintain backwards compatibility, the following flags are set per default:
 
 ```
 python -m scorep --compiler --thread=pthread <script.py>
@@ -95,7 +119,7 @@ The traditional `--mpi` does still work, and is similar to the following call:
 python -m scorep --compiler --thread=pthread --mpp=mpi <script.py>
 ```
 
-To disable compiler instrumentation please specify:
+To disable compiler instrumentation, please specify:
 
 ```
 python -m scorep --nocompiler <script.py>
@@ -119,7 +143,4 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 
 ## Not Working
 * python multiprocessing
-    * Score-P does currently not support any non MPI or non SHMEM communication. So the different processes will not know from each other. You might want to take a look to https://mpi4py.readthedocs.io/en/stable/mpi4py.futures.html .
-
-# Tracing
-The tracing uses Score-P User instrumentation. The python trace module was reworked, to pass the region names to `SCOREP_USER_REGION_BEGIN` and `SCOREP_USER_REGION_END` instead of printing. All other features of the tracing module where striped.
+    * Score-P does currently only support MPI or SHMEM. Any other multiprocessing approach cannot be traced.

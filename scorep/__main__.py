@@ -125,8 +125,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     scorep_main()
-else:
-    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
-            os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
-        logging.warning(
-            "scorep needs to be loaded using \"python -m scorep <script>\". Please be aware that scorep might not work correctly!")

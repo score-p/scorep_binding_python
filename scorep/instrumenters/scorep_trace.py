@@ -2,7 +2,6 @@ __all__ = ['ScorepTrace']
 import sys
 import inspect
 import os.path
-import scorep.trace_dummy
 
 try:
     import threading
@@ -39,10 +38,10 @@ class ScorepTrace:
 
     def register(self):
         self.tracer_registered = True
-        _setprofile(self.globaltrace)
+        _settrace(self.globaltrace)
 
     def unregister(self):
-        _unsetprofile()
+        _unsettrace()
         self.tracer_registered = False
 
     def get_registered(self):

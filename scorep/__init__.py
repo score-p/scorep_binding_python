@@ -1,1 +1,3 @@
-__all__ = ["trace", "scorep_bindings", "user", "subsystem", "instrumenter"]
+import scorep.user
+import scorep.instrumenter
+__all__ = ["user", "instrumenter"]

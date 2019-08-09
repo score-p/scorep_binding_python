@@ -6,19 +6,19 @@ import os.path
 try:
     import threading
 except ImportError:
-    _settrace = sys.setprofile
+    _settrace = sys.settrace
 
     def _unsettrace():
-        sys.setprofile(None)
+        sys.settrace(None)
 
 else:
     def _settrace(func):
-        threading.setprofile(func)
-        sys.setprofile(func)
+        threading.settrace(func)
+        sys.settrace(func)
 
     def _unsettrace():
-        sys.setprofile(None)
-        threading.setprofile(None)
+        sys.settrace(None)
+        threading.settrace(None)
 
 
 class ScorepTrace:
@@ -89,7 +89,7 @@ class ScorepTrace:
             else:
                 full_file_name = "None"
             line_number = frame.f_lineno
-            if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
+            if not code.co_name == "_unsettrace" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return self.localtrace

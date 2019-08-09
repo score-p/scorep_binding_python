@@ -260,10 +260,10 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(std_err, expected_std_err)
         self.assertEqual(std_out, expected_std_out)
 
-#     def tearDown(self):
-#         shutil.rmtree(
-#             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
-#             ignore_errors=True)
+    def tearDown(self):
+        shutil.rmtree(
+            self.env["SCOREP_EXPERIMENT_DIRECTORY"],
+            ignore_errors=True)
 
 
 if __name__ == '__main__':

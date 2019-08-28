@@ -81,6 +81,8 @@ def scorep_main(argv=None):
                 new_args.append(elem)
 
         os.execve(sys.executable, new_args, os.environ)
+    else:
+        scorep.subsystem.reset_pereload()
 
     scorep_bindings = importlib.import_module("scorep.scorep_bindings")
 

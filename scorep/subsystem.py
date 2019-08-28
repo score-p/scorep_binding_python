@@ -106,7 +106,18 @@ def init_environment(scorep_config=[], keep_files=False):  # should move to subs
         sys.stderr.write(
             "LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
         preload_str = preload_str + " " + os.environ["LD_PRELOAD"]
+        os.environ["LD_PRELOAD_SCOREP_BACKUP"] = os.environ["LD_PRELOAD"]
     os.environ["LD_PRELOAD"] = preload_str
+
+
+def reset_pereload():
+    """
+    resets the environment variable `LD_PRELOAD` to the value before init_environment was called.
+    """
+    if "LD_PRELOAD_SCOREP_BACKUP" in os.environ:
+        os.environ["LD_PRELOAD"] = os.environ["LD_PRELOAD_SCOREP_BACKUP"]
+    else:
+        del os.environ["LD_PRELOAD"]
 
 
 def clean_up(keep_files=True):

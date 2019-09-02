@@ -20,7 +20,7 @@ struct region_handle
 static std::unordered_map<std::string, region_handle> regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
-void region_begin(std::string region_name, std::string module, std::string file_name,
+void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
 {
     auto pair = regions.emplace(make_pair(region_name, region_handle()));
@@ -134,10 +134,11 @@ extern "C"
 
         if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
         {
-            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-            sprintf(region, "%s:%s", module, region_name);
+            static std::string region = "";
+            region = module;
+            region += ":";
+            region += region_name;
             scorep::region_begin(region, module, file_name, line_number);
-            free(region);
         }
 
         Py_INCREF(Py_None);

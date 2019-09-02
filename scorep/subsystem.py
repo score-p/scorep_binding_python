@@ -79,7 +79,7 @@ def generate(scorep_config, keep_files=False):
     return(subsystem_lib_name, temp_dir)
 
 
-def init_environment(scorep_config=[], keep_files=False):  # should move to subsystem
+def init_environment(scorep_config=[], keep_files=False):
     """
     Set the inital needed environmet variables, to get everythin up an running.
     As a few variables interact with LD env vars, the programms needs to be restarted after this.

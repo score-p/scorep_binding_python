@@ -106,6 +106,7 @@ extern "C"
 {
 
     extern const char* SCOREP_GetExperimentDirName(void);
+    constexpr unsigned long region_buffer_max = 4096;
 
     static PyObject* enable_recording(PyObject* self, PyObject* args)
     {
@@ -134,10 +135,11 @@ extern "C"
 
         if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
         {
-            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-            sprintf(region, "%s:%s", module, region_name);
-            scorep::region_begin(region, module, file_name, line_number);
-            free(region);
+            char region_buffer[region_buffer_max];
+            assert((strlen(module) + strlen(region_name) + 1) < region_buffer_max &&
+                   "Resulting region is too long\n");
+            sprintf(region_buffer, "%s:%s", module, region_name);
+            scorep::region_begin(region_buffer, module, file_name, line_number);
         }
 
         Py_INCREF(Py_None);
@@ -154,10 +156,11 @@ extern "C"
 
         if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
         {
-            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-            sprintf(region, "%s:%s", module, region_name);
-            scorep::region_end(region);
-            free(region);
+            char region_buffer[region_buffer_max];
+            assert((strlen(module) + strlen(region_name) + 1) < region_buffer_max &&
+                   "Resulting region is too long\n");
+            sprintf(region_buffer, "%s:%s", module, region_name);
+            scorep::region_end(region_buffer);
         }
 
         Py_INCREF(Py_None);

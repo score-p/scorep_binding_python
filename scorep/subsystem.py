@@ -79,7 +79,7 @@ def generate(scorep_config, keep_files=False):
     return(subsystem_lib_name, temp_dir)
 
 
-def init_environment(scorep_config=[], keep_files=False):  # should move to subsystem
+def init_environment(scorep_config=[], keep_files=False):
     """
     Set the inital needed environmet variables, to get everythin up an running.
     As a few variables interact with LD env vars, the programms needs to be restarted after this.
@@ -106,7 +106,21 @@ def init_environment(scorep_config=[], keep_files=False):  # should move to subs
         sys.stderr.write(
             "LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
         preload_str = preload_str + " " + os.environ["LD_PRELOAD"]
+        os.environ["SCOREP_LD_PRELOAD_BACKUP"] = os.environ["LD_PRELOAD"]
+    else:
+        os.environ["SCOREP_LD_PRELOAD_BACKUP"] = ""
     os.environ["LD_PRELOAD"] = preload_str
+
+
+def reset_pereload():
+    """
+    resets the environment variable `LD_PRELOAD` to the value before init_environment was called.
+    """
+    if "SCOREP_LD_PRELOAD_BACKUP" in os.environ:
+        if os.environ["SCOREP_LD_PRELOAD_BACKUP"] == "":
+            del os.environ["LD_PRELOAD"]
+        else:
+            os.environ["LD_PRELOAD"] = os.environ["SCOREP_LD_PRELOAD_BACKUP"]
 
 
 def clean_up(keep_files=True):

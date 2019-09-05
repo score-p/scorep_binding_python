@@ -20,7 +20,7 @@ struct region_handle
 static std::unordered_map<std::string, region_handle> regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
-void region_begin(std::string region_name, std::string module, std::string file_name,
+void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
 {
     auto pair = regions.emplace(make_pair(region_name, region_handle()));
@@ -36,7 +36,7 @@ void region_begin(std::string region_name, std::string module, std::string file_
     SCOREP_User_RegionEnter(handle.value);
 }
 
-void region_end(std::string region_name)
+void region_end(const std::string& region_name)
 {
     auto& handle = regions[region_name];
     SCOREP_User_RegionEnd(handle.value);
@@ -122,6 +122,9 @@ extern "C"
         return Py_None;
     }
 
+    /** This code is not thread save. However, this does not matter as the python GIL is not
+     * released.
+     */
     static PyObject* region_begin(PyObject* self, PyObject* args)
     {
         const char* module;
@@ -134,16 +137,20 @@ extern "C"
 
         if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
         {
-            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-            sprintf(region, "%s:%s", module, region_name);
+            static std::string region = "";
+            region = module;
+            region += ":";
+            region += region_name;
             scorep::region_begin(region, module, file_name, line_number);
-            free(region);
         }
 
         Py_INCREF(Py_None);
         return Py_None;
     }
 
+    /** This code is not thread save. However, this does not matter as the python GIL is not
+     * released.
+     */
     static PyObject* region_end(PyObject* self, PyObject* args)
     {
         const char* module;
@@ -154,10 +161,11 @@ extern "C"
 
         if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
         {
-            char* region = (char*)malloc(strlen(module) + strlen(region_name) + 2);
-            sprintf(region, "%s:%s", module, region_name);
+            static std::string region = "";
+            region = module;
+            region += ":";
+            region += region_name;
             scorep::region_end(region);
-            free(region);
         }
 
         Py_INCREF(Py_None);

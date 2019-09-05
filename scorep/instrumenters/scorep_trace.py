@@ -74,27 +74,24 @@ class ScorepTrace:
 
     def globaltrace_lt(self, frame, why, arg):
         """Handler for call events.
-
-        If the code block being entered is to be ignored, returns `None',
-        else returns self.localtrace.
+        @return self.localtrace or None
         """
         if why == 'call':
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
-            file_name = frame.f_globals.get('__file__', None)
-            if file_name is not None:
-                full_file_name = os.path.abspath(file_name)
-            else:
-                full_file_name = "None"
-            line_number = frame.f_lineno
             if not code.co_name == "_unsettrace" and not modulename[:6] == "scorep":
+                file_name = frame.f_globals.get('__file__', None)
+                if file_name is not None:
+                    full_file_name = os.path.abspath(file_name)
+                else:
+                    full_file_name = "None"
+                line_number = frame.f_lineno
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
-            return self.localtrace
-        else:
-            return None
+                return self.localtrace
+        return None
 
     def localtrace_trace(self, frame, why, arg):
         if why == 'return':

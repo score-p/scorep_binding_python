@@ -38,7 +38,7 @@ void region_begin(const std::string& region_name, std::string module, std::strin
 
 void region_end(const std::string& region_name)
 {
-    auto& handle = regions[region_name];
+    auto& handle = regions.at(region_name);
     SCOREP_User_RegionEnd(handle.value);
 }
 
@@ -58,7 +58,7 @@ void rewind_begin(std::string region_name, std::string file_name, std::uint64_t 
 
 void rewind_end(std::string region_name, bool value)
 {
-    auto& handle = rewind_regions[region_name];
+    auto& handle = rewind_regions.at(region_name);
     /* don't call SCOREP_ExitRewindRegion, as
      * SCOREP_User_RewindRegionEnd does some additional magic
      * */
@@ -97,10 +97,6 @@ void oa_region_end(std::string region_name)
     SCOREP_User_OaPhaseEnd(handle.value);
 }
 } // namespace scorep
-namespace scorep_python
-{
-std::set<std::string> filter_modules = { "scorep.user", "scorep.strace" };
-}
 
 extern "C"
 {
@@ -135,14 +131,11 @@ extern "C"
         if (!PyArg_ParseTuple(args, "sssK", &module, &region_name, &file_name, &line_number))
             return NULL;
 
-        if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
-        {
-            static std::string region = "";
-            region = module;
-            region += ":";
-            region += region_name;
-            scorep::region_begin(region, module, file_name, line_number);
-        }
+        static std::string region = "";
+        region = module;
+        region += ":";
+        region += region_name;
+        scorep::region_begin(region, module, file_name, line_number);
 
         Py_INCREF(Py_None);
         return Py_None;
@@ -159,14 +152,11 @@ extern "C"
         if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
             return NULL;
 
-        if (scorep_python::filter_modules.find(module) == scorep_python::filter_modules.end())
-        {
-            static std::string region = "";
-            region = module;
-            region += ":";
-            region += region_name;
-            scorep::region_end(region);
-        }
+        static std::string region = "";
+        region = module;
+        region += ":";
+        region += region_name;
+        scorep::region_end(region);
 
         Py_INCREF(Py_None);
         return Py_None;

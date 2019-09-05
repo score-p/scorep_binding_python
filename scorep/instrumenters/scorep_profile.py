@@ -82,13 +82,13 @@ class ScorepProfile:
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
-            file_name = frame.f_globals.get('__file__', None)
-            if file_name is not None:
-                full_file_name = os.path.abspath(file_name)
-            else:
-                full_file_name = "None"
-            line_number = frame.f_lineno
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
+                file_name = frame.f_globals.get('__file__', None)
+                if file_name is not None:
+                    full_file_name = os.path.abspath(file_name)
+                else:
+                    full_file_name = "None"
+                line_number = frame.f_lineno
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return
@@ -97,7 +97,8 @@ class ScorepProfile:
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
                 modulename = "None"
-            self.scorep_bindings.region_end(modulename, code.co_name)
+            if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
+                self.scorep_bindings.region_end(modulename, code.co_name)
         else:
             return
 

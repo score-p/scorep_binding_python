@@ -117,7 +117,10 @@ def reset_pereload():
     resets the environment variable `LD_PRELOAD` to the value before init_environment was called.
     """
     if "SCOREP_LD_PRELOAD_BACKUP" in os.environ:
-        os.environ["LD_PRELOAD"] = os.environ["SCOREP_LD_PRELOAD_BACKUP"]
+        if os.environ["SCOREP_LD_PRELOAD_BACKUP"] == "":
+            del os.environ["LD_PRELOAD"]
+        else:
+            os.environ["LD_PRELOAD"] = os.environ["SCOREP_LD_PRELOAD_BACKUP"]
 
 
 def clean_up(keep_files=True):

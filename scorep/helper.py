@@ -52,19 +52,6 @@ def add_to_ld_library_path(path):
                 ":" + os.environ["LD_LIBRARY_PATH"]
 
 
-def generate_ld_preload(scorep_config):
-    """
-    This functions generate a string that needs to be passed to $LD_PRELOAD.
-    After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
-
-    @return ld_preload string which needs to be passed to LD_PRELOAD
-    """
-
-    (_, preload, _) = call(["scorep-config"] +
-                           scorep_config + ["--user", "--preload-libs"])
-    return preload
-
-
 def generate_compile_deps(config=[]):
     """
     Generates the data needed for compilation.

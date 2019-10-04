@@ -7,13 +7,26 @@ import shutil
 import scorep.helper
 
 
-def gen_subsystem_lib_name():
+def generate_subsystem_lib_name():
     """
     generate the name for the subsystem lib.
     """
     mpi_lib_name = "libscorep_init_subsystem-{}.so".format(
         scorep.helper.get_python_version())
     return mpi_lib_name
+
+
+def generate_ld_preload(scorep_config):
+    """
+    This functions generate a string that needs to be passed to $LD_PRELOAD.
+    After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
+
+    @return ld_preload string which needs to be passed to LD_PRELOAD
+    """
+
+    (_, preload, _) = scorep.helper.call(
+        ["scorep-config"] + scorep_config + ["--user", "--preload-libs"])
+    return preload
 
 
 def generate_subsystem_code(config=[]):
@@ -62,7 +75,7 @@ def generate(scorep_config, keep_files=False):
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)
 
-    subsystem_lib_name = gen_subsystem_lib_name()
+    subsystem_lib_name = generate_subsystem_lib_name()
 
     cc = distutils.ccompiler.new_compiler()
     compiled_subsystem = cc.compile(
@@ -97,7 +110,7 @@ def init_environment(scorep_config=[], keep_files=False):
 
     subsystem_lib_name, temp_dir = scorep.subsystem.generate(
         scorep_config, keep_files)
-    scorep_ld_preload = scorep.helper.generate_ld_preload(scorep_config)
+    scorep_ld_preload = generate_ld_preload(scorep_config)
 
     scorep.helper.add_to_ld_library_path(temp_dir)
 

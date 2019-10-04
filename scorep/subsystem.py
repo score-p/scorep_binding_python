@@ -58,6 +58,13 @@ def generate(scorep_config, keep_files=False):
     (include, lib, lib_dir, macro,
      linker_flags_tmp) = scorep.helper.generate_compile_deps(scorep_config)
     scorep_adapter_init = generate_subsystem_code(scorep_config)
+    if ("-lscorep_adapter_opari2_mgmt" in lib):
+        scorep_adapter_init += "\n"
+        scorep_adapter_init += "/* OPARI dependencies */\n"
+        scorep_adapter_init += "void POMP2_Init_regions(){}\n"
+        scorep_adapter_init += "size_t POMP2_Get_num_regions(){return 0;};\n"
+        scorep_adapter_init += "void POMP2_USER_Init_regions(){};\n"
+        scorep_adapter_init += "size_t POMP2_USER_Get_num_regions(){return 0;};\n"
 
     # add -Wl,-no-as-needed to tell the compiler that we really want to link these. Actually this sould be default.
     # as distutils adds extra args at the very end we need to add all the libs

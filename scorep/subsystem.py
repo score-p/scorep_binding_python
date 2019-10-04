@@ -56,8 +56,8 @@ def generate(scorep_config, keep_files=False):
     temp_dir = tempfile.mkdtemp(prefix="scorep.")
     if keep_files:
         sys.stderr.write(
-            "Score-P files are keept at: {}".format(temp_dir),
-            file=sys.stderr)
+            "Score-P files are keept at: {}\n".format(temp_dir))
+        sys.stderr.flush()
 
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)

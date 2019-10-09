@@ -6,14 +6,14 @@ import time
 
 
 class BenchmarkEnv():
-    def __init__(self, repetitons=10):
+    def __init__(self, repetitions=10):
         self.env = os.environ.copy()
         self.env["SCOREP_ENABLE_PROFILING"] = "false"
         self.env["SCOREP_ENABLE_TRACING"] = "true"
         self.env["SCOREP_PROFILING_MAX_CALLPATH_DEPTH"] = "98"
         self.env["SCOREP_TOTAL_MEMORY"] = "3G"
         self.exp_dir = "benchmark_dir"
-        self.repetitons = repetitons
+        self.repetitions = repetitions
 
         shutil.rmtree(
             self.exp_dir,
@@ -40,7 +40,7 @@ class BenchmarkEnv():
         arguments.extend(ops)
 
         runtimes = []
-        for i in range(self.repetitons):
+        for i in range(self.repetitions):
             begin = time.time()
             out = subprocess.run(
                 arguments,

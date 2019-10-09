@@ -6,7 +6,7 @@ Created on 04.10.2019
 import benchmark_helper
 import pickle
 
-bench = benchmark_helper.BenchmarkEnv()
+bench = benchmark_helper.BenchmarkEnv(repetitions=11)
 tests = ["test_1.py", "test_2.py"]
 resutls = {}
 

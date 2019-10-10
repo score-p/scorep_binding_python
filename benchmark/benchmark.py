@@ -8,11 +8,11 @@ import pickle
 
 bench = benchmark_helper.BenchmarkEnv(repetitions=11)
 tests = ["test_1.py", "test_2.py"]
-resutls = {}
+results = {}
 
 for test in tests:
-    resutls[test] = {"profile": {}, "trace": {}, "dummy": {}}
-    for elem in resutls[test]:
+    results[test] = {"profile": {}, "trace": {}, "dummy": {}}
+    for elem in results[test]:
         scorep_settings = ["--instrumenter-type={}".format(elem)]
         print("#########")
         print("{}: {}".format(test, scorep_settings))
@@ -22,8 +22,8 @@ for test in tests:
                 test,
                 [reps],
                 scorep_settings=scorep_settings)
-            resutls[test][elem][reps] = times
+            results[test][elem][reps] = times
             print("{:<8}: {}".format(reps, times))
 
-with open("resutls.pkl", "wb") as f:
-    pickle.dump(resutls,f)
+with open("results.pkl", "wb") as f:
+    pickle.dump(results,f)

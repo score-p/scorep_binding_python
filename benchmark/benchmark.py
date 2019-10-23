@@ -11,9 +11,15 @@ tests = ["test_1.py", "test_2.py"]
 results = {}
 
 for test in tests:
-    results[test] = {"profile": {}, "trace": {}, "dummy": {}}
-    for elem in results[test]:
-        scorep_settings = ["--instrumenter-type={}".format(elem)]
+    results[test] = {"profile": {}, "trace": {}, "dummy": {}, "None": {}}
+    for instrumenter in results[test]:
+        if instrumenter is "None":
+            enable_scorep = False
+            scorep_settings = []
+        else:
+            enable_scorep = True
+            scorep_settings = ["--instrumenter-type={}".format(instrumenter)]
+
         print("#########")
         print("{}: {}".format(test, scorep_settings))
         print("#########")
@@ -21,9 +27,10 @@ for test in tests:
             times = bench.call(
                 test,
                 [reps],
+                enable_scorep,
                 scorep_settings=scorep_settings)
-            results[test][elem][reps] = times
+            results[test][instrumenter][reps] = times
             print("{:<8}: {}".format(reps, times))
 
 with open("results.pkl", "wb") as f:
-    pickle.dump(results,f)
+    pickle.dump(results, f)

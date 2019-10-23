@@ -11,6 +11,10 @@ def add(val):
 
 
 result = 0
-for i in range(int(sys.argv[1])):
+iterations = int(sys.argv[1])
+iteration_list = list(range(iterations))
+
+for i in iteration_list:
     result = add(result)
-print(result)
+
+assert(result == iterations)

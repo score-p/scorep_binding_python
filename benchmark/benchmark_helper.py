@@ -3,7 +3,6 @@ import os
 import shutil
 import sys
 import time
-from IPython.core.magic_arguments import argument
 
 
 class BenchmarkEnv():

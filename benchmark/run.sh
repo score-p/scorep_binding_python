@@ -16,7 +16,7 @@ module use /home/gocht/modules
 module load scorep/scorep-6.0-python3.6.6-foss-2019a
 # Score-P 6.0 build with
 # ../configure --prefix=/home/gocht/sw/scorep/scorep-6.0-python3.6.6-foss-2019a --enable-shared
-# scorep_binding_python git sha: e3a52d315daf8d2f6273ba825597d544af9074c7
+# scorep_binding_python git sha: 8d35a668b0a59480e4e7fd9f43ae50949d807241 
 # installed in virtual environment
 
 . ~/virtenv/Python-3.6.6-foss-2019a/bin/activate

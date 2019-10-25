@@ -50,6 +50,10 @@ class region(object):
 
     def __init__(self, region_name=""):
         self.region_name = region_name
+        if region_name == "":
+            self.user_region_name = False
+        else:
+            self.user_region_name = True
         self.module_name = ""
         self.func = None
 
@@ -70,7 +74,7 @@ class region(object):
     def __enter__(self):
         initally_registered = instrumenter.get_instrumenter().get_registered()
         with scorep.instrumenter.disable():
-            if(self.region_name != ""):
+            if(self.user_region_name):
                 self.module_name = "user"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)
@@ -111,10 +115,11 @@ class region(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         if (callable(self.func)
-                and instrumenter.get_instrumenter().get_registered()):
+            and instrumenter.get_instrumenter().get_registered()
+                and not self.user_region_name):
             """
-            looks like there is a decorator and a we are registered, so we do not need to do anything.
-            The Instrumentation will take care.
+            looks like there is a decorator, we are registered and the name is not specified by the user,
+            so we do not need to do anything. The Instrumentation will take care.
             """
             return False
         else:

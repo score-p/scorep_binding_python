@@ -1,6 +1,8 @@
 import inspect
 import os.path
 import scorep.instrumenter
+import functools
+from scorep import instrumenter
 
 
 def region_begin(name, file_name=None, line_number=None):
@@ -11,65 +13,114 @@ def region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
-    if tracer_registered:
-        scorep.instrumenter.get_instrumenter().unregister()
-
-    scorep.instrumenter.get_instrumenter().unregister()
-    if file_name is None or line_number is None:
-        frame = inspect.currentframe().f_back
-        file_name = frame.f_globals.get('__file__', None)
-        line_number = frame.f_lineno
-    if file_name is not None:
-        full_file_name = os.path.abspath(file_name)
-    else:
-        full_file_name = "None"
-
-    scorep.instrumenter.get_instrumenter().user_region_begin(
-        name, full_file_name, line_number)
-    if tracer_registered:
-        scorep.instrumenter.get_instrumenter().register()
-
-
-def region_end(name):
-    scorep.instrumenter.get_instrumenter().user_region_end(name)
-
-
-class region():
-    """
-    Context manager for regions:
-    ```
-    with region("some name"):
-        do stuff
-    ```
-    """
-
-    def __init__(self, region_name):
-        self.region_name = region_name
-        self.tracer_registered = None
-
-    def __enter__(self):
-        self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
-        if self.tracer_registered:
-            scorep.instrumenter.get_instrumenter().unregister()
-
-        scorep.instrumenter.get_instrumenter().unregister()
-        frame = inspect.currentframe().f_back
-        file_name = frame.f_globals.get('__file__', None)
-        line_number = frame.f_lineno
+    with scorep.instrumenter.disable():
+        if file_name is None or line_number is None:
+            frame = inspect.currentframe().f_back
+            file_name = frame.f_globals.get('__file__', None)
+            line_number = frame.f_lineno
         if file_name is not None:
             full_file_name = os.path.abspath(file_name)
         else:
             full_file_name = "None"
 
-        scorep.instrumenter.get_instrumenter().user_region_begin(
-            self.region_name, full_file_name, line_number)
+        scorep.instrumenter.get_instrumenter().region_begin(
+            "user", name, full_file_name, line_number)
 
-        if self.tracer_registered:
-            scorep.instrumenter.get_instrumenter().register()
+
+def region_end(name):
+    scorep.instrumenter.get_instrumenter().region_end("user", name)
+
+
+class region(object):
+    """
+    Context manager or decorator for regions:
+    ```
+    with region("some name"):
+        do stuff
+
+    @region()
+    def fun():
+        do stuff
+    ```
+
+    details for decorator stuff:
+    https://github.com/python/cpython/blob/3.8/Lib/contextlib.py#L71
+
+    """
+
+    def __init__(self, region_name=""):
+        self.region_name = region_name
+        self.module_name = ""
+        self.func = None
+
+    def _recreate_cm(self):
+        return self
+
+    def __call__(self, func):
+        with scorep.instrumenter.disable():
+            self.func = func
+
+            @functools.wraps(func)
+            def inner(*args, **kwds):
+                with self._recreate_cm():
+                    return func(*args, **kwds)
+
+            return inner
+
+    def __enter__(self):
+        initally_registered = instrumenter.get_instrumenter().get_registered()
+        with scorep.instrumenter.disable():
+            if(self.region_name != ""):
+                self.module_name = "user"
+                frame = inspect.currentframe().f_back
+                file_name = frame.f_globals.get('__file__', None)
+                line_number = frame.f_lineno
+                if file_name is not None:
+                    full_file_name = os.path.abspath(file_name)
+                else:
+                    full_file_name = "None"
+
+                scorep.instrumenter.get_instrumenter().region_begin(
+                    self.module_name, self.region_name, full_file_name, line_number)
+            elif(callable(self.func)):
+                """
+                looks like the decorator is invoked
+                """
+                if not initally_registered:
+                    self.region_name = self.func.__name__
+                    self.module_name = self.func.__module__
+                    file_name = self.func.__code__.co_filename
+                    line_number = self.func.__code__.co_firstlineno
+
+                    if file_name is not None:
+                        full_file_name = os.path.abspath(file_name)
+                    else:
+                        full_file_name = "None"
+
+                    scorep.instrumenter.get_instrumenter().region_begin(
+                        self.module_name, self.region_name, full_file_name, line_number)
+                else:
+                    """
+                    do not need to decorate a function, when we are registerd. It is instrumented any way.
+                    """
+                    pass
+            else:
+                raise RuntimeError("a region name needs to be specified")
+
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        scorep.instrumenter.get_instrumenter().user_region_end(self.region_name)
+        if (callable(self.func)
+                and instrumenter.get_instrumenter().get_registered()):
+            """
+            looks like there is a decorator and a we are registered, so we do not need to do anything.
+            The Instrumentation will take care.
+            """
+            return False
+        else:
+            scorep.instrumenter.get_instrumenter().region_end(
+                self.module_name, self.region_name)
+            return False
 
 
 def rewind_begin(name, file_name=None, line_number=None):
@@ -80,24 +131,18 @@ def rewind_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
-    if tracer_registered:
-        scorep.instrumenter.get_instrumenter().unregister()
+    with scorep.instrumenter.disable():
+        if file_name is None or line_number is None:
+            frame = inspect.currentframe().f_back
+            file_name = frame.f_globals.get('__file__', None)
+            line_number = frame.f_lineno
+        if file_name is not None:
+            full_file_name = os.path.abspath(file_name)
+        else:
+            full_file_name = "None"
 
-    if file_name is None or line_number is None:
-        frame = inspect.currentframe().f_back
-        file_name = frame.f_globals.get('__file__', None)
-        line_number = frame.f_lineno
-    if file_name is not None:
-        full_file_name = os.path.abspath(file_name)
-    else:
-        full_file_name = "None"
-
-    scorep.instrumenter.get_instrumenter().rewind_begin(
-        name, full_file_name, line_number)
-
-    if tracer_registered:
-        scorep.instrumenter.get_instrumenter().register()
+        scorep.instrumenter.get_instrumenter().rewind_begin(
+            name, full_file_name, line_number)
 
 
 def rewind_end(name, value):
@@ -110,7 +155,6 @@ def rewind_end(name, value):
 
 
 def oa_region_begin(name, file_name=None, line_number=None):
-    scorep.instrumenter.get_instrumenter().unregister()
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
     bet determined automatically
@@ -118,23 +162,20 @@ def oa_region_begin(name, file_name=None, line_number=None):
     @param file_name file name of the user region
     @param line_number line number of the user region
     """
-    tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
-    if tracer_registered:
-        scorep.instrumenter.get_instrumenter().unregister()
 
-    if file_name is None or line_number is None:
-        frame = inspect.currentframe().f_back
-        file_name = frame.f_globals.get('__file__', None)
-        line_number = frame.f_lineno
-    if file_name is not None:
-        full_file_name = os.path.abspath(file_name)
-    else:
-        full_file_name = "None"
+    with scorep.instrumenter.disable():
 
-    scorep.instrumenter.get_instrumenter().oa_region_begin(
-        name, full_file_name, line_number)
-    if tracer_registered:
-        scorep.instrumenter.get_instrumenter().register()
+        if file_name is None or line_number is None:
+            frame = inspect.currentframe().f_back
+            file_name = frame.f_globals.get('__file__', None)
+            line_number = frame.f_lineno
+        if file_name is not None:
+            full_file_name = os.path.abspath(file_name)
+        else:
+            full_file_name = "None"
+
+        scorep.instrumenter.get_instrumenter().oa_region_begin(
+            name, full_file_name, line_number)
 
 
 def oa_region_end(name):

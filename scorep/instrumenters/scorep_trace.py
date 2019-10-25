@@ -102,28 +102,12 @@ class ScorepTrace:
             self.scorep_bindings.region_end(modulename, code.co_name)
         return self.localtrace
 
-    def user_region_begin(self, name, file_name=None, line_number=None):
-        """
-        Begin of an User region. If file_name or line_number is None, both will
-        bet determined automatically
-        @param name name of the user region
-        @param file_name file name of the user region
-        @param line_number line number of the user region
-        """
-        if file_name is None or line_number is None:
-            frame = inspect.currentframe().f_back
-            file_name = frame.f_globals.get('__file__', None)
-            line_number = frame.f_lineno
-        if file_name is not None:
-            full_file_name = os.path.abspath(file_name)
-        else:
-            full_file_name = "None"
-
+    def region_begin(self, module_name, function_name, file_name, line_number):
         self.scorep_bindings.region_begin(
-            "user", name, full_file_name, line_number)
+            module_name, function_name, file_name, line_number)
 
-    def user_region_end(self, name):
-        self.scorep_bindings.region_end("user", name)
+    def region_end(self, module_name, function_name):
+        self.scorep_bindings.region_end(module_name, function_name)
 
     def rewind_begin(self, name, file_name=None, line_number=None):
         """

@@ -85,6 +85,14 @@ class TestScorepBindingsPython(unittest.TestCase):
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region2"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region2"')
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"')
 
     def test_context(self):
         env = self.env
@@ -94,7 +102,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = call([self.python,
                     "-m",
                     "scorep",
-                    "--nopython",
+                    "--noinstrumenter",
                     "test_context.py"],
                    env=env)
         std_out = out[1]

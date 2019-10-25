@@ -65,10 +65,13 @@ class enable():
         pass
 
     def __enter__(self):
-        self.tracer_registered = get_instrumenter().register()
+        self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+        if not self.tracer_registered:
+            scorep.instrumenter.get_instrumenter().register()
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.tracer_registered = get_instrumenter().unregister()
+        if not self.tracer_registered:
+            scorep.instrumenter.get_instrumenter().unregister()
 
 
 class disable():
@@ -85,7 +88,10 @@ class disable():
         pass
 
     def __enter__(self):
-        self.tracer_registered = get_instrumenter().unregister()
+        self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+        if self.tracer_registered:
+            scorep.instrumenter.get_instrumenter().unregister()
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.tracer_registered = get_instrumenter().register()
+        if self.tracer_registered:
+            scorep.instrumenter.get_instrumenter().register()

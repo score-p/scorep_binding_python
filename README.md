@@ -53,17 +53,39 @@ with scorep.user.region("region_name"):
     do_something()
 ```
 
-The traditional calls to  define a region and log some parameters, still exists:
+Since version 2.1 the python bindings support also decorators for functions:
 
 ```
-scorep.user.region_begin(name)
+@scorep.user.region("region_name")
+def do_something():
+    #do some things
+```
+If no region name is given, the function name will be used e.g.:
+
+```
+@scorep.user.region()
+def do_something():
+    #do some things
+```
+
+will result in `__main__:do_something`.
+
+The traditional calls to define a region still exists, but the usage is discouraged:
+
+```
+scorep.user.region_begin("region_name")
+scorep.user.region_end("region_name")
+```
+
+User parameters can be used in any case:
+
+```
 scorep.user.parameter_int(name, val)
 scorep.user.parameter_uint(name, val)
 scorep.user.parameter_string(name, string)
-scorep.user.region_end(name)
 ```
 
-`name` defines the name of the parameter or region, while `val` or `string` represents the value that is passed to Score-P. 
+where `name` defines the name of the parameter or region, while `val` or `string` represents the value that is passed to Score-P. 
 
 Disabeling the recording with Score-P is still also possilbe:
 
@@ -72,7 +94,7 @@ scorep.user.enable_recording()
 scorep.user.disable_recording()
 ```
 
-However, please be aware that the runtime impact is rather small, as the instrumenter is still active. For details about the instrumenter, please see [Instrumenter](#Instrumenter).  
+However, please be aware that the runtime impact of disabeling Score-P is rather small, as the instrumenter is still active. For details about the instrumenter, please see [Instrumenter](#Instrumenter).  
 
 ### Instrumenter
 With version 2.0 of the python bindings, the term "instrumenter" is introduced. The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P. Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).

@@ -18,7 +18,11 @@ class ScorepDummy:
         pass
 
     def runctx(self, cmd, globals=None, locals=None):
-        pass
+        if globals is None:
+            globals = {}
+        if locals is None:
+            locals = {}
+        exec(cmd, globals, locals)
 
     def runfunc(self, func, *args, **kw):
         pass

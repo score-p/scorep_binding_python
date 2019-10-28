@@ -18,15 +18,19 @@ class ScorepDummy:
         pass
 
     def runctx(self, cmd, globals=None, locals=None):
-        pass
+        if globals is None:
+            globals = {}
+        if locals is None:
+            locals = {}
+        exec(cmd, globals, locals)
 
     def runfunc(self, func, *args, **kw):
         pass
 
-    def user_region_begin(self, name, file_name=None, line_number=None):
+    def region_begin(self, module_name, function_name, file_name, line_number):
         pass
 
-    def user_region_end(self, name):
+    def region_end(self, module_name, function_name):
         pass
 
     def rewind_begin(self, name, file_name=None, line_number=None):

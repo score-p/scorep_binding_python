@@ -75,7 +75,9 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_err = out[2]
 
         self.assertEqual(std_err, self.expected_std_err)
-        self.assertEqual(std_out, "hello world\n")
+        self.assertEqual(
+            std_out,
+            "hello world\nhello world\nhello world3\nhello world4\n")
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]
@@ -85,6 +87,18 @@ class TestScorepBindingsPython(unittest.TestCase):
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"')
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"')
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"')
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"')
 
     def test_context(self):
         env = self.env
@@ -94,7 +108,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = call([self.python,
                     "-m",
                     "scorep",
-                    "--nopython",
+                    "--noinstrumenter",
                     "test_context.py"],
                    env=env)
         std_out = out[1]
@@ -127,7 +141,9 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_err = out[2]
 
         self.assertEqual(std_err, self.expected_std_err)
-        self.assertEqual(std_out, "hello world\n")
+        self.assertEqual(
+            std_out,
+            "hello world\nhello world\nhello world3\nhello world4\n")
 
     def test_user_rewind(self):
         env = self.env
@@ -259,6 +275,27 @@ class TestScorepBindingsPython(unittest.TestCase):
         expected_std_out = ""
         self.assertRegex(std_err, expected_std_err)
         self.assertEqual(std_out, expected_std_out)
+
+    def test_dummy(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_dummy"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--instrumenter-type=dummy",
+                    "test_instrumentation.py"],
+                   env=env)
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_out, "hello world\nbaz\nbar\n")
+        self.assertTrue(
+            os.path.exists(
+                env["SCOREP_EXPERIMENT_DIRECTORY"]),
+            "Score-P directory exists for dummy test")
 
     def tearDown(self):
         shutil.rmtree(

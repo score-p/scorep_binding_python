@@ -1,7 +1,15 @@
 from distutils.core import setup, Extension
 import scorep.helper
-import os
-import logging
+
+if scorep.helper.get_scorep_version() < 5.0:
+    raise RuntimeError(
+        "Score-P version less than 5.0, plase use Score-P >= 5.0")
+
+link_mode = scorep.helper.get_scorep_link_mode()
+if not ("shared=yes" in link_mode):
+    raise RuntimeError(
+        "Score-P not build with \"--enable-shared\". Link mode is:\n{}".format(link_mode))
+
 
 cmodules = []
 (include, _, _, _, _) = scorep.helper.generate_compile_deps()

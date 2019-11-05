@@ -36,6 +36,23 @@ def get_python_version():
     return version
 
 
+def get_scorep_version():
+    (return_code, std_out, std_err) = call(["scorep", "--version"])
+    if (return_code != 0):
+        raise RuntimeError("Cannot call Score-P, reason {}".format(std_err))
+    version = float(std_out.lstrip("Score-P"))
+    return version
+
+
+def get_scorep_link_mode():
+    (return_code, std_out, std_err) = call(["scorep-info", "config-summary"])
+    if (return_code != 0):
+        raise RuntimeError("Cannot call Score-P, reason {}".format(std_err))
+    for line in std_out.split("\n"):
+        if "Link mode:" in line:
+            return line
+
+
 def add_to_ld_library_path(path):
     """
     adds the path to the LD_LIBRARY_PATH.

@@ -21,7 +21,7 @@ cmodules.append(Extension('scorep.scorep_bindings',
 
 setup(
     name='scorep',
-    version='2.0',
+    version='3.0',
     description='This is a scorep tracing package for python',
     author='Andreas Gocht',
     author_email='andreas.gocht@tu-dresden.de',

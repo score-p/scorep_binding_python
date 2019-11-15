@@ -6,9 +6,14 @@ Created on 04.10.2019
 import benchmark_helper
 import pickle
 
-bench = benchmark_helper.BenchmarkEnv(repetitions=11)
+bench = benchmark_helper.BenchmarkEnv(repetitions=51)
 tests = ["test_1.py", "test_2.py"]
 results = {}
+
+reps_x={}
+reps_x["test_1.py"]=["1000000", "2000000", "3000000", "4000000", "5000000"]
+reps_x["test_2.py"]=["100000", "200000", "300000", "400000", "500000"] 
+
 
 for test in tests:
     results[test] = {"profile": {}, "trace": {}, "dummy": {}, "None": {}}
@@ -23,7 +28,7 @@ for test in tests:
         print("#########")
         print("{}: {}".format(test, scorep_settings))
         print("#########")
-        for reps in ["1000", "10000", "100000", "1000000", "10000000"]:
+        for reps in reps_x[test]:
             times = bench.call(
                 test,
                 [reps],

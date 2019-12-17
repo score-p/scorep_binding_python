@@ -1,3 +1,4 @@
+import scorep
 import test_instrumentation2
 
 
@@ -6,4 +7,5 @@ def foo():
     test_instrumentation2.baz()
     test_instrumentation2.bar()
 
-foo()
+with scorep.instrumenter.enable():
+    foo()

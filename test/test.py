@@ -224,6 +224,35 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
 
+
+    def test_user_instrumentation(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_instrumentation"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nocompiler",
+                    "--noinstrumenter",
+                    "test_user_instrumentation.py"],
+                   env=env)
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_out, "hello world\nbaz\nbar\n")
+
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_err, "")
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
+
     @unittest.skipIf(len(pkgutil.extend_path([], "mpi4py")) == 0 or
                      len(pkgutil.extend_path([], "numpy")) == 0,
                      "no mpi4py present")
@@ -298,6 +327,7 @@ class TestScorepBindingsPython(unittest.TestCase):
             "Score-P directory exists for dummy test")
 
     def tearDown(self):
+        #pass
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
             ignore_errors=True)

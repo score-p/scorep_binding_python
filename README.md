@@ -4,8 +4,10 @@
 scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 
 # Install
-You need at least Score-P 5.0, build with `--enable-shared`.
+You need at least Score-P 5.0, build with `--enable-shared` and the gcc compiler plugin.
 Please make sure that `scorep-config` is in your `PATH` variable.
+
+For Ubuntu LTS systems there is a non-official ppa of Score-P availaibe: https://launchpad.net/~andreasgocht/+archive/ubuntu/scorep .
 
 Then run
 

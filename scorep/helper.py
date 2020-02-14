@@ -44,13 +44,17 @@ def get_scorep_version():
     return version
 
 
-def get_scorep_link_mode():
+def get_scorep_config(config_line=None):
     (return_code, std_out, std_err) = call(["scorep-info", "config-summary"])
     if (return_code != 0):
         raise RuntimeError("Cannot call Score-P, reason {}".format(std_err))
-    for line in std_out.split("\n"):
-        if "Link mode:" in line:
-            return line
+    if config_line is None:
+        return std_out.split("\n")
+    else:
+        for line in std_out.split("\n"):
+            if config_line in line:
+                return line
+    return None
 
 
 def add_to_ld_library_path(path):

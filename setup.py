@@ -5,10 +5,14 @@ if scorep.helper.get_scorep_version() < 5.0:
     raise RuntimeError(
         "Score-P version less than 5.0, plase use Score-P >= 5.0")
 
-link_mode = scorep.helper.get_scorep_link_mode()
+link_mode = scorep.helper.get_scorep_config("Link mode:")
 if not ("shared=yes" in link_mode):
     raise RuntimeError(
         "Score-P not build with \"--enable-shared\". Link mode is:\n{}".format(link_mode))
+gcc_plugin = scorep.helper.get_scorep_config("GCC plug-in support:")
+if gcc_plugin is not None and not ("yes" in link_mode):
+    raise RuntimeError(
+        "Score-P not build with GCC Compiler Plugin. GCC plug-in support is:\n{}".format(gcc_plugin))
 
 
 cmodules = []

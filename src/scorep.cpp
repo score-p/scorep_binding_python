@@ -31,7 +31,7 @@ void region_begin(const std::string& region_name, std::string module, std::strin
         SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                                file_name.c_str(), line_number);
-        SCOREP_User_RegionSetGroup(handle.value, module.c_str());
+        SCOREP_User_RegionSetGroup(handle.value, std::string(module,0,module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(handle.value);
 }

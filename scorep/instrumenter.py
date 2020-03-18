@@ -1,6 +1,7 @@
 import scorep.instrumenters.dummy
 import scorep.instrumenters.scorep_profile
 import scorep.instrumenters.scorep_trace
+import scorep.instrumenters.scorep_profile_record
 
 global_instrumenter = None
 
@@ -20,6 +21,9 @@ def get_instrumenter(
     if global_instrumenter is None:
         if instrumenter_type == "profile":
             global_instrumenter = scorep.instrumenters.scorep_profile.ScorepProfile(
+                bindings, enable_instrumenter)
+        elif instrumenter_type == "profile_record":
+            global_instrumenter = scorep.instrumenters.scorep_profile_record.ScorepProfileRecord(
                 bindings, enable_instrumenter)
         elif instrumenter_type == "trace":
             global_instrumenter = scorep.instrumenters.scorep_trace.ScorepTrace(

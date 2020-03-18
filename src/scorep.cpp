@@ -31,7 +31,7 @@ void region_begin(const std::string& region_name, std::string module, std::strin
         SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                                file_name.c_str(), line_number);
-        SCOREP_User_RegionSetGroup(handle.value, std::string(module,0,module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(handle.value, std::string(module, 0, module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(handle.value);
 }
@@ -116,6 +116,13 @@ extern "C"
         SCOREP_User_DisableRecording();
         Py_INCREF(Py_None);
         return Py_None;
+    }
+
+    static PyObject* recording_enabled(PyObject* self, PyObject* args)
+    {
+
+        long state = SCOREP_User_RecordingEnabled();
+        return PyBool_FromLong(state);
     }
 
     /** This code is not thread save. However, this does not matter as the python GIL is not
@@ -277,6 +284,8 @@ extern "C"
         { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
         { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },
         { "disable_recording", disable_recording, METH_VARARGS, "disable scorep recording." },
+        { "recording_enabled", recording_enabled, METH_VARARGS,
+          "checks whether scorep recording is enabled." },
         { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
         { "parameter_uint", parameter_uint, METH_VARARGS, "User parameter uint." },
         { "parameter_string", parameter_string, METH_VARARGS, "User parameter string." },

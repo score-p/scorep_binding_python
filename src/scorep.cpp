@@ -45,10 +45,14 @@ void region_end(const std::string& region_name)
     }
     catch (std::out_of_range& e)
     {
-        region_handle error_region;
-        SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
-                               "error_region", SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp", 0);
-        SCOREP_User_RegionSetGroup(error_region.value, "error");
+        static region_handle error_region;
+        if (error_region.value == SCOREP_USER_INVALID_REGION)
+        {
+            SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
+                                   "error_region", SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp",
+                                   0);
+            SCOREP_User_RegionSetGroup(error_region.value, "error");
+        }
         SCOREP_User_RegionEnter(error_region.value);
 
         SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;

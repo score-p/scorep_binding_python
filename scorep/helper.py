@@ -40,7 +40,11 @@ def get_scorep_version():
     (return_code, std_out, std_err) = call(["scorep", "--version"])
     if (return_code != 0):
         raise RuntimeError("Cannot call Score-P, reason {}".format(std_err))
-    version = float(std_out.lstrip("Score-P"))
+    try:
+        m = re.search(r"\d+\.\d+|\d+", std_out)
+        version = float(m.group())
+    except:
+        raise RuntimeError("Score-P version string is not supported")
     return version
 
 

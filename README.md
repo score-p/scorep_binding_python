@@ -112,14 +112,16 @@ The `profile` instrumenter should have a smaller overhead than `trace`.
 Moreover it is possible to disable (and enable) the instrumenter in the sourcecode:
 
 ```
-with scorep.instrumenter.disable():
+with scorep.instrumenter.disable(region_name = None):
     do_something()
 
-with scorep.instrumenter.enable():
+with scorep.instrumenter.enable(region_name = None):
     do_something()    
 ```
 
 or during startup with `--noinstrumenter`. Please be aware that the function calls override the Flag.
+
+If `region_name` is given, an not `None`, the region, where the istrumenter is active, will be marked with the given region name.
 
 ## Overview about Flags
 

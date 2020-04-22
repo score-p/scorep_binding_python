@@ -58,10 +58,11 @@ class enable():
     """
     Context manager to enable tracing in a certain region:
     ```
-    with enable():
+    with enable(region_name=None):
         do stuff
     ```
     This overides --no-instrumenter (--nopython leagacy)
+    @param region_name: if a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
 
     def __init__(self, region_name=None):
@@ -105,6 +106,7 @@ class disable():
         do stuff
     ```
     This overides --no-instrumenter (--nopython leagacy)
+    @param region_name: if a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
 
     def __init__(self, region_name=None):

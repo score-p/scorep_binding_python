@@ -40,7 +40,13 @@ def get_scorep_version():
     (return_code, std_out, std_err) = call(["scorep", "--version"])
     if (return_code != 0):
         raise RuntimeError("Cannot call Score-P, reason {}".format(std_err))
-    version = float(std_out.lstrip("Score-P"))
+    me = re.search("([0-9.]+)", std_out)
+    version_str = me.group(1)
+    try:
+        version = float(version_str)
+    except TypeError:
+        raise RuntimeError(
+            "Can not decode the Score-P Version. The version string is: \"{}\"".format(std_out))
     return version
 
 

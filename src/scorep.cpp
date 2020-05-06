@@ -31,35 +31,15 @@ void region_begin(const std::string& region_name, std::string module, std::strin
         SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                                file_name.c_str(), line_number);
-        SCOREP_User_RegionSetGroup(handle.value, std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(handle.value, std::string(module,0,module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(handle.value);
 }
 
 void region_end(const std::string& region_name)
 {
-    try
-    {
-        auto& handle = regions.at(region_name);
-        SCOREP_User_RegionEnd(handle.value);
-    }
-    catch (std::out_of_range& e)
-    {
-        static region_handle error_region;
-        if (error_region.value == SCOREP_USER_INVALID_REGION)
-        {
-            SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
-                                   "error_region", SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp",
-                                   0);
-            SCOREP_User_RegionSetGroup(error_region.value, "error");
-        }
-        SCOREP_User_RegionEnter(error_region.value);
-
-        SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
-        SCOREP_User_ParameterString(&scorep_param, "leave-region", region_name.c_str());
-
-        SCOREP_User_RegionEnd(error_region.value);
-    }
+    auto& handle = regions.at(region_name);
+    SCOREP_User_RegionEnd(handle.value);
 }
 
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number)

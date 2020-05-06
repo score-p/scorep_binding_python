@@ -2,7 +2,7 @@ __all__ = ['ScorepProfile']
 import sys
 import inspect
 import os.path
-
+import logging
 try:
     import threading
 except ImportError:
@@ -81,14 +81,15 @@ class ScorepProfile:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
+                logging.error("unkonw module name, infos:\n{}, {}, {}".format(code.co_names, code.co_filename, code.co_firstlineno))                
                 modulename = "None"
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
-                file_name = frame.f_globals.get('__file__', None)
+                file_name = code.co_filename
                 if file_name is not None:
                     full_file_name = os.path.abspath(file_name)
                 else:
                     full_file_name = "None"
-                line_number = frame.f_lineno
+                line_number = code.co_firstlineno
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return

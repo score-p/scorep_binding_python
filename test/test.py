@@ -326,6 +326,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                 env["SCOREP_EXPERIMENT_DIRECTORY"]),
             "Score-P directory exists for dummy test")
 
+    @unittest.skipIf(sys.version_info.major < 3)
     def test_numpy_dot(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_numpy_dot"

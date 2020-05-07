@@ -2,7 +2,7 @@ __all__ = ['ScorepProfile']
 import sys
 import inspect
 import os.path
-import logging
+
 try:
     import threading
 except ImportError:
@@ -81,8 +81,11 @@ class ScorepProfile:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
-                logging.error("unkonw module name, infos:\n{}, {}, {}".format(code.co_names, code.co_filename, code.co_firstlineno))                
-                modulename = "None"
+                # this is a NUMPY special situation, see NEP-18, and Score-P Issue issues #63
+                if code.co_filename == "<__array_function__ internals>":
+                    modulename = "numpy.__array_function__"
+                else:
+                    modulename = "unkown"
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 file_name = code.co_filename
                 if file_name is not None:
@@ -97,7 +100,11 @@ class ScorepProfile:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
-                modulename = "None"
+                # this is a NUMPY special situation, see NEP-18, and Score-P Issue issues #63
+                if code.co_filename == "<__array_function__ internals>":
+                    modulename = "numpy.__array_function__"
+                else:
+                    modulename = "unkown"
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_end(modulename, code.co_name)
         else:

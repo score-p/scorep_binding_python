@@ -80,14 +80,18 @@ class ScorepTrace:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
-                modulename = "None"
+                # this is a NUMPY special situation, see NEP-18, and Score-P Issue issues #63
+                if code.co_filename == "<__array_function__ internals>":
+                    modulename = "numpy.__array_function__"
+                else:
+                    modulename = "unkown"
             if not code.co_name == "_unsettrace" and not modulename[:6] == "scorep":
-                file_name = frame.f_globals.get('__file__', None)
+                file_name = code.co_filename
                 if file_name is not None:
                     full_file_name = os.path.abspath(file_name)
                 else:
                     full_file_name = "None"
-                line_number = frame.f_lineno
+                line_number = code.co_firstlineno
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
                 return self.localtrace
@@ -98,7 +102,11 @@ class ScorepTrace:
             code = frame.f_code
             modulename = frame.f_globals.get('__name__', None)
             if modulename is None:
-                modulename = "None"
+                # this is a NUMPY special situation, see NEP-18, and Score-P Issue issues #63
+                if code.co_filename == "<__array_function__ internals>":
+                    modulename = "numpy.__array_function__"
+                else:
+                    modulename = "unkown"
             self.scorep_bindings.region_end(modulename, code.co_name)
         return self.localtrace
 

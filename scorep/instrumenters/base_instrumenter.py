@@ -2,6 +2,7 @@ __all__ = ['BaseInstrumenter']
 
 import abc
 import os
+import sys
 
 def get_module_name(frame):
     modulename = frame.f_globals.get('__name__', None)
@@ -21,8 +22,15 @@ def get_file_name(frame):
         full_file_name = "None"
     return full_file_name
 
+if sys.version_info >= (3, 4):
+    class _BaseInstrumenter(metaclass=abc.ABCMeta):
+        pass
+else:
+    class _BaseInstrumenter():
+        __metaclass__ = abc.ABCMeta
+    
 
-class BaseInstrumenter(metaclass=abc.ABCMeta):
+class BaseInstrumenter(_BaseInstrumenter):
     @abc.abstractclassmethod
     def register(self):
         pass

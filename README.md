@@ -121,7 +121,7 @@ with scorep.instrumenter.enable(region_name = None):
 
 or during startup with `--noinstrumenter`. Please be aware that the function calls override the Flag.
 
-If `region_name` is given, an not `None`, the region, where the istrumenter is active, will be marked with the given region name.
+If `region_name` is given, it will be used as the name of the region
 
 ## Overview about Flags
 

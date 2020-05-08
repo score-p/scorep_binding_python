@@ -72,9 +72,6 @@ class enable():
         self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
         if not self.tracer_registered:
             if self.region_name:
-                """
-                do not instrument calls to python internal functions
-                """
                 self.module_name = "user_instrumenter"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)

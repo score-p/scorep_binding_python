@@ -112,16 +112,60 @@ The `profile` instrumenter should have a smaller overhead than `trace`.
 Moreover it is possible to disable (and enable) the instrumenter in the sourcecode:
 
 ```
-with scorep.instrumenter.disable(region_name = None):
+with scorep.instrumenter.disable():
     do_something()
 
-with scorep.instrumenter.enable(region_name = None):
+with scorep.instrumenter.enable():
     do_something()    
 ```
 
-or during startup with `--noinstrumenter`. Please be aware that the function calls override the Flag.
+or during startup with `--noinstrumenter`. The given function calls override this flag.
 
-If `region_name` is given, it will be used as the name of the region
+The main idea is to reduce the instrumentation overhead for regions that are not of interest.
+Whenever the instrumenter is disabled, function enter or exits will not be trace.
+
+As an example:
+
+```
+import numpy as np
+
+[...]
+c = np.dot(a,b)
+[...]
+```
+
+You might not be interested, what happens during the import of numpy, but actually how long `dot` takes.
+If you change the code to
+
+```
+import numpy as np
+import scorep
+
+[...]
+with scorep.instrumenter.enable():
+    c = np.dot(a,b)
+[...]
+```
+and run the code with `python -m scorep --noinstrumenter run.py` only the call to np.dot and everything below will be instrumented.
+Please be aware, that user instrumentation, using scorep.user will always be recorded.
+
+
+With version 3.1 the bindings support the annotation of regions where the instrumenter was explicit enabled or disabled.
+You can now pass a `region_name` to `scorep.instrumenter.enable("enabled_region_name")` and `scorep.instrumenter.disable("disabled_region_name")`.
+This might be useful if you do something expensive, and just want to know how long it takes, but you do not care what happens exactly e.g.:
+
+```
+[...]
+def fun_calls(n):
+    if (n>0):
+        fun_calls(n-1)
+
+with scorep.instrumenter.disable("my_fun_calls"):
+    fun_calls(1000000)
+[...]
+```
+
+`my_fun_calls` will be present in the trace or profile but `fun_calls` will not.
 
 ## Overview about Flags
 

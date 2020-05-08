@@ -71,7 +71,7 @@ class enable():
     def __enter__(self):
         self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
         if not self.tracer_registered:
-            if self.region_name is not None:
+            if self.region_name:
                 """
                 do not instrument calls to python internal functions
                 """

@@ -90,7 +90,7 @@ class ScorepProfile(base_instrumenter.BaseInstrumenter):
             return
         elif why == 'return':
             code = frame.f_code
-            modulename = base_instrumenter.get_module_name()
+            modulename = base_instrumenter.get_module_name(frame)
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_end(modulename, code.co_name)
         else:

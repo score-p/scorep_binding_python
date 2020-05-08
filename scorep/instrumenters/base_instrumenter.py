@@ -22,7 +22,7 @@ def get_file_name(frame):
     return full_file_name
 
 
-class BaseInstrumenter(abc.ABCMeta):
+class BaseInstrumenter(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def register(self):
         pass

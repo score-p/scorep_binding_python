@@ -326,6 +326,37 @@ class TestScorepBindingsPython(unittest.TestCase):
                 env["SCOREP_EXPERIMENT_DIRECTORY"]),
             "Score-P directory exists for dummy test")
 
+    @unittest.skipIf(sys.version_info.major < 3, "not tested for python 2")
+    def test_numpy_dot(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_numpy_dot"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nocompiler",
+                    "--noinstrumenter",
+                    "test_numpy_dot.py"],
+                   env=env)
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_out, "[[ 7 10]\n [15 22]]\n")
+        self.assertEqual(std_err, self.expected_std_err)
+        
+
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_err, "")
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"')
+
+
     def tearDown(self):
         #pass
         shutil.rmtree(

@@ -46,6 +46,9 @@ void region_end(const std::string& region_name)
     catch (std::out_of_range& e)
     {
         static region_handle error_region;
+        static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
+        static bool error_printed = false;
+
         if (error_region.value == SCOREP_USER_INVALID_REGION)
         {
             SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
@@ -54,11 +57,17 @@ void region_end(const std::string& region_name)
             SCOREP_User_RegionSetGroup(error_region.value, "error");
         }
         SCOREP_User_RegionEnter(error_region.value);
-
-        SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
         SCOREP_User_ParameterString(&scorep_param, "leave-region", region_name.c_str());
-
         SCOREP_User_RegionEnd(error_region.value);
+
+        if (!error_printed)
+        {
+            std::cerr << "SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n"
+                      << "SCOREP_BINDING_PYTHON ERROR: For details look for \"error_region\" in "
+                         "the trace or profile."
+                      << std::endl;
+            error_printed = true;
+        }
     }
 }
 

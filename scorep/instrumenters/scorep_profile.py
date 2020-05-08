@@ -1,7 +1,9 @@
 __all__ = ['ScorepProfile']
+
 import sys
 import inspect
 import os.path
+import scorep.instrumenters.base_instrumenter as base_instrumenter
 
 try:
     import threading
@@ -21,7 +23,7 @@ else:
         threading.setprofile(None)
 
 
-class ScorepProfile:
+class ScorepProfile(base_instrumenter.BaseInstrumenter):
     def __init__(self, scorep_bindings, enable_instrumenter=True):
         """
         @param enable_instrumenter true if the tracing shall be initialised.
@@ -79,32 +81,16 @@ class ScorepProfile:
         """
         if why == 'call':
             code = frame.f_code
-            modulename = frame.f_globals.get('__name__', None)
-            if modulename is None:
-                # this is a NUMPY special situation, see NEP-18, and Score-P Issue issues #63
-                if code.co_filename == "<__array_function__ internals>":
-                    modulename = "numpy.__array_function__"
-                else:
-                    modulename = "unkown"
+            modulename = base_instrumenter.get_module_name(frame)
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
-                file_name = code.co_filename
-                if file_name is not None:
-                    full_file_name = os.path.abspath(file_name)
-                else:
-                    full_file_name = "None"
+                full_file_name = base_instrumenter.get_file_name(frame)
                 line_number = code.co_firstlineno
                 self.scorep_bindings.region_begin(
                     modulename, code.co_name, full_file_name, line_number)
             return
         elif why == 'return':
             code = frame.f_code
-            modulename = frame.f_globals.get('__name__', None)
-            if modulename is None:
-                # this is a NUMPY special situation, see NEP-18, and Score-P Issue issues #63
-                if code.co_filename == "<__array_function__ internals>":
-                    modulename = "numpy.__array_function__"
-                else:
-                    modulename = "unkown"
+            modulename = base_instrumenter.get_module_name()
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 self.scorep_bindings.region_end(modulename, code.co_name)
         else:

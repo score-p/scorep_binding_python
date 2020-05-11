@@ -1,7 +1,8 @@
 __all__ = ['ScorepDummy']
 
+import scorep.instrumenters.base_instrumenter as base_instrumenter
 
-class ScorepDummy:
+class ScorepDummy(base_instrumenter.BaseInstrumenter):
     def __init__(self, scorep_bindings=None, enable_instrumenter=True):
         pass
 

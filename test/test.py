@@ -224,7 +224,6 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
 
-
     def test_user_instrumentation(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_instrumentation"
@@ -252,6 +251,45 @@ class TestScorepBindingsPython(unittest.TestCase):
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"')
+
+    def test_error_region(self):
+        env = self.env
+        env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_error_region"
+        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+        out = call([self.python,
+                    "-m",
+                    "scorep",
+                    "--nocompiler",
+                    "--noinstrumenter",
+                    "test_error_region.py"],
+                   env=env)
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(
+            std_err,
+            "SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n" +
+            "SCOREP_BINDING_PYTHON ERROR: For details look for \"error_region\" in the trace or profile.\n")
+        self.assertEqual(std_out, "")
+
+        out = call(["otf2-print", trace_path])
+        std_out = out[1]
+        std_err = out[2]
+
+        self.assertEqual(std_err, "")
+        self.assertRegex(std_out,
+                         'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "error_region"')
+        self.assertRegex(std_out,
+                         'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "error_region"')
+        self.assertRegex(
+            std_out,
+            'PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,' +
+            ' Value: "user:test_region"')
+        self.assertRegex(
+            std_out,
+            'PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,' +
+            ' Value: "user:test_region_2"')
 
     @unittest.skipIf(len(pkgutil.extend_path([], "mpi4py")) == 0 or
                      len(pkgutil.extend_path([], "numpy")) == 0,
@@ -358,7 +396,7 @@ class TestScorepBindingsPython(unittest.TestCase):
 
 
     def tearDown(self):
-        #pass
+        # pass
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
             ignore_errors=True)

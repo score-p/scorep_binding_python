@@ -3,6 +3,23 @@
 # scorep
 scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
 
+# Table of Content
+
+- [scorep](#scorep)
+- [Table of Content](#table-of-Content)
+- [Install](#install)
+- [Use](#use)
+  * [MPI](#mpi)
+  * [User instrumentation](#user-instrumentation)
+    + [User Regions](#user-regions)
+    + [Instrumenter](#instrumenter)
+  * [Overview about Flags](#overview-about-flags)
+  * [Backward Compatibility](#backward-compatibility)
+- [Compatibility](#compatibility)
+  * [Working](#working)
+  * [Not Working](#not-working)
+- [Acknowledgments](#acknowledgments)
+
 # Install
 You need at least Score-P 5.0, build with `--enable-shared` and the gcc compiler plugin.
 Please make sure that `scorep-config` is in your `PATH` variable.

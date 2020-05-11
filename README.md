@@ -62,7 +62,7 @@ python -m scorep --mpp=mpi --thread=pthread <script.py>
 The instrumenter ist the key part of the bindings.
 He registers with the Python tracing interface, and cares about the fowarding of events to Score-P.
 There are currently three different instrumenter types available as described in the following section [Instrumenter Types](#instrumenter-types) .
-A user interface, to dynamically enable and disable the automatic instrumentation, using the python hooks, is also available and described under [Instrumenter User Interface](instrumenter-user-interface)
+A user interface, to dynamically enable and disable the automatic instrumentation, using the python hooks, is also available and described under [Instrumenter User Interface](#instrumenter-user-interface)
 
 ### Instrumenter Types
 With version 2.0 of the python bindings, the term "instrumenter" is introduced. The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P. Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).
@@ -76,7 +76,7 @@ Currently there are the following tacers available:
 The `profile` instrumenter should have a smaller overhead than `trace`.
 
 It is possible to disable the instrumenter passing  `--noinstrumenter`.
-However, the [Instrumenter User Interface](instrumenter-user-interface) may override this flag.
+However, the [Instrumenter User Interface](#instrumenter-user-interface) may override this flag.
 
 ### Instrumenter User Interface
 

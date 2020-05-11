@@ -6,19 +6,22 @@ scorep is a module that allows tracing of python scripts using [Score-P](http://
 # Table of Content
 
 - [scorep](#scorep)
-- [Table of Content](#table-of-Content)
+- [Table of Content](#table-of-content)
 - [Install](#install)
 - [Use](#use)
+  * [Instrumenter](#instrumenter)
+    + [Instrumenter Types](#instrumenter-types)
+    + [Instrumenter User Interface](#instrumenter-user-interface)
   * [MPI](#mpi)
-  * [User instrumentation](#user-instrumentation)
-    + [User Regions](#user-regions)
-    + [Instrumenter](#instrumenter)
+  * [User Regions](#user-regions)
   * [Overview about Flags](#overview-about-flags)
   * [Backward Compatibility](#backward-compatibility)
 - [Compatibility](#compatibility)
   * [Working](#working)
   * [Not Working](#not-working)
 - [Acknowledgments](#acknowledgments)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 # Install
 You need at least Score-P 5.0, build with `--enable-shared` and the gcc compiler plugin.
@@ -55,6 +58,94 @@ Since version 0.9 it is possible to pass the traditional Score-P commands to the
 python -m scorep --mpp=mpi --thread=pthread <script.py>
 ```
 
+## Instrumenter
+The instrumenter ist the key part of the bindings.
+He registers with the Python tracing interface, and cares about the fowarding of events to Score-P.
+There are currently three different instrumenter types available as described in the following section [Instrumenter Types](#instrumenter-types) .
+A user interface, to dynamically enable and disable the automatic instrumentation, using the python hooks, is also available and described under [Instrumenter User Interface](instrumenter-user-interface)
+
+### Instrumenter Types
+With version 2.0 of the python bindings, the term "instrumenter" is introduced. The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P. Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).
+
+The instrumenter that shall be used for tracing can be specified using `--instrumenter-type=<type>`.
+Currently there are the following tacers available:
+ * `profile` (default) implements `call` and `return`  
+ * `trace` implements `call` and `return`
+ * `dummy` does nothing, can be used without `-m scorep` (as done by user instrumentation)
+
+The `profile` instrumenter should have a smaller overhead than `trace`.
+
+It is possible to disable the instrumenter passing  `--noinstrumenter`.
+However, the [Instrumenter User Interface](instrumenter-user-interface) may override this flag.
+
+### Instrumenter User Interface
+
+It is possible to enable or disable the instrumenter during the program runtime using a user interface:
+
+```
+with scorep.instrumenter.disable():
+    do_something()
+
+with scorep.instrumenter.enable():
+    do_something()    
+```
+
+The main idea is to reduce the instrumentation overhead for regions that are not of interest.
+Whenever the instrumenter is disabled, function enter or exits will not be trace.
+However, user regions as described in [User Regions](#user-regions) are not affected.
+
+As an example:
+
+```
+import numpy as np
+
+[...]
+c = np.dot(a,b)
+[...]
+```
+
+You might not be interested, what happens during the import of numpy, but actually how long `dot` takes.
+If you change the code to
+
+```
+import numpy as np
+import scorep
+
+[...]
+with scorep.instrumenter.enable():
+    c = np.dot(a,b)
+[...]
+```
+and run the code with `python -m scorep --noinstrumenter run.py` only the call to np.dot and everything below will be instrumented.
+
+With version 3.1 the bindings support the annotation of regions where the instrumenter setting was changed.
+You can pass a `region_name` to the instrumenter calls, e.g. `scorep.instrumenter.enable("enabled_region_name")` or `scorep.instrumenter.disable("disabled_region_name")`.
+This might be useful if you do something expensive, and just want to know how long it takes, but you do not care what happens exactly e.g.:
+
+```
+[...]
+def fun_calls(n):
+    if (n>0):
+        fun_calls(n-1)
+
+with scorep.instrumenter.disable("my_fun_calls"):
+    fun_calls(1000000)
+[...]
+```
+
+`my_fun_calls` will be present in the trace or profile but `fun_calls` will not.
+
+However, doing 
+```
+[...]
+with scorep.instrumenter.disable():
+    with scorep.instrumenter.disable("my_fun_calls"):
+        fun_calls(1000000)
+[...]
+```
+will only disable the instrumenter, but `my_fun_calls` will not appear in the trace or profile, as the second call to `scorep.instrumenter.disable` did not change the state of the instrumenter.
+Please look to [User Regions](#user-regions), if you want to annotate a region, no matter what the instrumenter state is.
+
 ## MPI
 
 To use trace an MPI parallel application, please specify
@@ -63,8 +154,7 @@ To use trace an MPI parallel application, please specify
 python -m scorep --mpp=mpi <script.py>
 ```
 
-## User instrumentation
-### User Regions
+## User Regions
 Since version 2.0 the python bindings support context managers for user regions:
 
 ```
@@ -114,75 +204,6 @@ scorep.user.disable_recording()
 ```
 
 However, please be aware that the runtime impact of disabeling Score-P is rather small, as the instrumenter is still active. For details about the instrumenter, please see [Instrumenter](#Instrumenter).  
-
-### Instrumenter
-With version 2.0 of the python bindings, the term "instrumenter" is introduced. The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P. Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).
-
-The instrumenter that shall be used for tracing can be specified using `--instrumenter-type=<type>`.
-Currently there are the following tacers available:
- * `profile` (default) implements `call` and `return`  
- * `trace` implements `call` and `return`
- * `dummy` does nothing, can be used without `-m scorep` (as done by user instrumentation)
-
-The `profile` instrumenter should have a smaller overhead than `trace`. 
-
-Moreover it is possible to disable (and enable) the instrumenter in the sourcecode:
-
-```
-with scorep.instrumenter.disable():
-    do_something()
-
-with scorep.instrumenter.enable():
-    do_something()    
-```
-
-or during startup with `--noinstrumenter`. The given function calls override this flag.
-
-The main idea is to reduce the instrumentation overhead for regions that are not of interest.
-Whenever the instrumenter is disabled, function enter or exits will not be trace.
-
-As an example:
-
-```
-import numpy as np
-
-[...]
-c = np.dot(a,b)
-[...]
-```
-
-You might not be interested, what happens during the import of numpy, but actually how long `dot` takes.
-If you change the code to
-
-```
-import numpy as np
-import scorep
-
-[...]
-with scorep.instrumenter.enable():
-    c = np.dot(a,b)
-[...]
-```
-and run the code with `python -m scorep --noinstrumenter run.py` only the call to np.dot and everything below will be instrumented.
-Please be aware, that user instrumentation, using scorep.user will always be recorded.
-
-
-With version 3.1 the bindings support the annotation of regions where the instrumenter was explicit enabled or disabled.
-You can now pass a `region_name` to `scorep.instrumenter.enable("enabled_region_name")` and `scorep.instrumenter.disable("disabled_region_name")`.
-This might be useful if you do something expensive, and just want to know how long it takes, but you do not care what happens exactly e.g.:
-
-```
-[...]
-def fun_calls(n):
-    if (n>0):
-        fun_calls(n-1)
-
-with scorep.instrumenter.disable("my_fun_calls"):
-    fun_calls(1000000)
-[...]
-```
-
-`my_fun_calls` will be present in the trace or profile but `fun_calls` will not.
 
 ## Overview about Flags
 

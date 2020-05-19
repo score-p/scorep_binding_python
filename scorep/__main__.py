@@ -66,7 +66,6 @@ def scorep_main(argv=None):
             os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
         scorep.subsystem.init_environment(scorep_config, keep_files)
         os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
-
         """
         python -m starts the module as skript. i.e. sys.argv will loke like:
         ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']
@@ -91,8 +90,9 @@ def scorep_main(argv=None):
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    tracer = scorep.instrumenter.get_instrumenter(
-        scorep_bindings, not no_instrumenter, instrumenter_type)
+    tracer = scorep.instrumenter.get_instrumenter(scorep_bindings,
+                                                  not no_instrumenter,
+                                                  instrumenter_type)
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')
@@ -120,7 +120,8 @@ def main(argv=None):
         call_stack_string += elem
     _err_exit(
         "Someone called scorep.__main__.main(argv).\n"
-        "This is not supposed to happen, but might be triggered, if your application calls \"sys.modules['__main__'].main\".\n"
+        "This is not supposed to happen, but might be triggered, "
+        "if your application calls \"sys.modules['__main__'].main\".\n"
         "This python stacktrace might be helpfull to find the reason:\n%s" %
         call_stack_string)
 

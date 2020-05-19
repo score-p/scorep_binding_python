@@ -8,16 +8,16 @@ import os
 global_instrumenter = None
 
 
-def get_instrumenter(
-        bindings=None,
-        enable_instrumenter=False,
-        instrumenter_type="dummy"):
+def get_instrumenter(bindings=None,
+                     enable_instrumenter=False,
+                     instrumenter_type="dummy"):
     """
     returns an instrumenter
 
     @param bindings the c/c++ scorep bindings
     @param enable_instrumenter True if the Instrumenter should be enabled when run is called
-    @param instrumenter_type which python tracing interface to use. Currently available: `profile` (default), `trace` and `dummy`
+    @param instrumenter_type which python tracing interface to use.
+           Currently available: `profile` (default), `trace` and `dummy`
     """
     global global_instrumenter
     if global_instrumenter is None:
@@ -47,7 +47,8 @@ def register():
 def unregister():
     """
     Disables the python-tracing.
-    Disabling the python-tracing is more efficient than disable_recording, as python does not longer call the tracing module.
+    Disabling the python-tracing is more efficient than disable_recording,
+    as python does not longer call the tracing module.
     However, all the other things that are traced by Score-P will still be recorded.
     Please call register() to enable tracing again.
     """
@@ -62,14 +63,14 @@ class enable():
         do stuff
     ```
     This overides --no-instrumenter (--nopython leagacy)
-    @param region_name: if a region name is given, the region the contextmanager is active will be marked in the trace or profile
+    If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
-
     def __init__(self, region_name=None):
         self.region_name = region_name
 
     def __enter__(self):
-        self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+        self.tracer_registered = scorep.instrumenter.get_instrumenter(
+        ).get_registered()
         if not self.tracer_registered:
             if self.region_name:
                 self.module_name = "user_instrumenter"
@@ -82,7 +83,8 @@ class enable():
                     full_file_name = "None"
 
                 scorep.instrumenter.get_instrumenter().region_begin(
-                    self.module_name, self.region_name, full_file_name, line_number)
+                    self.module_name, self.region_name, full_file_name,
+                    line_number)
 
             scorep.instrumenter.get_instrumenter().register()
 
@@ -103,14 +105,14 @@ class disable():
         do stuff
     ```
     This overides --no-instrumenter (--nopython leagacy)
-    @param region_name: if a region name is given, the region the contextmanager is active will be marked in the trace or profile
+    If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
-
     def __init__(self, region_name=None):
         self.region_name = region_name
 
     def __enter__(self):
-        self.tracer_registered = scorep.instrumenter.get_instrumenter().get_registered()
+        self.tracer_registered = scorep.instrumenter.get_instrumenter(
+        ).get_registered()
         if self.tracer_registered:
             scorep.instrumenter.get_instrumenter().unregister()
 
@@ -125,7 +127,8 @@ class disable():
                     full_file_name = "None"
 
                 scorep.instrumenter.get_instrumenter().region_begin(
-                    self.module_name, self.region_name, full_file_name, line_number)
+                    self.module_name, self.region_name, full_file_name,
+                    line_number)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.tracer_registered:

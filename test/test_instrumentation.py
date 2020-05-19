@@ -6,4 +6,5 @@ def foo():
     test_instrumentation2.baz()
     test_instrumentation2.bar()
 
+
 foo()

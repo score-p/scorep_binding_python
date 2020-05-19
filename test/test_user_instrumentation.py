@@ -7,5 +7,6 @@ def foo():
     test_instrumentation2.baz()
     test_instrumentation2.bar()
 
+
 with scorep.instrumenter.enable():
     foo()

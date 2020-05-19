@@ -298,7 +298,6 @@ class TestScorepBindingsPython(unittest.TestCase):
 
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_mpi"
-        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
         out = call(["mpirun",
                     "-n",
                     "2",
@@ -316,19 +315,15 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        expected_std_err = ""
-        expected_std_out = u"\[0[0-9]\] \[0. 1. 2. 3. 4.\]\\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\\n"
+        expected_std_out = r"\[0[0-9]\] \[0. 1. 2. 3. 4.\]\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\n"
 
         self.assertRegex(std_err,
-                         '\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED')
+                         r'\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED')
         self.assertRegex(std_out, expected_std_out)
-
-        expected_std_out
 
     def test_call_main(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_call_main"
-        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
         out = call([self.python,
                     "-m",
                     "scorep",
@@ -346,7 +341,6 @@ class TestScorepBindingsPython(unittest.TestCase):
     def test_dummy(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_dummy"
-        trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
         out = call([self.python,
                     "-m",
@@ -382,7 +376,6 @@ class TestScorepBindingsPython(unittest.TestCase):
 
         self.assertEqual(std_out, "[[ 7 10]\n [15 22]]\n")
         self.assertEqual(std_err, self.expected_std_err)
-        
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]
@@ -393,7 +386,6 @@ class TestScorepBindingsPython(unittest.TestCase):
                          'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"')
         self.assertRegex(std_out,
                          'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"')
-
 
     def tearDown(self):
         # pass

@@ -40,7 +40,7 @@ class BenchmarkEnv():
         runtimes = []
         for i in range(self.repetitions):
             begin = time.time()
-            print (arguments)
+            print(arguments)
             out = subprocess.run(
                 arguments,
                 env=self.env,

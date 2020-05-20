@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 project(scorep_bindings)
 
+message(AUTHOR_WARNING
+  "CMake is only useful to develop this project, no support is provided."
+  "To install the module properly use pip. See the Readme for details.")
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(Scorep REQUIRED)

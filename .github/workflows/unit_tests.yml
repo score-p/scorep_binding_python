@@ -1,0 +1,56 @@
+name: Unit tests
+on: [push, pull_request]
+
+env:
+  SCOREP_TIMER: clock_gettime # tsc causes warnings
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python: [2.7, 3.5, 3.6, 3.7, 3.8]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip
+    - id: cache
+      uses: actions/cache@v1
+      with:
+        path: ~/scorep
+        key: scorep
+
+    - name: Install system dependencies
+      run: sudo apt install gcc-7-plugin-dev libopenmpi-dev openmpi-bin
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir /tmp/buildScorep && cd /tmp/buildScorep
+        wget https://www.vi-hps.org/cms/upload/packages/scorep/scorep-6.0.tar.gz
+        tar xf scorep-6.0.tar.gz
+        cd scorep-6.0
+        mkdir build && cd build
+        ../configure --enable-shared --prefix=$HOME/scorep
+        make -j3 && make install
+
+    - name: Setup environment
+      run: echo "::add-path::$HOME/scorep/bin"
+    - name: set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{matrix.python}}
+        architecture: x64
+    - name: Install Python packages
+      run: |
+        pip install --upgrade pip
+        pip install numpy mpi4py
+
+    - name: Build python bindings
+      run: pip install .
+    - name: Run tests
+      working-directory: test
+      run: ./test.py

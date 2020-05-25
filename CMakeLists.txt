@@ -13,6 +13,14 @@ find_package(Python REQUIRED COMPONENTS Interpreter Development)
 Python_add_library(scorep_bindings src/scorep.cpp)
 target_link_libraries(scorep_bindings PRIVATE Scorep::Scorep)
 target_compile_features(scorep_bindings PRIVATE cxx_std_11)
+set_target_properties(scorep_bindings PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/site-packages/scorep
+)
+add_custom_target(ScorepModule ALL
+  ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/scorep $<TARGET_FILE_DIR:scorep_bindings>
+  COMMENT "Copying module files to build tree"
+)
+
 
 set(INSTALL_DIR "lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
 

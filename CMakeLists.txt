@@ -21,6 +21,16 @@ add_custom_target(ScorepModule ALL
   COMMENT "Copying module files to build tree"
 )
 
+enable_testing()
+add_test(NAME ScorepPythonTests
+         COMMAND Python::Interpreter test.py
+         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/test
+)
+set(pythonPath ${CMAKE_CURRENT_BINARY_DIR}/site-packages)
+if(ENV{PYTHONPATH})
+  string(PREPEND pythonPath "$ENV{PYTHONPATH}:")
+endif()
+set_tests_properties(ScorepPythonTests PROPERTIES ENVIRONMENT "PYTHONPATH=${pythonPath}")
 
 set(INSTALL_DIR "lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
 

@@ -13,6 +13,9 @@ find_package(Python REQUIRED COMPONENTS Interpreter Development)
 Python_add_library(scorep_bindings
   src/methods.cpp src/scorep_bindings.cpp src/scorepy/events.cpp
 )
+if(Python_VERSION_MAJOR GREATER_EQUAL 3)
+  target_sources(scorep_bindings PRIVATE src/classes.cpp src/scorepy/cInstrumenter.cpp src/scorepy/pythonHelpers.cpp)
+endif()
 target_link_libraries(scorep_bindings PRIVATE Scorep::Plugin)
 target_compile_features(scorep_bindings PRIVATE cxx_std_11)
 target_compile_definitions(scorep_bindings PRIVATE PY_SSIZE_T_CLEAN)

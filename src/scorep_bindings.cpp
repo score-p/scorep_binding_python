@@ -1,3 +1,4 @@
+#include "classes.hpp"
 #include "methods.hpp"
 #include <Python.h>
 
@@ -16,6 +17,22 @@ static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT,
                                            scorepy::getMethodTable() };
 PyMODINIT_FUNC PyInit_scorep_bindings(void)
 {
-    return PyModule_Create(&scorepmodule);
+    auto* ctracerType = &scorepy::getCInstrumenterType();
+    if (PyType_Ready(ctracerType) < 0)
+        return nullptr;
+
+    auto* m = PyModule_Create(&scorepmodule);
+    if (!m)
+        return nullptr;
+
+    Py_INCREF(ctracerType);
+    if (PyModule_AddObject(m, "CInstrumenter", (PyObject*)ctracerType) < 0)
+    {
+        Py_DECREF(ctracerType);
+        Py_DECREF(m);
+        return nullptr;
+    }
+
+    return m;
 }
 #endif /*python 3*/

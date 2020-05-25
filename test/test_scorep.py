@@ -274,3 +274,23 @@ def test_numpy_dot(scorep_env):
     assert std_err == ""
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out)
+
+
+@requires_python3
+@pytest.mark.parametrize('instrumenter', ['cProfile', 'cTrace'])
+def test_instrumentation_ctracing(scorep_env, instrumenter):
+    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+    std_out, std_err = call_with_scorep("cases/instrumentation.py",
+                                        ["--nocompiler",  "--instrumenter-type=" + instrumenter],
+                                        env=scorep_env)
+
+    assert std_err == ""
+    assert std_out == "hello world\nbaz\nbar\n"
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
+        for event in ('ENTER', 'LEAVE'):
+            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)

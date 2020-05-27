@@ -49,10 +49,7 @@ class ScorepTrace(base_instrumenter.BaseInstrumenter):
     def get_registered(self):
         return self.tracer_registered
 
-    def run(self, cmd):
-        self.runctx(cmd)
-
-    def runctx(self, cmd, globals=None, locals=None):
+    def run(self, cmd, globals=None, locals=None):
         if globals is None:
             globals = {}
         if locals is None:
@@ -63,16 +60,6 @@ class ScorepTrace(base_instrumenter.BaseInstrumenter):
             exec(cmd, globals, locals)
         finally:
             self.unregister()
-
-    def runfunc(self, func, *args, **kw):
-        result = None
-        if self.enable_instrumenter:
-            self.register()
-        try:
-            result = func(*args, **kw)
-        finally:
-            self.unregister()
-        return result
 
     def globaltrace_lt(self, frame, why, arg):
         """Handler for call events.

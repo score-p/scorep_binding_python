@@ -104,7 +104,7 @@ def scorep_main(argv=None):
             '__cached__': None,
         }
 
-        tracer.runctx(code, globs, globs)
+        tracer.run(code, globs, globs)
     except OSError as err:
         _err_exit("Cannot run file %r because: %s" % (sys.argv[0], err))
     finally:

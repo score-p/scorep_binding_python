@@ -16,18 +16,12 @@ class ScorepDummy(base_instrumenter.BaseInstrumenter):
     def get_registered(self):
         return None
 
-    def run(self, cmd):
-        pass
-
-    def runctx(self, cmd, globals=None, locals=None):
+    def run(self, cmd, globals=None, locals=None):
         if globals is None:
             globals = {}
         if locals is None:
             locals = {}
         exec(cmd, globals, locals)
-
-    def runfunc(self, func, *args, **kw):
-        pass
 
     def region_begin(self, module_name, function_name, file_name, line_number):
         pass

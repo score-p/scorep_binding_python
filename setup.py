@@ -1,3 +1,4 @@
+import os
 from distutils.core import setup, Extension
 import scorep.helper
 
@@ -20,6 +21,8 @@ if "gcc" in check_compiler:
 
 cmodules = []
 (include, _, _, _, _) = scorep.helper.generate_compile_deps()
+src_folder = os.path.abspath('src')
+include += [src_folder]
 cmodules.append(Extension('scorep.scorep_bindings',
                           include_dirs=include,
                           define_macros=[('PY_SSIZE_T_CLEAN', '1')],

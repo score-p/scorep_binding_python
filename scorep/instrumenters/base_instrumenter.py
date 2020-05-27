@@ -48,15 +48,7 @@ class BaseInstrumenter(_BaseInstrumenter):
         return None
 
     @abc.abstractmethod
-    def run(self, cmd):
-        pass
-
-    @abc.abstractmethod
-    def runctx(self, cmd, globals=None, locals=None):
-        pass
-
-    @abc.abstractmethod
-    def runfunc(self, func, *args, **kw):
+    def run(self, cmd, globals=None, locals=None):
         pass
 
     @abc.abstractmethod

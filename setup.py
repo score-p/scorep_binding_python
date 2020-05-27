@@ -39,7 +39,7 @@ setup(
     long_description='''
 This package allows tracing of python code using Score-P.
 A working Score-P version is required.
-For MPI tracing it uses LD_PREALOAD.
+To enable tracing it uses LD_PRELOAD to load the Score-P runtime libraries.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
     packages=['scorep', 'scorep.instrumenters'],

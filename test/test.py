@@ -60,6 +60,10 @@ class TestScorepBindingsPython(unittest.TestCase):
             ignore_errors=True)
         os.mkdir(self.env["SCOREP_EXPERIMENT_DIRECTORY"])
 
+    def test_has_version(self):
+        import scorep
+        self.assertIsNotNone(scorep.__version__)
+
     def test_user_regions(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_regions"

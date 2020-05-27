@@ -22,7 +22,7 @@ cmodules = []
 (include, _, _, _, _) = scorep.helper.generate_compile_deps()
 cmodules.append(Extension('scorep.scorep_bindings',
                           include_dirs=include,
-                          libraries=[],
+                          define_macros=[('PY_SSIZE_T_CLEAN', '1')],
                           extra_compile_args=["-std=c++11"],
                           sources=['src/scorep.cpp']))
 

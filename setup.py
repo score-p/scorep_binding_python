@@ -40,5 +40,23 @@ For MPI tracing it uses LD_PREALOAD.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
     packages=['scorep', 'scorep.instrumenters'],
-    ext_modules=cmodules
+    ext_modules=cmodules,
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Testing',
+        'Topic :: Software Development :: Quality Assurance',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Operating System :: POSIX',
+        'Operating System :: Unix',
+    ],
 )

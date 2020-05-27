@@ -1,23 +1,26 @@
 # Developing
+We appreciate any contributions to the Score-P Python Bindings.
+However, there are a few policies we agreed on and which are relevant for contributions.
+These are detailed below. 
 
-## Formatting / Codestyle
+## Fromatting / Codestyle
 
-C/C++ code must be formatted by clang-format-9 according to the .clang-format file.   
-Python code must pass flake8 checks as defined in the .flake8 file.
-
-Besides that being consistent and readable is key.
+Readable and consistent code makes it easy to understand your changes.
+Therefore the GitHub CI system has checks using `clang-format-9` and `flake8` in place.
+Please make sure that these test pass, before making a Pull Request.
+If you do not use the GitHub CI process, you can use the provided `.flake8` and `.clang-format` files, to check your code manually.
 
 ## Build system
 
-The only officially supported way to install this module is by `pip`.
+The official way to build and install this module is using `pip`.
+Please make sure that all changes, you introduce, work with `pip install .`.
 
-However there exists a semi-supported CMake-based build system suitable for development.
-No issues against that are allowed but PRs fixing it in case of problems are welcome.
-This build system is especially suitable for development as e.g. include paths for C++ are correctly searched for and set up for use by IDEs or other tools.
-For example it works well with Visual Studio Code given the approriate extensions (C++, Python, CMake) are installed, see their documentation for details.
+However, you might have noted that there is a CMake-based build system in place as well.
+We do not support this build system, and it might be outdated or buggy.
+Thorough, we do not actively maintain the CMake Buildsystem, and will not help you fix issues to that build system, Pull Requests against it might be accepted.
 
-The CMake build system creates a folder `site-packages` in the build folder where the C/C++ extension module and the `scorep` module are copied to on each build (e.g. `make`-call).
-It is hence possible to add that folder to the `PYTHONPATH` environment variable, build the project and start debugging or execute the tests in `test/test.py`.
+You might find this build system helpful for development, especially if you are doing C/C++ things:
+* Include paths for C++ are correctly searched for and set up for use by IDEs or other tools. For example, Visual Studio Code, given the appropriate extensions (C++, Python, CMake)
+* Creates a folder site-packages in the build folder where the C/C++ extension module and the scorep module are copied to on each build (e.g. make-call). Hence it is possible to add that folder to the PYTHONPATH environment variable, build the project and start debugging or execute the tests in test/test.py.
 
-Note that changes to the Python source files are not reflected in that folder unless a build is executed.
-Also when deleting Python files it is recommended to clear and recreate the build folder.
+Please note, that changes to the Python source files are not reflected in that folder unless a build is executed. Also, if you delete Python files, we recommended to clear and recreate the build folder.

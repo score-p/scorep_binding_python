@@ -22,7 +22,7 @@ Although, we do not actively maintain the CMake build system, and will not help 
 
 You might find this build system helpful for development, especially if you are doing C/C++ things:
 * Include paths for C++ are correctly searched for and set up for use by IDEs or other tools. For example Visual Studio Code works out of the box, given the appropriate extensions (C++, Python, CMake) are installed.
-* A folder `site-packages` is created in the build folder where the C/C++ extension module and the scorep module are copied to on each build (e.g. `make`-call). Hence it is possible to add that folder to the PYTHONPATH environment variable, build the project and start debugging or execute the tests in test/test.py.
+* A folder `site-packages` is created in the build folder where the C/C++ extension module and the scorep module are copied to on each build (e.g. `make`-call). Hence it is possible to add that folder to the PYTHONPATH environment variable, build the project and start debugging or execute the tests in test/test_scorep.py.
 * A `test` target exists which can be run to execute all tests.
 
 Please note, that changes to the Python source files are not reflected in the build folder unless a build is executed.

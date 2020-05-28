@@ -53,4 +53,4 @@ jobs:
       run: pip install .
     - name: Run tests
       working-directory: test
-      run: ./test.py
+      run: ./test_scorep.py

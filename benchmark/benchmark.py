@@ -7,12 +7,12 @@ import benchmark_helper
 import pickle
 
 bench = benchmark_helper.BenchmarkEnv(repetitions=51)
-tests = ["test_1.py", "test_2.py"]
+tests = ["bm_baseline.py", "bm_simplefunc.py"]
 results = {}
 
 reps_x = {}
-reps_x["test_1.py"] = ["1000000", "2000000", "3000000", "4000000", "5000000"]
-reps_x["test_2.py"] = ["100000", "200000", "300000", "400000", "500000"]
+reps_x["bm_baseline.py"] = ["1000000", "2000000", "3000000", "4000000", "5000000"]
+reps_x["bm_simplefunc.py"] = ["100000", "200000", "300000", "400000", "500000"]
 
 for test in tests:
     results[test] = {"profile": {}, "trace": {}, "dummy": {}, "None": {}}

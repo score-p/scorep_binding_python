@@ -4,7 +4,7 @@ import os
 from scorep.instrumenters import base_instrumenter
 
 
-class ScorepInstrumenterBase(base_instrumenter.BaseInstrumenter):
+class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
     """Base class for all instrumenters using Score-P"""
 
     def __init__(self, scorep_bindings, enable_instrumenter=True):
@@ -40,14 +40,7 @@ class ScorepInstrumenterBase(base_instrumenter.BaseInstrumenter):
         """Return whether this instrumenter is currently collecting events"""
         return self._tracer_registered
 
-    def run(self, cmd):
-        """
-        Run the compiled command.
-        Registers this instrumenter for the duration of the command and unregisters it afterwards
-        """
-        self.runctx(cmd)
-
-    def runctx(self, cmd, globals=None, locals=None):
+    def run(self, cmd, globals=None, locals=None):
         """
         Run the compiled command.
         Registers this instrumenter for the duration of the command and unregisters it afterwards
@@ -62,20 +55,6 @@ class ScorepInstrumenterBase(base_instrumenter.BaseInstrumenter):
             exec(cmd, globals, locals)
         finally:
             self.unregister()
-
-    def runfunc(self, func, *args, **kw):
-        """
-        Run the python function.
-        Registers this instrumenter for the duration of the function and unregisters it afterwards
-        """
-        result = None
-        if self._enabled:
-            self.register()
-        try:
-            result = func(*args, **kw)
-        finally:
-            self.unregister()
-        return result
 
     def region_begin(self, module_name, function_name, file_name, line_number):
         """Record a region begin event"""

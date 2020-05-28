@@ -2,7 +2,7 @@ __all__ = ['ScorepTrace']
 
 import sys
 from scorep.instrumenters.base_instrumenter import get_module_name, get_file_name
-from scorep.instrumenters.scorep_instrumenter_base import ScorepInstrumenterBase
+from scorep.instrumenters.scorep_instrumenter import ScorepInstrumenter
 
 try:
     import threading
@@ -22,7 +22,7 @@ else:
         threading.settrace(None)
 
 
-class ScorepTrace(ScorepInstrumenterBase):
+class ScorepTrace(ScorepInstrumenter):
     def _enable_instrumenter(self):
         _settrace(self._globaltrace)
 

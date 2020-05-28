@@ -2,7 +2,7 @@ __all__ = ['ScorepProfile']
 
 import sys
 from scorep.instrumenters.base_instrumenter import get_module_name, get_file_name
-from scorep.instrumenters.scorep_instrumenter_base import ScorepInstrumenterBase
+from scorep.instrumenters.scorep_instrumenter import ScorepInstrumenter
 
 try:
     import threading
@@ -22,7 +22,7 @@ else:
         threading.setprofile(None)
 
 
-class ScorepProfile(ScorepInstrumenterBase):
+class ScorepProfile(ScorepInstrumenter):
     def _enable_instrumenter(self):
         _setprofile(self._globaltrace)
 

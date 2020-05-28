@@ -41,9 +41,9 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         return self._tracer_registered
 
     def run(self, cmd, globals=None, locals=None):
-        """
-        Run the compiled command.
-        Registers this instrumenter for the duration of the command and unregisters it afterwards
+        """Run the compiled command under this instrumenter.
+
+        When the instrumenter is enabled it is registered prior to the invocation and unregistered afterwards
         """
         if globals is None:
             globals = {}

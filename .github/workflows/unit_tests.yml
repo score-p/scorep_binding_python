@@ -47,10 +47,10 @@ jobs:
     - name: Install Python packages
       run: |
         pip install --upgrade pip
-        pip install numpy mpi4py
+        pip install numpy mpi4py pytest
 
     - name: Build python bindings
       run: pip install .
     - name: Run tests
       working-directory: test
-      run: ./test_scorep.py
+      run: pytest

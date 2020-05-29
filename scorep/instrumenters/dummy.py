@@ -4,7 +4,7 @@ import scorep.instrumenters.base_instrumenter as base_instrumenter
 
 
 class ScorepDummy(base_instrumenter.BaseInstrumenter):
-    def __init__(self, scorep_bindings=None, enable_instrumenter=True):
+    def __init__(self, enable_instrumenter=True):
         pass
 
     def register(self):

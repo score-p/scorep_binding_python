@@ -1,6 +1,5 @@
 import os
 import sys
-import importlib
 
 import scorep.instrumenter
 import scorep.subsystem
@@ -83,15 +82,12 @@ def scorep_main(argv=None):
     else:
         scorep.subsystem.reset_pereload()
 
-    scorep_bindings = importlib.import_module("scorep.scorep_bindings")
-
     # everything is ready
     sys.argv = prog_argv
     progname = prog_argv[0]
     sys.path[0] = os.path.split(progname)[0]
 
-    tracer = scorep.instrumenter.get_instrumenter(scorep_bindings,
-                                                  not no_instrumenter,
+    tracer = scorep.instrumenter.get_instrumenter(not no_instrumenter,
                                                   instrumenter_type)
     try:
         with open(progname) as fp:

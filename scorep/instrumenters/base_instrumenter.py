@@ -1,29 +1,7 @@
 __all__ = ['BaseInstrumenter']
 
 import abc
-import os
 import sys
-
-
-def get_module_name(frame):
-    modulename = frame.f_globals.get('__name__', None)
-    if modulename is None:
-        # this is a NUMPY special situation, see NEP-18, and Score-P Issue
-        # issues #63
-        if frame.f_code.co_filename == "<__array_function__ internals>":
-            modulename = "numpy.__array_function__"
-        else:
-            modulename = "unkown"
-    return modulename
-
-
-def get_file_name(frame):
-    file_name = frame.f_code.co_filename
-    if file_name is not None:
-        full_file_name = os.path.abspath(file_name)
-    else:
-        full_file_name = "None"
-    return full_file_name
 
 
 if sys.version_info >= (3, 4):

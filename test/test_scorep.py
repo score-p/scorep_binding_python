@@ -73,7 +73,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-m",
                     "scorep",
                     "--nopython",
-                    "user_regions.py"],
+                    "cases/user_regions.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -113,7 +113,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-m",
                     "scorep",
                     "--noinstrumenter",
-                    "context.py"],
+                    "cases/context.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -139,7 +139,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_regions_no_scorep"
 
         out = call([self.python,
-                    "user_regions.py"],
+                    "cases/user_regions.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -157,7 +157,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         out = call([self.python,
                     "-m",
                     "scorep",
-                    "user_rewind.py"],
+                    "cases/user_rewind.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -183,7 +183,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-m",
                     "scorep",
                     "--nopython",
-                    "oa_regions.py"],
+                    "cases/oa_regions.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -210,7 +210,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-m",
                     "scorep",
                     "--nocompiler",
-                    "instrumentation.py"],
+                    "cases/instrumentation.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -238,7 +238,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "scorep",
                     "--nocompiler",
                     "--noinstrumenter",
-                    "user_instrumentation.py"],
+                    "cases/user_instrumentation.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -266,7 +266,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "scorep",
                     "--nocompiler",
                     "--noinstrumenter",
-                    "error_region.py"],
+                    "cases/error_region.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -313,7 +313,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "scorep",
                     "--mpp=mpi",
                     "--nocompiler",
-                    "mpi.py"],
+                    "cases/mpi.py"],
                    env=env)
 
         std_out = out[1]
@@ -332,7 +332,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-m",
                     "scorep",
                     "--nocompiler",
-                    "call_main.py"],
+                    "cases/call_main.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -350,7 +350,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-m",
                     "scorep",
                     "--instrumenter-type=dummy",
-                    "instrumentation.py"],
+                    "cases/instrumentation.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
@@ -373,7 +373,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "scorep",
                     "--nocompiler",
                     "--noinstrumenter",
-                    "numpy_dot.py"],
+                    "cases/numpy_dot.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]

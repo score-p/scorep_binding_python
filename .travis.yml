@@ -20,4 +20,4 @@ install:
   - pip install mpi4py numpy
 
 script:
-  - pip install ./ && cd test && python test.py
+  - pip install ./ && cd test && python test_scorep.py

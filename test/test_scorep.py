@@ -53,8 +53,6 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.env["SCOREP_TOTAL_MEMORY"] = "3G"
         self.env["SCOREP_EXPERIMENT_DIRECTORY"] = "test_bindings_dir"
 
-        self.expected_std_err = ""
-
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
             ignore_errors=True)
@@ -78,7 +76,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(
             std_out,
             "hello world\nhello world\nhello world3\nhello world4\n")
@@ -118,7 +116,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nhello world\nhello world\n")
 
         out = call(["otf2-print", trace_path])
@@ -144,7 +142,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(
             std_out,
             "hello world\nhello world\nhello world3\nhello world4\n")
@@ -162,7 +160,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nhello world\n")
 
         out = call(["otf2-print", trace_path])
@@ -188,7 +186,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\n")
 
         out = call(["otf2-print", trace_path])
@@ -215,7 +213,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
 
         out = call(["otf2-print", trace_path])
@@ -243,7 +241,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
 
         out = call(["otf2-print", trace_path])
@@ -355,7 +353,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
         self.assertTrue(
             os.path.exists(
@@ -379,7 +377,7 @@ class TestScorepBindingsPython(unittest.TestCase):
         std_err = out[2]
 
         self.assertEqual(std_out, "[[ 7 10]\n [15 22]]\n")
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]

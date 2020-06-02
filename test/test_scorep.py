@@ -127,8 +127,7 @@ def test_user_regions_no_scorep(scorep_env):
     std_err = out[2]
 
     assert std_err == ""
-    assert std_out == \
-        "hello world\nhello world\nhello world3\nhello world4\n"
+    assert std_out == "hello world\nhello world\nhello world3\nhello world4\n"
 
 
 def test_user_rewind(scorep_env):
@@ -222,8 +221,8 @@ def test_error_region(scorep_env):
     std_err = out[2]
 
     assert std_err == \
-        "SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n" + \
-        "SCOREP_BINDING_PYTHON ERROR: For details look for \"error_region\" in the trace or profile.\n"
+        'SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n' + \
+        'SCOREP_BINDING_PYTHON ERROR: For details look for "error_region" in the trace or profile.\n'
     assert std_out == ""
 
     out = call(["otf2-print", trace_path])
@@ -287,9 +286,7 @@ def test_dummy(scorep_env):
 
     assert std_err == ""
     assert std_out == "hello world\nbaz\nbar\n"
-    assert os.path.exists(
-        scorep_env["SCOREP_EXPERIMENT_DIRECTORY"]), \
-        "Score-P directory exists for dummy test"
+    assert os.path.exists(scorep_env["SCOREP_EXPERIMENT_DIRECTORY"]), "Score-P directory exists for dummy test"
 
 
 @requires_python3

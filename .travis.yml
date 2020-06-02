@@ -1,6 +1,7 @@
 dist: bionic
 
 language: python
+cache: pip
 python:
  - "2.7"
  - "3.6"
@@ -17,7 +18,7 @@ addons:
         - libopenmpi-dev
  
 install:
-  - pip install mpi4py numpy
+  - pip install mpi4py numpy pytest
 
 script:
-  - pip install ./ && cd test && python test_scorep.py
+  - pip install ./ && cd test && pytest

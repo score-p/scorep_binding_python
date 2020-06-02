@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pytest
 
 import unittest
 import subprocess
@@ -35,10 +35,21 @@ def call(arguments, env=os.environ.copy()):
     return result
 
 
-class TestScorepBindingsPython(unittest.TestCase):
-    maxDiff = None
-    python = sys.executable
+def call_with_scorep(file, scorep_arguments=None, env=None):
+    """
+    Shortcut for running a python file with the scorep module
 
+    @return triple (returncode, stdout, stderr) from the call to subprocess
+    """
+    arguments = [sys.executable, "-m", "scorep"]
+    if scorep_arguments:
+        arguments.extend(scorep_arguments)
+    if env is None:
+        env = os.environ
+    return call(arguments + [file], env=env)
+
+
+class TestScorepBindingsPython(unittest.TestCase):
     def assertRegex(self, in1, in2):
         if sys.version_info > (3, 5):
             super().assertRegex(in1, in2)
@@ -52,8 +63,6 @@ class TestScorepBindingsPython(unittest.TestCase):
         self.env["SCOREP_PROFILING_MAX_CALLPATH_DEPTH"] = "98"
         self.env["SCOREP_TOTAL_MEMORY"] = "3G"
         self.env["SCOREP_EXPERIMENT_DIRECTORY"] = "test_bindings_dir"
-
-        self.expected_std_err = ""
 
         shutil.rmtree(
             self.env["SCOREP_EXPERIMENT_DIRECTORY"],
@@ -69,16 +78,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_regions"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nopython",
-                    "cases/user_regions.py"],
-                   env=env)
+        out = call_with_scorep("cases/user_regions.py",
+                               ["--nopython"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(
             std_out,
             "hello world\nhello world\nhello world3\nhello world4\n")
@@ -109,16 +115,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_context"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--noinstrumenter",
-                    "cases/context.py"],
-                   env=env)
+        out = call_with_scorep("cases/context.py",
+                               ["--noinstrumenter"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nhello world\nhello world\n")
 
         out = call(["otf2-print", trace_path])
@@ -138,13 +141,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_regions_no_scorep"
 
-        out = call([self.python,
+        out = call([sys.executable,
                     "cases/user_regions.py"],
                    env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(
             std_out,
             "hello world\nhello world\nhello world3\nhello world4\n")
@@ -154,15 +157,11 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_rewind"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "cases/user_rewind.py"],
-                   env=env)
+        out = call_with_scorep("cases/user_rewind.py", env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nhello world\n")
 
         out = call(["otf2-print", trace_path])
@@ -179,16 +178,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_oa_regions"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nopython",
-                    "cases/oa_regions.py"],
-                   env=env)
+        out = call_with_scorep("cases/oa_regions.py",
+                               ["--nopython"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\n")
 
         out = call(["otf2-print", trace_path])
@@ -206,16 +202,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_instrumentation"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nocompiler",
-                    "cases/instrumentation.py"],
-                   env=env)
+        out = call_with_scorep("cases/instrumentation.py",
+                               ["--nocompiler"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
 
         out = call(["otf2-print", trace_path])
@@ -233,17 +226,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_user_instrumentation"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nocompiler",
-                    "--noinstrumenter",
-                    "cases/user_instrumentation.py"],
-                   env=env)
+        out = call_with_scorep("cases/user_instrumentation.py",
+                               ["--nocompiler", "--noinstrumenter"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
 
         out = call(["otf2-print", trace_path])
@@ -261,13 +250,9 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_error_region"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nocompiler",
-                    "--noinstrumenter",
-                    "cases/error_region.py"],
-                   env=env)
+        out = call_with_scorep("cases/error_region.py",
+                               ["--nocompiler", "--noinstrumenter"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
@@ -308,7 +293,7 @@ class TestScorepBindingsPython(unittest.TestCase):
                     "-mca",
                     "btl",
                     "^openib",
-                    self.python,
+                    sys.executable,
                     "-m",
                     "scorep",
                     "--mpp=mpi",
@@ -328,12 +313,9 @@ class TestScorepBindingsPython(unittest.TestCase):
     def test_call_main(self):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_call_main"
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nocompiler",
-                    "cases/call_main.py"],
-                   env=env)
+        out = call_with_scorep("cases/call_main.py",
+                               ["--nocompiler"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
@@ -346,16 +328,13 @@ class TestScorepBindingsPython(unittest.TestCase):
         env = self.env
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_dummy"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--instrumenter-type=dummy",
-                    "cases/instrumentation.py"],
-                   env=env)
+        out = call_with_scorep("cases/instrumentation.py",
+                               ["--instrumenter-type=dummy"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
         self.assertEqual(std_out, "hello world\nbaz\nbar\n")
         self.assertTrue(
             os.path.exists(
@@ -368,18 +347,14 @@ class TestScorepBindingsPython(unittest.TestCase):
         env["SCOREP_EXPERIMENT_DIRECTORY"] += "/test_numpy_dot"
         trace_path = env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
 
-        out = call([self.python,
-                    "-m",
-                    "scorep",
-                    "--nocompiler",
-                    "--noinstrumenter",
-                    "cases/numpy_dot.py"],
-                   env=env)
+        out = call_with_scorep("cases/numpy_dot.py",
+                               ["--nocompiler", "--noinstrumenter"],
+                               env=env)
         std_out = out[1]
         std_err = out[2]
 
         self.assertEqual(std_out, "[[ 7 10]\n [15 22]]\n")
-        self.assertEqual(std_err, self.expected_std_err)
+        self.assertEqual(std_err, "")
 
         out = call(["otf2-print", trace_path])
         std_out = out[1]

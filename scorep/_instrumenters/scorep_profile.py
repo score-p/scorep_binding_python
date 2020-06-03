@@ -1,8 +1,8 @@
 __all__ = ['ScorepProfile']
 
 import sys
-from scorep.instrumenters.utils import get_module_name, get_file_name
-from scorep.instrumenters.scorep_instrumenter import ScorepInstrumenter
+from scorep._instrumenters.utils import get_module_name, get_file_name
+from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
 from scorep import scorep_bindings
 
 try:

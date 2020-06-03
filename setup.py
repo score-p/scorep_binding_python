@@ -44,7 +44,7 @@ A working Score-P version is required.
 To enable tracing it uses LD_PRELOAD to load the Score-P runtime libraries.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
-    packages=['scorep', 'scorep.instrumenters'],
+    packages=['scorep', 'scorep._instrumenters'],
     ext_modules=cmodules,
     classifiers=[
         'Development Status :: 4 - Beta',

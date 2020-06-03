@@ -12,16 +12,14 @@ extern "C"
     static PyObject* enable_recording(PyObject* self, PyObject* args)
     {
         SCOREP_User_EnableRecording();
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* disable_recording(PyObject* self, PyObject* args)
     {
 
         SCOREP_User_DisableRecording();
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     /** This code is not thread save. However, this does not matter as the python GIL is not
@@ -43,8 +41,7 @@ extern "C"
         region += region_name;
         scorepy::region_begin(region, module, file_name, line_number);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     /** This code is not thread save. However, this does not matter as the python GIL is not
@@ -64,8 +61,7 @@ extern "C"
         region += region_name;
         scorepy::region_end(region);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* rewind_begin(PyObject* self, PyObject* args)
@@ -79,8 +75,7 @@ extern "C"
 
         scorepy::rewind_begin(region_name, file_name, line_number);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* rewind_end(PyObject* self, PyObject* args)
@@ -94,8 +89,7 @@ extern "C"
         // TODO cover PyObject_IsTrue(value) == -1 (error case)
         scorepy::rewind_end(region_name, PyObject_IsTrue(value) == 1);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* oa_region_begin(PyObject* self, PyObject* args)
@@ -109,8 +103,7 @@ extern "C"
 
         scorepy::oa_region_begin(region, file_name, line_number);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* oa_region_end(PyObject* self, PyObject* args)
@@ -122,8 +115,7 @@ extern "C"
 
         scorepy::oa_region_end(region);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* parameter_string(PyObject* self, PyObject* args)
@@ -136,8 +128,7 @@ extern "C"
 
         scorepy::parameter_string(name, value);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* parameter_int(PyObject* self, PyObject* args)
@@ -150,8 +141,7 @@ extern "C"
 
         scorepy::parameter_int(name, value);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* parameter_uint(PyObject* self, PyObject* args)
@@ -164,8 +154,7 @@ extern "C"
 
         scorepy::parameter_uint(name, value);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     static PyObject* get_expiriment_dir_name(PyObject* self, PyObject* args)

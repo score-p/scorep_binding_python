@@ -63,15 +63,14 @@ namespace scorepy
 PyTypeObject& getCInstrumenterType()
 {
     static PyMethodDef methods[] = {
-        { "_enable_instrumenter", reinterpret_cast<PyCFunction>(CInstrumenter_enable_instrumenter),
+        { "_enable_instrumenter", scorepy::castToPyFunc(CInstrumenter_enable_instrumenter),
           METH_NOARGS, "Enable the instrumenter" },
-        { "_disable_instrumenter",
-          reinterpret_cast<PyCFunction>(CInstrumenter_disable_instrumenter), METH_NOARGS,
-          "Disable the instrumenter" },
+        { "_disable_instrumenter", scorepy::castToPyFunc(CInstrumenter_disable_instrumenter),
+          METH_NOARGS, "Disable the instrumenter" },
         { nullptr } /* Sentinel */
     };
     static PyGetSetDef getseters[] = {
-        { "tracingOrProfiling", reinterpret_cast<getter>(CInstrumenter_get_tracingOrProfiling),
+        { "tracingOrProfiling", scorepy::castToPyFunc(CInstrumenter_get_tracingOrProfiling),
           nullptr, "Return whether the trace (True) or profile (False) instrumentation is used",
           nullptr },
         { nullptr } /* Sentinel */
@@ -83,7 +82,7 @@ PyTypeObject& getCInstrumenterType()
         sizeof(CInstrumenter),                  /* tp_basicsize */
     };
     type.tp_new = call_object_new;
-    type.tp_init = reinterpret_cast<initproc>(CInstrumenter_init);
+    type.tp_init = scorepy::castToPyFunc(CInstrumenter_init);
     type.tp_methods = methods;
     type.tp_getset = getseters;
     type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;

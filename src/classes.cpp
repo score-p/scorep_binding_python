@@ -55,6 +55,21 @@ extern "C"
         self->disable_instrumenter();
         Py_RETURN_NONE;
     }
+
+    static PyObject* CInstrumenter_call(scorepy::CInstrumenter* self, PyObject* args,
+                                        PyObject* kwds)
+    {
+        static const char* kwlist[] = { "frame", "event", "arg", nullptr };
+
+        PyFrameObject* frame;
+        const char* event;
+        PyObject* arg;
+
+        if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!sO", const_cast<char**>(kwlist),
+                                         &PyFrame_Type, &frame, &event, &arg))
+            return nullptr;
+        return (*self)(*frame, event, arg);
+    }
 }
 
 namespace scorepy
@@ -84,6 +99,7 @@ PyTypeObject& getCInstrumenterType()
     type.tp_new = call_object_new;
     type.tp_init = scorepy::castToPyFunc(CInstrumenter_init);
     type.tp_methods = methods;
+    type.tp_call = scorepy::castToPyFunc(CInstrumenter_call);
     type.tp_getset = getseters;
     type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     type.tp_doc = "Class for the C instrumenter interface of Score-P";

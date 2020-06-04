@@ -294,3 +294,27 @@ def test_instrumentation_ctracing(scorep_env, instrumenter):
     for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
         for event in ('ENTER', 'LEAVE'):
             assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)
+
+
+@pytest.mark.parametrize('instrumenter', ['profile', 'trace', 'cProfile', 'cTrace'])
+def test_threads(scorep_env, instrumenter):
+    if instrumenter[0] == 'c' and sys.version_info.major < 3:
+        pytest.skip("C extension class only implemented for Python3")
+
+    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+    std_out, std_err = call_with_scorep("cases/use_threads.py",
+                                        ["--nocompiler",  "--instrumenter-type=" + instrumenter],
+                                        env=scorep_env)
+
+    # assert std_err == "" TODO: Readd when issue #87 is resolved
+    assert re.search(("hello world\n" +
+                      "(Thread 0 started\nThread 1 started\n|Thread 1 started\nThread 0 started\n)" +
+                      "(baz\nbar\n|bar\nbaz\n)"), std_out)
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
+        for event in ('ENTER', 'LEAVE'):
+            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)

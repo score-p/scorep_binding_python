@@ -17,6 +17,9 @@ struct CInstrumenter
     void enable_instrumenter();
     void disable_instrumenter();
 
+    /// Callback for when this object is called directly
+    PyObject* operator()(PyFrameObject& frame, const char* what, PyObject* arg);
+
     /// These casts are valid as long as `PyObject_HEAD` is the first entry in this struct
     PyObject* toPyObject()
     {

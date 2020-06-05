@@ -68,15 +68,10 @@ def add_to_ld_library_path(path):
     adds the path to the LD_LIBRARY_PATH.
     @param path path to be added
     """
-    if ("LD_LIBRARY_PATH" not in os.environ):
-        os.environ["LD_LIBRARY_PATH"] = ""
-
-    if (path not in os.environ["LD_LIBRARY_PATH"]):
-        if os.environ["LD_LIBRARY_PATH"] == "":
-            os.environ["LD_LIBRARY_PATH"] = path
-        else:
-            os.environ["LD_LIBRARY_PATH"] = path + \
-                ":" + os.environ["LD_LIBRARY_PATH"]
+    library_path = os.environ.get("LD_LIBRARY_PATH", "")
+    library_paths = library_path.split(":") if library_path else []
+    if path not in library_paths:
+        os.environ["LD_LIBRARY_PATH"] = ':'.join([path] + library_paths)
 
 
 def generate_compile_deps(config=[]):

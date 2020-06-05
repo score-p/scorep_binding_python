@@ -3,6 +3,7 @@
 from mpi4py import MPI
 import numpy as np
 import mpi4py
+import instrumentation2
 mpi4py.rc.thread_level = "funneled"
 
 
@@ -14,7 +15,9 @@ comm.Barrier()
 N = 5
 if comm.rank == 0:
     A = np.arange(N, dtype=np.float64)    # rank 0 has proper data
+    instrumentation2.baz()
 else:
+    instrumentation2.bar()
     A = np.empty(N, dtype=np.float64)     # all other just an empty array
 
 # Broadcast A from rank 0 to everybody

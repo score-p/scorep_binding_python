@@ -26,7 +26,7 @@ add_custom_target(ScorepModule ALL
 
 enable_testing()
 add_test(NAME ScorepPythonTests
-         COMMAND Python::Interpreter test_scorep.py
+         COMMAND Python::Interpreter -m pytest test_scorep.py
          WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/test
 )
 set(pythonPath ${CMAKE_CURRENT_BINARY_DIR}/site-packages)

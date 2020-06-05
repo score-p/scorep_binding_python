@@ -8,7 +8,7 @@ from scorep import instrumenter
 def region_begin(name, file_name=None, line_number=None):
     """
     Begin of an User region. If file_name or line_number is None, both will
-    bet determined automatically
+    be determined automatically
     @param name name of the user region
     @param file_name file name of the user region
     @param line_number line number of the user region
@@ -131,7 +131,7 @@ class region(object):
 def rewind_begin(name, file_name=None, line_number=None):
     """
     Begin of an User region. If file_name or line_number is None, both will
-    bet determined automatically
+    be determined automatically
     @param name name of the user region
     @param file_name file name of the user region
     @param line_number line number of the user region
@@ -162,7 +162,7 @@ def rewind_end(name, value):
 def oa_region_begin(name, file_name=None, line_number=None):
     """
     Begin of an Online Access region. If file_name or line_number is None, both will
-    bet determined automatically
+    be determined automatically
     @param name name of the user region
     @param file_name file name of the user region
     @param line_number line number of the user region

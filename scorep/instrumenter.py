@@ -47,7 +47,7 @@ def unregister():
     """
     Disables the python-tracing.
     Disabling the python-tracing is more efficient than disable_recording,
-    as python does not longer call the tracing module.
+    as python does no longer call the tracing module.
     However, all the other things that are traced by Score-P will still be recorded.
     Please call register() to enable tracing again.
     """
@@ -61,7 +61,7 @@ class enable():
     with enable(region_name=None):
         do stuff
     ```
-    This overides --no-instrumenter (--nopython leagacy)
+    This overides --noinstrumenter (--nopython legacy)
     If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
 
@@ -103,7 +103,7 @@ class disable():
     with disable():
         do stuff
     ```
-    This overides --no-instrumenter (--nopython leagacy)
+    This overides --noinstrumenter (--nopython legacy)
     If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
 

@@ -151,7 +151,7 @@ extern "C"
         Py_RETURN_NONE;
     }
 
-    static PyObject* get_expiriment_dir_name(PyObject* self, PyObject* args)
+    static PyObject* get_experiment_dir_name(PyObject* self, PyObject* args)
     {
 
         return PyUnicode_FromString(SCOREP_GetExperimentDirName());
@@ -169,7 +169,7 @@ extern "C"
         { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
         { "parameter_uint", parameter_uint, METH_VARARGS, "User parameter uint." },
         { "parameter_string", parameter_string, METH_VARARGS, "User parameter string." },
-        { "get_expiriment_dir_name", get_expiriment_dir_name, METH_VARARGS,
+        { "get_experiment_dir_name", get_experiment_dir_name, METH_VARARGS,
           "Get the Score-P experiment dir." },
         { NULL, NULL, 0, NULL } /* Sentinel */
     };

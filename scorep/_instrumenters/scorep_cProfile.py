@@ -1,5 +1,5 @@
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
-from scorep import scorep_bindings
+from scorep import _bindings as scorep_bindings
 
 
 class ScorepCProfile(scorep_bindings.CInstrumenter, ScorepInstrumenter):

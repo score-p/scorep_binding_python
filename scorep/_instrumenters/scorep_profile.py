@@ -3,7 +3,7 @@ __all__ = ['ScorepProfile']
 import sys
 from scorep._instrumenters.utils import get_module_name, get_file_name
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
-from scorep import scorep_bindings
+from scorep import _bindings as scorep_bindings
 
 try:
     import threading

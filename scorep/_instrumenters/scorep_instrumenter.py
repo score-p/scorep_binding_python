@@ -2,7 +2,7 @@ import abc
 import inspect
 import os
 from scorep._instrumenters import base_instrumenter
-from scorep import scorep_bindings
+from scorep import _bindings as scorep_bindings
 
 
 class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):

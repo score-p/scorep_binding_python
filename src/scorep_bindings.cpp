@@ -3,19 +3,18 @@
 #include <Python.h>
 
 #if PY_VERSION_HEX < 0x03000000
-PyMODINIT_FUNC initscorep_bindings(void)
+PyMODINIT_FUNC init_bindings(void)
 {
-    (void)Py_InitModule("scorep_bindings", scorepy::getMethodTable());
+    (void)Py_InitModule("_bindings", scorepy::getMethodTable());
 }
 #else  /*python 3*/
-static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT,
-                                           "scorep_bindings", /* name of module */
+static struct PyModuleDef scorepmodule = { PyModuleDef_HEAD_INIT, "_bindings", /* name of module */
                                            NULL, /* module documentation, may be NULL */
                                            -1,   /* size of per-interpreter state of the module,
                                                     or -1 if the module keeps state in global
                                                     variables. */
                                            scorepy::getMethodTable() };
-PyMODINIT_FUNC PyInit_scorep_bindings(void)
+PyMODINIT_FUNC PyInit__bindings(void)
 {
     auto* ctracerType = &scorepy::getCInstrumenterType();
     if (PyType_Ready(ctracerType) < 0)

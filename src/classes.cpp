@@ -92,9 +92,9 @@ PyTypeObject& getCInstrumenterType()
     };
     // Sets the first few fields explicitely and remaining ones to zero
     static PyTypeObject type = {
-        PyVarObject_HEAD_INIT(nullptr, 0)       /* header */
-        "scorep.scorep_bindings.CInstrumenter", /* tp_name */
-        sizeof(CInstrumenter),                  /* tp_basicsize */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* header */
+        "scorep._bindings.CInstrumenter", /* tp_name */
+        sizeof(CInstrumenter),            /* tp_basicsize */
     };
     type.tp_new = call_object_new;
     type.tp_init = scorepy::castToPyFunc(CInstrumenter_init);

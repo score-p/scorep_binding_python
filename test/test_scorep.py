@@ -66,13 +66,18 @@ def scorep_env(tmp_path):
     return env
 
 
+def get_trace_path(env):
+    """Return the path to the otf2 trace file given an environment dict"""
+    return env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+
 def test_has_version():
     import scorep
     assert scorep.__version__ is not None
 
 
 def test_user_regions(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/user_regions.py",
                            ["--nopython"],
@@ -98,7 +103,7 @@ def test_user_regions(scorep_env):
 
 
 def test_context(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/context.py",
                            ["--noinstrumenter"],
@@ -131,7 +136,7 @@ def test_user_regions_no_scorep(scorep_env):
 
 
 def test_user_rewind(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/user_rewind.py", env=scorep_env)
     std_out = out[1]
@@ -149,7 +154,7 @@ def test_user_rewind(scorep_env):
 
 
 def test_oa_regions(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/oa_regions.py",
                            ["--nopython"],
@@ -170,7 +175,7 @@ def test_oa_regions(scorep_env):
 
 
 def test_instrumentation(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/instrumentation.py",
                            ["--nocompiler"],
@@ -191,7 +196,7 @@ def test_instrumentation(scorep_env):
 
 
 def test_user_instrumentation(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/user_instrumentation.py",
                            ["--nocompiler", "--noinstrumenter"],
@@ -212,7 +217,7 @@ def test_user_instrumentation(scorep_env):
 
 
 def test_error_region(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/error_region.py",
                            ["--nocompiler", "--noinstrumenter"],
@@ -291,7 +296,7 @@ def test_dummy(scorep_env):
 
 @requires_python3
 def test_numpy_dot(scorep_env):
-    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+    trace_path = get_trace_path(scorep_env)
 
     out = call_with_scorep("cases/numpy_dot.py",
                            ["--nocompiler", "--noinstrumenter"],

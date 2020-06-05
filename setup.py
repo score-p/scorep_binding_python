@@ -23,11 +23,13 @@ cmodules = []
 (include, _, _, _, _) = scorep.helper.generate_compile_deps()
 src_folder = os.path.abspath('src')
 include += [src_folder]
+sources = ['src/methods.cpp', 'src/scorep_bindings.cpp', 'src/scorepy/events.cpp']
+
 cmodules.append(Extension('scorep.scorep_bindings',
                           include_dirs=include,
                           define_macros=[('PY_SSIZE_T_CLEAN', '1')],
                           extra_compile_args=["-std=c++11"],
-                          sources=['src/scorep.cpp']))
+                          sources=sources))
 
 setup(
     name='scorep',
@@ -42,7 +44,7 @@ A working Score-P version is required.
 To enable tracing it uses LD_PRELOAD to load the Score-P runtime libraries.
 Besides this, it uses the traditional python-tracing infrastructure.
 ''',
-    packages=['scorep', 'scorep.instrumenters'],
+    packages=['scorep', 'scorep._instrumenters'],
     ext_modules=cmodules,
     classifiers=[
         'Development Status :: 4 - Beta',

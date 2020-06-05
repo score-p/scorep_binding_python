@@ -1,7 +1,7 @@
 import abc
 import inspect
 import os
-from scorep.instrumenters import base_instrumenter
+from scorep._instrumenters import base_instrumenter
 from scorep import scorep_bindings
 
 

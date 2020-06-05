@@ -16,13 +16,13 @@ def get_instrumenter(enable_instrumenter=False,
     global global_instrumenter
     if global_instrumenter is None:
         if instrumenter_type == "profile":
-            from scorep.instrumenters.scorep_profile import ScorepProfile
+            from scorep._instrumenters.scorep_profile import ScorepProfile
             global_instrumenter = ScorepProfile(enable_instrumenter)
         elif instrumenter_type == "trace":
-            from scorep.instrumenters.scorep_trace import ScorepTrace
+            from scorep._instrumenters.scorep_trace import ScorepTrace
             global_instrumenter = ScorepTrace(enable_instrumenter)
         elif instrumenter_type == "dummy":
-            from scorep.instrumenters.dummy import ScorepDummy
+            from scorep._instrumenters.dummy import ScorepDummy
             global_instrumenter = ScorepDummy(enable_instrumenter)
         else:
             raise RuntimeError('instrumenter_type "{}" unkown'.format(instrumenter_type))
@@ -58,6 +58,7 @@ class enable():
     This overides --no-instrumenter (--nopython leagacy)
     If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
+
     def __init__(self, region_name=None):
         self.region_name = region_name
 
@@ -99,6 +100,7 @@ class disable():
     This overides --no-instrumenter (--nopython leagacy)
     If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
+
     def __init__(self, region_name=None):
         self.region_name = region_name
 

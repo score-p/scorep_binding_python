@@ -1,6 +1,6 @@
 __all__ = ['ScorepDummy']
 
-import scorep.instrumenters.base_instrumenter as base_instrumenter
+import scorep._instrumenters.base_instrumenter as base_instrumenter
 
 
 class ScorepDummy(base_instrumenter.BaseInstrumenter):

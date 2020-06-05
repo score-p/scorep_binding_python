@@ -10,8 +10,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(Scorep REQUIRED)
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
-Python_add_library(scorep_bindings src/scorep.cpp)
-target_link_libraries(scorep_bindings PRIVATE Scorep::Scorep)
+Python_add_library(scorep_bindings
+  src/methods.cpp src/scorep_bindings.cpp src/scorepy/events.cpp
+)
+target_link_libraries(scorep_bindings PRIVATE Scorep::Plugin)
 target_compile_features(scorep_bindings PRIVATE cxx_std_11)
 target_compile_definitions(scorep_bindings PRIVATE PY_SSIZE_T_CLEAN)
 target_include_directories(scorep_bindings PRIVATE src)

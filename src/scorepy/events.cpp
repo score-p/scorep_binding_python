@@ -35,12 +35,12 @@ void region_begin(const std::string& region_name, std::string module, std::strin
 
 void region_end(const std::string& region_name)
 {
-    try
+    const auto itRegion = regions.find(region_name);
+    if (itRegion != regions.end())
     {
-        auto& handle = regions.at(region_name);
-        SCOREP_User_RegionEnd(handle.value);
+        SCOREP_User_RegionEnd(itRegion->second.value);
     }
-    catch (std::out_of_range& e)
+    else
     {
         static region_handle error_region;
         static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;

@@ -22,11 +22,11 @@ void region_begin(const std::string& region_name, std::string module, std::strin
 {
     auto region_it = regions.find(region_name);
 	bool inserted_new = false;
-	if (region_it == regions.end())
-	{
-		region_it = regions.emplace(make_pair(region_name, region_handle())).first;
-		inserted_new = true;
-	}
+    if (region_it == regions.end())
+    {
+        region_it = regions.emplace(make_pair(region_name, region_handle())).first;
+        inserted_new = true;
+    }
 
     auto& handle = region_it->second;
     if (inserted_new)

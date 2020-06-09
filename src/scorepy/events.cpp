@@ -20,7 +20,7 @@ static std::unordered_map<std::string, region_handle> rewind_regions;
 void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
 {
-	auto region_it = regions.find(region_name);
+    auto region_it = regions.find(region_name);
 	bool inserted_new = false;
 	if (region_it == regions.end())
 	{

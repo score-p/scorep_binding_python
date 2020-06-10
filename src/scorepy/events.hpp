@@ -5,6 +5,17 @@
 
 namespace scorepy
 {
+/// Combine the arguments into a region name
+/// Return value is a statically allocated string to avoid memory (re)allocations
+inline const std::string& make_region_name(const char* module_name, const char* name)
+{
+    static std::string region;
+    region = module_name;
+    region += ":";
+    region += name;
+    return region;
+}
+
 void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number);
 void region_end(const std::string& region_name);

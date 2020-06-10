@@ -7,14 +7,6 @@
 
 namespace scorepy
 {
-static const std::string& make_region_name(const char* moduleName, const char* name)
-{
-    static std::string region;
-    region = moduleName;
-    region += ":";
-    region += name;
-    return region;
-}
 
 void CInstrumenter::enable_instrumenter()
 {

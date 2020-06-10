@@ -35,10 +35,7 @@ extern "C"
         if (!PyArg_ParseTuple(args, "sssK", &module, &region_name, &file_name, &line_number))
             return NULL;
 
-        static std::string region = "";
-        region = module;
-        region += ":";
-        region += region_name;
+        const std::string& region = scorepy::make_region_name(module, region_name);
         scorepy::region_begin(region, module, file_name, line_number);
 
         Py_RETURN_NONE;
@@ -55,10 +52,7 @@ extern "C"
         if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
             return NULL;
 
-        static std::string region = "";
-        region = module;
-        region += ":";
-        region += region_name;
+        const std::string& region = scorepy::make_region_name(module, region_name);
         scorepy::region_end(region);
 
         Py_RETURN_NONE;

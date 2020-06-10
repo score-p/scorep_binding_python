@@ -3,7 +3,7 @@ __all__ = ['ScorepProfile']
 import sys
 from scorep._instrumenters.utils import get_module_name, get_file_name
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
-from scorep import _bindings as scorep_bindings
+import scorep._bindings
 
 try:
     import threading
@@ -42,9 +42,9 @@ class ScorepProfile(ScorepInstrumenter):
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)
                 line_number = code.co_firstlineno
-                scorep_bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
+                scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
         elif why == 'return':
             code = frame.f_code
             modulename = get_module_name(frame)
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
-                scorep_bindings.region_end(modulename, code.co_name)
+                scorep._bindings.region_end(modulename, code.co_name)

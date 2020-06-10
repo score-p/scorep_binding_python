@@ -1,10 +1,10 @@
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
-from scorep import _bindings as scorep_bindings
+import scorep._bindings
 
 
-class ScorepCTrace(scorep_bindings.CInstrumenter, ScorepInstrumenter):
+class ScorepCTrace(scorep._bindings.CInstrumenter, ScorepInstrumenter):
     def __init__(self, enable_instrumenter):
-        scorep_bindings.CInstrumenter.__init__(self, tracingOrProfiling=True)
+        scorep._bindings.CInstrumenter.__init__(self, tracingOrProfiling=True)
         ScorepInstrumenter.__init__(self, enable_instrumenter)
 
     def _enable_instrumenter(self):

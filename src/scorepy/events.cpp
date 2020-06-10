@@ -20,16 +20,8 @@ static std::unordered_map<std::string, region_handle> rewind_regions;
 void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
 {
-    auto region_it = regions.find(region_name);
-    bool inserted_new = false;
-    if (region_it == regions.end())
-    {
-        region_it = regions.emplace(make_pair(region_name, region_handle())).first;
-        inserted_new = true;
-    }
-
-    auto& handle = region_it->second;
-    if (inserted_new)
+    auto& handle = regions[region_name];
+    if (handle.value == SCOREP_USER_INVALID_REGION)
     {
         SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,

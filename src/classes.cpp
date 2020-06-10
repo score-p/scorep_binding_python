@@ -26,20 +26,20 @@ extern "C"
 
     static int CInstrumenter_init(scorepy::CInstrumenter* self, PyObject* args, PyObject* kwds)
     {
-        static const char* kwlist[] = { "tracingOrProfiling", nullptr };
-        int tracingOrProfiling;
+        static const char* kwlist[] = { "tracing_or_profiling", nullptr };
+        int tracing_or_profiling;
 
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "p", const_cast<char**>(kwlist),
-                                         &tracingOrProfiling))
+                                         &tracing_or_profiling))
             return -1;
 
-        self->init(tracingOrProfiling != 0);
+        self->init(tracing_or_profiling != 0);
         return 0;
     }
 
     static PyObject* CInstrumenter_get_tracingOrProfiling(scorepy::CInstrumenter* self, void*)
     {
-        scorepy::PyRefObject result(self->tracingOrProfiling ? Py_True : Py_False,
+        scorepy::PyRefObject result(self->tracing_or_profiling ? Py_True : Py_False,
                                     scorepy::retain_object);
         return result;
     }
@@ -78,14 +78,14 @@ namespace scorepy
 PyTypeObject& getCInstrumenterType()
 {
     static PyMethodDef methods[] = {
-        { "_enable_instrumenter", scorepy::castToPyFunc(CInstrumenter_enable_instrumenter),
+        { "_enable_instrumenter", scorepy::cast_to_PyFunc(CInstrumenter_enable_instrumenter),
           METH_NOARGS, "Enable the instrumenter" },
-        { "_disable_instrumenter", scorepy::castToPyFunc(CInstrumenter_disable_instrumenter),
+        { "_disable_instrumenter", scorepy::cast_to_PyFunc(CInstrumenter_disable_instrumenter),
           METH_NOARGS, "Disable the instrumenter" },
         { nullptr } /* Sentinel */
     };
     static PyGetSetDef getseters[] = {
-        { "tracingOrProfiling", scorepy::castToPyFunc(CInstrumenter_get_tracingOrProfiling),
+        { "tracing_or_profiling", scorepy::cast_to_PyFunc(CInstrumenter_get_tracingOrProfiling),
           nullptr, "Return whether the trace (True) or profile (False) instrumentation is used",
           nullptr },
         { nullptr } /* Sentinel */
@@ -97,9 +97,9 @@ PyTypeObject& getCInstrumenterType()
         sizeof(CInstrumenter),            /* tp_basicsize */
     };
     type.tp_new = call_object_new;
-    type.tp_init = scorepy::castToPyFunc(CInstrumenter_init);
+    type.tp_init = scorepy::cast_to_PyFunc(CInstrumenter_init);
     type.tp_methods = methods;
-    type.tp_call = scorepy::castToPyFunc(CInstrumenter_call);
+    type.tp_call = scorepy::cast_to_PyFunc(CInstrumenter_call);
     type.tp_getset = getseters;
     type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     type.tp_doc = "Class for the C instrumenter interface of Score-P";

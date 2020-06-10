@@ -4,7 +4,7 @@ import scorep._bindings
 
 class ScorepCTrace(scorep._bindings.CInstrumenter, ScorepInstrumenter):
     def __init__(self, enable_instrumenter):
-        scorep._bindings.CInstrumenter.__init__(self, tracingOrProfiling=True)
+        scorep._bindings.CInstrumenter.__init__(self, tracing_or_profiling=True)
         ScorepInstrumenter.__init__(self, enable_instrumenter)
 
     def _enable_instrumenter(self):

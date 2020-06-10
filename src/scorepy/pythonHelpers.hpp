@@ -66,7 +66,7 @@ namespace detail
 /// Cast a function pointer to a python-bindings compatible function pointer
 /// Replaces all Foo* by PyObject* for all types Foo that are PyObject compatible
 template <typename TFunc>
-auto castToPyFunc(TFunc* func) -> detail::ReplaceArgsToPyObject_t<TFunc>*
+auto cast_to_PyFunc(TFunc* func) -> detail::ReplaceArgsToPyObject_t<TFunc>*
 {
     return reinterpret_cast<detail::ReplaceArgsToPyObject_t<TFunc>*>(func);
 }
@@ -99,7 +99,7 @@ namespace detail
     };
 
     template <class T>
-    struct IsPyObject<T, void_t<decltype(std::declval<T>().toPyObject())>> : std::true_type
+    struct IsPyObject<T, void_t<decltype(std::declval<T>().to_PyObject())>> : std::true_type
     {
     };
 

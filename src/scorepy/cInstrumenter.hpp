@@ -8,11 +8,11 @@ namespace scorepy
 struct CInstrumenter
 {
     PyObject_HEAD;
-    bool tracingOrProfiling;
+    bool tracing_or_profiling;
 
-    void init(bool tracingOrProfiling)
+    void init(bool tracing_or_profiling)
     {
-        this->tracingOrProfiling = tracingOrProfiling;
+        this->tracing_or_profiling = tracing_or_profiling;
     }
     void enable_instrumenter();
     void disable_instrumenter();
@@ -21,18 +21,18 @@ struct CInstrumenter
     PyObject* operator()(PyFrameObject& frame, const char* what, PyObject* arg);
 
     /// These casts are valid as long as `PyObject_HEAD` is the first entry in this struct
-    PyObject* toPyObject()
+    PyObject* to_PyObject()
     {
         return reinterpret_cast<PyObject*>(this);
     }
-    static CInstrumenter* fromPyObject(PyObject* o)
+    static CInstrumenter* from_PyObject(PyObject* o)
     {
         return reinterpret_cast<CInstrumenter*>(o);
     }
 
 private:
     /// Callback for Python trace/profile events. Return true for success
-    bool onEvent(PyFrameObject& frame, int what, PyObject* arg);
+    bool on_event(PyFrameObject& frame, int what, PyObject* arg);
 };
 
 } // namespace scorepy

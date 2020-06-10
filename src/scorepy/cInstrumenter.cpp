@@ -21,19 +21,15 @@ void CInstrumenter::enable_instrumenter()
     const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int {
         return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1;
     };
-    if (tracing_or_profiling)
-    {
+    if (interface == InstrumenterInterface::Trace)
         PyEval_SetTrace(callback, to_PyObject());
-    }
     else
-    {
         PyEval_SetProfile(callback, to_PyObject());
-    }
 }
 
 void CInstrumenter::disable_instrumenter()
 {
-    if (tracing_or_profiling)
+    if (interface == InstrumenterInterface::Trace)
         PyEval_SetTrace(nullptr, nullptr);
     else
         PyEval_SetProfile(nullptr, nullptr);

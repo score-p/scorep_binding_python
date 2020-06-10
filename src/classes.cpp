@@ -26,22 +26,35 @@ extern "C"
 
     static int CInstrumenter_init(scorepy::CInstrumenter* self, PyObject* args, PyObject* kwds)
     {
-        static const char* kwlist[] = { "tracing_or_profiling", nullptr };
-        int tracing_or_profiling;
+        static const char* kwlist[] = { "interface", nullptr };
+        const char* interface_cstring;
 
-        if (!PyArg_ParseTupleAndKeywords(args, kwds, "p", const_cast<char**>(kwlist),
-                                         &tracing_or_profiling))
+        if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", const_cast<char**>(kwlist),
+                                         &interface_cstring))
             return -1;
 
-        self->init(tracing_or_profiling != 0);
+        const std::string interface_string = interface_cstring;
+        scorepy::InstrumenterInterface interface;
+        if (interface_string == "Trace")
+            interface = scorepy::InstrumenterInterface::Trace;
+        else if (interface_string == "Profile")
+            interface = scorepy::InstrumenterInterface::Profile;
+        else
+        {
+            PyErr_Format(PyExc_TypeError, "Expected 'Trace' or 'Profile', got '%s'",
+                         interface_cstring);
+            return -1;
+        }
+
+        self->init(interface);
         return 0;
     }
 
-    static PyObject* CInstrumenter_get_tracingOrProfiling(scorepy::CInstrumenter* self, void*)
+    static PyObject* CInstrumenter_get_interface(scorepy::CInstrumenter* self, void*)
     {
-        scorepy::PyRefObject result(self->tracing_or_profiling ? Py_True : Py_False,
-                                    scorepy::retain_object);
-        return result;
+        const char* result =
+            self->interface == scorepy::InstrumenterInterface::Trace ? "Trace" : "Profile";
+        return PyUnicode_FromString(result);
     }
 
     static PyObject* CInstrumenter_enable_instrumenter(scorepy::CInstrumenter* self, PyObject*)
@@ -85,9 +98,8 @@ PyTypeObject& getCInstrumenterType()
         { nullptr } /* Sentinel */
     };
     static PyGetSetDef getseters[] = {
-        { "tracing_or_profiling", scorepy::cast_to_PyFunc(CInstrumenter_get_tracingOrProfiling),
-          nullptr, "Return whether the trace (True) or profile (False) instrumentation is used",
-          nullptr },
+        { "interface", scorepy::cast_to_PyFunc(CInstrumenter_get_interface), nullptr,
+          "Return the used interface for instrumentation", nullptr },
         { nullptr } /* Sentinel */
     };
     // Sets the first few fields explicitely and remaining ones to zero

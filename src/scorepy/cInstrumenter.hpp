@@ -5,14 +5,22 @@
 
 namespace scorepy
 {
+/// Interface to Python used to implement an instrumenter
+/// See sys.settrace/setprofile
+enum class InstrumenterInterface
+{
+    Profile,
+    Trace
+};
+
 struct CInstrumenter
 {
     PyObject_HEAD;
-    bool tracing_or_profiling;
+    InstrumenterInterface interface;
 
-    void init(bool tracing_or_profiling)
+    void init(InstrumenterInterface interface)
     {
-        this->tracing_or_profiling = tracing_or_profiling;
+        this->interface = interface;
     }
     void enable_instrumenter();
     void disable_instrumenter();

@@ -12,7 +12,7 @@ const char* get_module_name(const PyFrameObject& frame)
     // this is a NUMPY special situation, see NEP-18, and Score-P issue #63
     // TODO: Use string_view/C-String to avoid creating 2 std::strings
     const char* filename = PyUnicode_AsUTF8(frame.f_code->co_filename);
-    if (filename && std::string(filename) == "<__array_function__ internals>")
+    if (filename && (std::string(filename) == "<__array_function__ internals>"))
         return "numpy.__array_function__";
     else
         return "unkown";

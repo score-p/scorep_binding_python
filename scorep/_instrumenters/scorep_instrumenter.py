@@ -15,12 +15,6 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         """
         self._tracer_registered = False
         self._enabled = enable_instrumenter
-        # TODO: Support other threading libs, e.g. greenlet?
-        try:
-            import threading
-            self._threading = threading
-        except ImportError:
-            self._threading = None
 
     @abc.abstractmethod
     def _enable_instrumenter(self):

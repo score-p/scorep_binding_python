@@ -24,6 +24,12 @@ extern "C"
         return PyBaseObject_Type.tp_new(type, empty_tuple, empty_dict);
     }
 
+    static void CInstrumenter_dealloc(scorepy::CInstrumenter* self)
+    {
+        self->deinit();
+        Py_TYPE(self)->tp_free(self->to_PyObject());
+    }
+
     static int CInstrumenter_init(scorepy::CInstrumenter* self, PyObject* args, PyObject* kwds)
     {
         static const char* kwlist[] = { "interface", nullptr };
@@ -110,6 +116,7 @@ PyTypeObject& getCInstrumenterType()
     };
     type.tp_new = call_object_new;
     type.tp_init = scorepy::cast_to_PyFunc(CInstrumenter_init);
+    type.tp_dealloc = scorepy::cast_to_PyFunc(CInstrumenter_dealloc);
     type.tp_methods = methods;
     type.tp_call = scorepy::cast_to_PyFunc(CInstrumenter_call);
     type.tp_getset = getseters;

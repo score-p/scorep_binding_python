@@ -17,11 +17,11 @@ struct CInstrumenter
 {
     PyObject_HEAD;
     InstrumenterInterface interface;
+    PyObject* threading_module;
+    PyObject* threading_set_instrumenter;
 
-    void init(InstrumenterInterface interface)
-    {
-        this->interface = interface;
-    }
+    void init(InstrumenterInterface interface);
+    void deinit();
     void enable_instrumenter();
     void disable_instrumenter();
 

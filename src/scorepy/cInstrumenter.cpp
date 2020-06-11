@@ -8,11 +8,33 @@
 namespace scorepy
 {
 
+void CInstrumenter::init(InstrumenterInterface interface)
+{
+    this->interface = interface;
+    threading_module = PyImport_ImportModule("threading");
+    if (threading_module)
+    {
+        const char* name = (interface == InstrumenterInterface::Trace) ? "settrace" : "setprofile";
+        threading_set_instrumenter = PyObject_GetAttrString(threading_module, name);
+    }
+}
+
+void CInstrumenter::deinit()
+{
+    Py_CLEAR(threading_module);
+    Py_CLEAR(threading_set_instrumenter);
+}
+
 void CInstrumenter::enable_instrumenter()
 {
     const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int {
         return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1;
     };
+    if (threading_set_instrumenter)
+    {
+        PyRefObject result(PyObject_CallFunction(threading_set_instrumenter, "O", to_PyObject()),
+                           adopt_object);
+    }
     if (interface == InstrumenterInterface::Trace)
         PyEval_SetTrace(callback, to_PyObject());
     else
@@ -25,6 +47,11 @@ void CInstrumenter::disable_instrumenter()
         PyEval_SetTrace(nullptr, nullptr);
     else
         PyEval_SetProfile(nullptr, nullptr);
+    if (threading_set_instrumenter)
+    {
+        PyRefObject result(PyObject_CallFunction(threading_set_instrumenter, "O", Py_None),
+                           adopt_object);
+    }
 }
 
 /// Mapping of PyTrace_* to it's string representations

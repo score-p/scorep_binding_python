@@ -19,6 +19,7 @@ with open("reload_test.py","w") as f:
 
 import reload_test
 reload_test.foo()
+reload_test.foo()
 
 importlib.reload(reload_test)
 reload_test.foo()

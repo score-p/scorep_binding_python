@@ -7,12 +7,19 @@
 namespace scorepy
 {
 
-struct region_handle
+class region_handle
 {
-    region_handle() = default;
+public:
+    constexpr region_handle() = default;
     ~region_handle() = default;
+    constexpr bool operator==(const region_handle& other)
+    {
+        return this->value == other.value;
+    }
     SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
 };
+
+constexpr region_handle uninitalised_region_handle = region_handle();
 
 static std::unordered_map<std::string, region_handle> regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
@@ -20,15 +27,17 @@ static std::unordered_map<std::string, region_handle> rewind_regions;
 void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
 {
-    auto& handle = regions[region_name];
-    if (handle.value == SCOREP_USER_INVALID_REGION)
+    auto& region_handle = regions[region_name];
+
+    if (region_handle == uninitalised_region_handle)
     {
-        SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
+        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                                file_name.c_str(), line_number);
-        SCOREP_User_RegionSetGroup(handle.value, std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(region_handle.value,
+                                   std::string(module, 0, module.find('.')).c_str());
     }
-    SCOREP_User_RegionEnter(handle.value);
+    SCOREP_User_RegionEnter(region_handle.value);
 }
 
 void region_end(const std::string& region_name)

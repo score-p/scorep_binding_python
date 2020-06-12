@@ -60,16 +60,23 @@ static const std::array<std::string, 8> WHAT_STRINGS = { "call",     "exception"
                                                          "return",   "c_call",    "c_exception",
                                                          "c_return", "opcode" };
 
+template <typename TCollection, typename TElement>
+int index_of(TCollection&& col, const TElement& element)
+{
+    const auto it = std::find(col.cbegin(), col.cend(), element);
+    if (it == col.end())
+        return -1;
+    else
+        return std::distance(col.begin(), it);
+}
+
 // Required because:  `sys.getprofile()` returns the user object (2nd arg to PyEval_SetTrace)
 // So `sys.setprofile(sys.getprofile())` will not round-trip as it will try to call the
 // 2nd arg through pythons dispatch function. Hence make the object callable.
 // See https://nedbatchelder.com/text/trace-function.html for details
 PyObject* CInstrumenter::operator()(PyFrameObject& frame, const char* what_string, PyObject* arg)
 {
-    const auto it_what = std::find(WHAT_STRINGS.begin(), WHAT_STRINGS.end(), what_string);
-    int what = -1;
-    if (it_what != WHAT_STRINGS.end())
-        what = std::distance(WHAT_STRINGS.begin(), it_what);
+    const int what = index_of(WHAT_STRINGS, what_string);
     // To speed up further event processing install this class directly as the handler
     // But we might be inside a `sys.settrace` call where the user wanted to set another function
     // which would then be overwritten here. Hence use the CALL event which avoids the problem

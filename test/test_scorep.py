@@ -308,9 +308,11 @@ def test_threads(scorep_env, instrumenter):
                                         env=scorep_env)
 
     # assert std_err == "" TODO: Readd when issue #87 is resolved
-    assert re.search(("hello world\n" +
-                      "(Thread 0 started\nThread 1 started\n|Thread 1 started\nThread 0 started\n)" +
-                      "(baz\nbar\n|bar\nbaz\n)"), std_out)
+    assert "hello world\n" in std_out
+    assert "Thread 0 started\n" in std_out
+    assert "Thread 1 started\n" in std_out
+    assert "bar\n" in std_out
+    assert "baz\n" in std_out
 
     std_out, std_err = call(["otf2-print", trace_path])
 

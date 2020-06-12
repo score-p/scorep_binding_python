@@ -7,9 +7,8 @@
 namespace scorepy
 {
 
-class region_handle
+struct region_handle
 {
-public:
     constexpr region_handle() = default;
     ~region_handle() = default;
     constexpr bool operator==(const region_handle& other)

@@ -39,15 +39,11 @@ class ScorepProfile(ScorepInstrumenter):
         """
         if why == 'call':
             code = frame.f_code
-            print("#########################################")
-            if "arg" in frame.f_locals:
-                print(code.co_name)
-                print(code.co_varnames)
-                print(code.co_cellvars)
-                print(frame.f_globals.keys())
-                print(frame.f_locals.keys())
-                print(dir(frame.f_code))
-                print(dir(frame.f_locals))
+            
+            if "foo" in code.co_name:
+                print("#########################################")
+                print("code.co_name == foo", id(frame.f_code))
+                print("#########################################")
                 #print(frame.f_globals.get('__name__', None))
             #print(code.co_name)
                 #print(code.__dir__())
@@ -57,7 +53,7 @@ class ScorepProfile(ScorepInstrumenter):
             
                 #print(dir(frame.f_globals))
             
-            print("#########################################")
+            
             modulename = get_module_name(frame)
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)

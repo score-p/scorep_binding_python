@@ -67,8 +67,9 @@ static const std::array<std::string, 8> WHAT_STRINGS = { "call",     "exception"
 PyObject* CInstrumenter::operator()(PyFrameObject& frame, const char* what_string, PyObject* arg)
 {
     const auto it_what = std::find(WHAT_STRINGS.begin(), WHAT_STRINGS.end(), what_string);
-    const int what =
-        (it_what == WHAT_STRINGS.end()) ? -1 : std::distance(WHAT_STRINGS.begin(), it_what);
+    int what = -1;
+    if (it_what != WHAT_STRINGS.end())
+        what = std::distance(WHAT_STRINGS.begin(), it_what);
     // To speed up further event processing install this class directly as the handler
     // But we might be inside a `sys.settrace` call where the user wanted to set another function
     // which would then be overwritten here. Hence use the CALL event which avoids the problem

@@ -17,6 +17,8 @@ def foo():
     t2 = threading.Thread(target=worker, args=(1, instrumentation2.baz))
     t1.start()
     t2.start()
+    t1.join()
+    t2.join()
 
 
 foo()

@@ -36,17 +36,25 @@ void CInstrumenter::enable_instrumenter()
                            adopt_object);
     }
     if (interface == InstrumenterInterface::Trace)
+    {
         PyEval_SetTrace(callback, to_PyObject());
+    }
     else
+    {
         PyEval_SetProfile(callback, to_PyObject());
+    }
 }
 
 void CInstrumenter::disable_instrumenter()
 {
     if (interface == InstrumenterInterface::Trace)
+    {
         PyEval_SetTrace(nullptr, nullptr);
+    }
     else
+    {
         PyEval_SetProfile(nullptr, nullptr);
+    }
     if (threading_set_instrumenter)
     {
         PyRefObject result(PyObject_CallFunction(threading_set_instrumenter, "O", Py_None),
@@ -65,9 +73,13 @@ int index_of(TCollection&& col, const TElement& element)
 {
     const auto it = std::find(col.cbegin(), col.cend(), element);
     if (it == col.end())
+    {
         return -1;
+    }
     else
+    {
         return std::distance(col.begin(), it);
+    }
 }
 
 // Required because:  `sys.getprofile()` returns the user object (2nd arg to PyEval_SetTrace)
@@ -81,14 +93,18 @@ PyObject* CInstrumenter::operator()(PyFrameObject& frame, const char* what_strin
     // But we might be inside a `sys.settrace` call where the user wanted to set another function
     // which would then be overwritten here. Hence use the CALL event which avoids the problem
     if (what == PyTrace_CALL)
+    {
         enable_instrumenter();
+    }
     if (on_event(frame, what, arg))
     {
         Py_INCREF(to_PyObject());
         return to_PyObject();
     }
     else
+    {
         return nullptr;
+    }
 }
 
 bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)

@@ -22,7 +22,9 @@ std::string get_file_name(const PyFrameObject& frame)
 {
     PyObject* filename = frame.f_code->co_filename;
     if (filename == Py_None)
+    {
         return "None";
+    }
     char actual_path[PATH_MAX];
     const char* full_file_name = realpath(PyUnicode_AsUTF8(filename), actual_path);
     return full_file_name ? full_file_name : "ErrorPath";

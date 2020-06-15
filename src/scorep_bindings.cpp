@@ -22,7 +22,9 @@ PyMODINIT_FUNC PyInit__bindings(void)
 
     auto* m = PyModule_Create(&scorepmodule);
     if (!m)
+    {
         return nullptr;
+    }
 
     Py_INCREF(ctracerType);
     if (PyModule_AddObject(m, "CInstrumenter", (PyObject*)ctracerType) < 0)

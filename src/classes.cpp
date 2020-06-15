@@ -17,10 +17,14 @@ extern "C"
     {
         scorepy::PyRefObject empty_tuple(PyTuple_New(0), scorepy::adopt_object);
         if (!empty_tuple)
+        {
             return nullptr;
+        }
         scorepy::PyRefObject empty_dict(PyDict_New(), scorepy::adopt_object);
         if (!empty_dict)
+        {
             return nullptr;
+        }
         return PyBaseObject_Type.tp_new(type, empty_tuple, empty_dict);
     }
 
@@ -37,14 +41,20 @@ extern "C"
 
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", const_cast<char**>(kwlist),
                                          &interface_cstring))
+        {
             return -1;
+        }
 
         const std::string interface_string = interface_cstring;
         scorepy::InstrumenterInterface interface;
         if (interface_string == "Trace")
+        {
             interface = scorepy::InstrumenterInterface::Trace;
+        }
         else if (interface_string == "Profile")
+        {
             interface = scorepy::InstrumenterInterface::Profile;
+        }
         else
         {
             PyErr_Format(PyExc_TypeError, "Expected 'Trace' or 'Profile', got '%s'",
@@ -86,7 +96,9 @@ extern "C"
 
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!sO", const_cast<char**>(kwlist),
                                          &PyFrame_Type, &frame, &event, &arg))
+        {
             return nullptr;
+        }
         return (*self)(*frame, event, arg);
     }
 }

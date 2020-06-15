@@ -274,3 +274,49 @@ def test_numpy_dot(scorep_env):
     assert std_err == ""
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out)
+
+
+@requires_python3
+@pytest.mark.parametrize('instrumenter', ['cProfile', 'cTrace'])
+def test_instrumentation_ctracing(scorep_env, instrumenter):
+    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+    std_out, std_err = call_with_scorep("cases/instrumentation.py",
+                                        ["--nocompiler",  "--instrumenter-type=" + instrumenter],
+                                        env=scorep_env)
+
+    assert std_err == ""
+    assert std_out == "hello world\nbaz\nbar\n"
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
+        for event in ('ENTER', 'LEAVE'):
+            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)
+
+
+@pytest.mark.parametrize('instrumenter', ['profile', 'trace', 'cProfile', 'cTrace'])
+def test_threads(scorep_env, instrumenter):
+    if instrumenter[0] == 'c' and sys.version_info.major < 3:
+        pytest.skip("C extension class only implemented for Python3")
+
+    trace_path = scorep_env["SCOREP_EXPERIMENT_DIRECTORY"] + "/traces.otf2"
+
+    std_out, std_err = call_with_scorep("cases/use_threads.py",
+                                        ["--nocompiler",  "--instrumenter-type=" + instrumenter],
+                                        env=scorep_env)
+
+    # assert std_err == "" TODO: Readd when issue #87 is resolved
+    assert "hello world\n" in std_out
+    assert "Thread 0 started\n" in std_out
+    assert "Thread 1 started\n" in std_out
+    assert "bar\n" in std_out
+    assert "baz\n" in std_out
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
+        for event in ('ENTER', 'LEAVE'):
+            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)

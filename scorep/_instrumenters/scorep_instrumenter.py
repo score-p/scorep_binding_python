@@ -2,7 +2,7 @@ import abc
 import inspect
 import os
 from scorep._instrumenters import base_instrumenter
-from scorep import scorep_bindings
+import scorep._bindings
 
 
 class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
@@ -58,12 +58,12 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
 
     def region_begin(self, module_name, function_name, file_name, line_number):
         """Record a region begin event"""
-        scorep_bindings.region_begin(
+        scorep._bindings.region_begin(
             module_name, function_name, file_name, line_number)
 
     def region_end(self, module_name, function_name):
         """Record a region end event"""
-        scorep_bindings.region_end(module_name, function_name)
+        scorep._bindings.region_end(module_name, function_name)
 
     def rewind_begin(self, name, file_name=None, line_number=None):
         """
@@ -82,7 +82,7 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         else:
             full_file_name = "None"
 
-        scorep_bindings.rewind_begin(name, full_file_name, line_number)
+        scorep._bindings.rewind_begin(name, full_file_name, line_number)
 
     def rewind_end(self, name, value):
         """
@@ -90,7 +90,7 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         @param name name of the user region
         @param value True or False, whenether the region shall be rewinded or not.
         """
-        scorep_bindings.rewind_end(name, value)
+        scorep._bindings.rewind_end(name, value)
 
     def oa_region_begin(self, name, file_name=None, line_number=None):
         """
@@ -109,28 +109,28 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         else:
             full_file_name = "None"
 
-        scorep_bindings.oa_region_begin(name, full_file_name, line_number)
+        scorep._bindings.oa_region_begin(name, full_file_name, line_number)
 
     def oa_region_end(self, name):
         """End an Online Access region."""
-        scorep_bindings.oa_region_end(name)
+        scorep._bindings.oa_region_end(name)
 
     def user_enable_recording(self):
         """Enable writing of trace events in ScoreP"""
-        scorep_bindings.enable_recording()
+        scorep._bindings.enable_recording()
 
     def user_disable_recording(self):
         """Disable writing of trace events in ScoreP"""
-        scorep_bindings.disable_recording()
+        scorep._bindings.disable_recording()
 
     def user_parameter_int(self, name, val):
         """Record a parameter of type integer"""
-        scorep_bindings.parameter_int(name, val)
+        scorep._bindings.parameter_int(name, val)
 
     def user_parameter_uint(self, name, val):
         """Record a parameter of type unsigned integer"""
-        scorep_bindings.parameter_string(name, val)
+        scorep._bindings.parameter_string(name, val)
 
     def user_parameter_string(self, name, string):
         """Record a parameter of type string"""
-        scorep_bindings.parameter_string(name, string)
+        scorep._bindings.parameter_string(name, string)

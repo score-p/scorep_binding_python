@@ -24,6 +24,12 @@ def get_instrumenter(enable_instrumenter=False,
         elif instrumenter_type == "dummy":
             from scorep._instrumenters.dummy import ScorepDummy
             global_instrumenter = ScorepDummy(enable_instrumenter)
+        elif instrumenter_type == "cTrace":
+            from scorep._instrumenters.scorep_cTrace import ScorepCTrace
+            global_instrumenter = ScorepCTrace(enable_instrumenter)
+        elif instrumenter_type == "cProfile":
+            from scorep._instrumenters.scorep_cProfile import ScorepCProfile
+            global_instrumenter = ScorepCProfile(enable_instrumenter)
         else:
             raise RuntimeError('instrumenter_type "{}" unkown'.format(instrumenter_type))
 

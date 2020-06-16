@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import scorep
 from mpi4py import MPI
 import numpy as np
 import mpi4py
 import instrumentation2
 mpi4py.rc.thread_level = "funneled"
 
+scorep.instrumenter.register()
 
 comm = mpi4py.MPI.COMM_WORLD
 

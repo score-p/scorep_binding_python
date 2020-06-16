@@ -233,6 +233,7 @@ def test_error_region(scorep_env, instrumenter):
 @requires_package('numpy')
 @foreach_instrumenter
 def test_mpi(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
     std_out, std_err = call(["mpirun",
                              "-n",
                              "2",
@@ -244,6 +245,7 @@ def test_mpi(scorep_env, instrumenter):
                              "scorep",
                              "--mpp=mpi",
                              "--nocompiler",
+                             "--noinstrumenter",
                              "--instrumenter-type=" + instrumenter,
                              "cases/mpi.py"],
                             env=scorep_env)
@@ -252,6 +254,13 @@ def test_mpi(scorep_env, instrumenter):
 
     assert re.search(r'\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED', std_err)
     assert re.search(expected_std_out, std_out)
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    for func in ('instrumentation2:bar', 'instrumentation2:baz'):
+        for event in ('ENTER', 'LEAVE'):
+            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)
 
 
 @foreach_instrumenter

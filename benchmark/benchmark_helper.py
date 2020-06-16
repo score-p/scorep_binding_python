@@ -31,18 +31,16 @@ class BenchmarkEnv():
             arguments.extend(scorep_settings)
         arguments.append(script)
         arguments.extend(ops)
+        print(arguments)
 
         runtimes = []
-        for i in range(self.repetitions):
+        for _ in range(self.repetitions):
             begin = time.time()
-            print(arguments)
             out = subprocess.run(
                 arguments,
-                env=self.env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+                env=self.env)
             end = time.time()
-            assert(out.returncode == 0)
+            assert out.returncode == 0
 
             runtime = end - begin
             runtimes.append(runtime)

@@ -1,8 +1,9 @@
 import subprocess
 import os
-import shutil
+#import shutil
 import sys
 import time
+import tempfile
 
 
 class BenchmarkEnv():
@@ -12,13 +13,8 @@ class BenchmarkEnv():
         self.env["SCOREP_ENABLE_TRACING"] = "false"
         self.env["SCOREP_PROFILING_MAX_CALLPATH_DEPTH"] = "98"
         self.env["SCOREP_TOTAL_MEMORY"] = "3G"
-        self.exp_dir = "benchmark_dir"
+        self.exp_dir = tempfile.mkdtemp(prefix="benchmark_dir_")
         self.repetitions = repetitions
-
-        shutil.rmtree(
-            self.exp_dir,
-            ignore_errors=True)
-        os.mkdir(self.exp_dir)
 
     def __del__(self):
         pass

@@ -1,6 +1,6 @@
 import subprocess
 import os
-#import shutil
+import shutil
 import sys
 import time
 import tempfile
@@ -17,10 +17,9 @@ class BenchmarkEnv():
         self.repetitions = repetitions
 
     def __del__(self):
-        pass
-#         shutil.rmtree(
-#             self.exp_dir,
-#             ignore_errors=True)
+        shutil.rmtree(
+            self.exp_dir,
+            ignore_errors=True)
 
     def call(self, script="", ops=[], enable_scorep=True, scorep_settings=[]):
         self.env["SCOREP_EXPERIMENT_DIRECTORY"] = self.exp_dir + \

@@ -18,8 +18,8 @@ def generate_subsystem_lib_name():
 
 def generate_ld_preload(scorep_config):
     """
-    This functions generate a string that needs to be passed to $LD_PRELOAD.
-    After this sting is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
+    This functions generates a string that needs to be passed to $LD_PRELOAD.
+    After this string is passed, the tracing needs to be restarted with this $LD_PRELOAD in env.
 
     @return ld_preload string which needs to be passed to LD_PRELOAD
     """
@@ -103,15 +103,12 @@ def init_environment(scorep_config=[], keep_files=False):
     """
     Set the inital needed environmet variables, to get everythin up an running.
     As a few variables interact with LD env vars, the programms needs to be restarted after this.
-    The function set the env var `SCOREP_PYTHON_BINDINGS_INITALISED` to true, once it is done with
-    initalising.
 
     @param scorep_config configuration flags for score-p
     @param keep_files whether to keep the generated files, or not.
     """
 
-    if ("LD_PRELOAD" in os.environ) and (
-            "libscorep" in os.environ["LD_PRELOAD"]):
+    if "libscorep" in os.environ.get("LD_PRELOAD", ""):
         raise RuntimeError(
             "Score-P is already loaded. This should not happen at this point")
 
@@ -132,7 +129,7 @@ def init_environment(scorep_config=[], keep_files=False):
     os.environ["LD_PRELOAD"] = preload_str
 
 
-def reset_pereload():
+def reset_preload():
     """
     resets the environment variable `LD_PRELOAD` to the value before init_environment was called.
     """
@@ -152,6 +149,5 @@ def clean_up(keep_files=True):
     if keep_files:
         return
     else:
-        if ("SCOREP_PYTHON_BINDINGS_TEMP_DIR" in os.environ) and (
-                os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] != ""):
+        if os.environ.get("SCOREP_PYTHON_BINDINGS_TEMP_DIR"):
             shutil.rmtree(os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"])

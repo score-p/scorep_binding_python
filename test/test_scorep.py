@@ -7,11 +7,6 @@ import subprocess
 import sys
 import pytest
 
-# All instrumenters (except dummy which isn't a real one)
-ALL_INSTRUMENTERS = ['profile', 'trace']
-if sys.version_info.major >= 3:
-    ALL_INSTRUMENTERS.extend(['cProfile', 'cTrace'])
-
 
 def call(arguments, expected_returncode=0, env=None):
     """
@@ -57,7 +52,13 @@ def requires_package(name):
     return pytest.mark.skipif(not has_package(name), reason='%s is required' % name)
 
 
-requires_python3 = pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
+cinstrumenter_skip_mark = pytest.mark.skipif(
+    sys.version_info.major < 3, reason="CInstrumenter only available in Python 3")
+# All instrumenters (except dummy which isn't a real one)
+ALL_INSTRUMENTERS = ['profile', 'trace',
+                     pytest.param('cProfile', marks=cinstrumenter_skip_mark),
+                     pytest.param('cTrace', marks=cinstrumenter_skip_mark)]
+
 foreach_instrumenter = pytest.mark.parametrize('instrumenter', ALL_INSTRUMENTERS)
 
 
@@ -276,7 +277,7 @@ def test_dummy(scorep_env):
     assert os.path.exists(scorep_env["SCOREP_EXPERIMENT_DIRECTORY"]), "Score-P directory exists for dummy test"
 
 
-@requires_python3
+@pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
 @foreach_instrumenter
 def test_numpy_dot(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
@@ -297,9 +298,6 @@ def test_numpy_dot(scorep_env, instrumenter):
 
 @foreach_instrumenter
 def test_threads(scorep_env, instrumenter):
-    if instrumenter[0] == 'c' and sys.version_info.major < 3:
-        pytest.skip("C extension class only implemented for Python3")
-
     trace_path = get_trace_path(scorep_env)
 
     std_out, std_err = call_with_scorep("cases/use_threads.py",

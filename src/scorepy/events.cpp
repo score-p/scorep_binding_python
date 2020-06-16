@@ -1,4 +1,5 @@
 #include "events.hpp"
+#include <Python.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -37,8 +38,13 @@ void region_begin(const std::string& region_name, std::string module, std::strin
 
 /// Region names that are known to have no region enter event and should not report an error
 /// on region exit
-static const std::array<std::string, 2> EXIT_REGION_WHITELIST = { "threading:_bootstrap_inner",
-                                                                  "threading:_bootstrap" };
+static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
+#if PY_MAJOR_VERSION >= 3
+    "threading:_bootstrap_inner", "threading:_bootstrap"
+#else
+    "threading:__bootstrap_inner", "threading:__bootstrap"
+#endif
+};
 
 void region_end(const std::string& region_name)
 {

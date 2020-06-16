@@ -18,7 +18,7 @@ reps_x["bm_simplefunc.py"] = ["100000", "200000", "300000", "400000", "500000"]
 for test in tests:
     results[test] = {"profile": {}, "trace": {}, "dummy": {}, "None": {}}
     if sys.version_info.major >= 3:
-        results.update({"cProfile": {}, "cTrace": {}})
+        results[test].update({"cProfile": {}, "cTrace": {}})
 
     for instrumenter in results[test]:
         if instrumenter == "None":

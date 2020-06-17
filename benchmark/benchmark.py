@@ -6,6 +6,7 @@ Created on 04.10.2019
 import sys
 import benchmark_helper
 import pickle
+import numpy as np
 
 tests = ["bm_baseline.py", "bm_simplefunc.py"]
 
@@ -44,7 +45,9 @@ for test in tests:
             times = bench.call(test, [reps],
                                enable_scorep,
                                scorep_settings=scorep_settings)
-            print("{:<8}: {}".format(reps, times))
+            times = np.array(times)
+            print("{:>8}: Range={:{prec}}-{:{prec}} Mean={:{prec}} Median={:{prec}}".format(
+                reps, times.min(), times.max(), times.mean(), np.median(times), prec='5.4f'))
             results[test][instrumenter][reps] = times
 
 with open("results.pkl", "wb") as f:

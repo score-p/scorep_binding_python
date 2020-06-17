@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Created on 04.10.2019
 

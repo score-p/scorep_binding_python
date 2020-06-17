@@ -1,4 +1,7 @@
 #include "events.hpp"
+#include <Python.h>
+#include <algorithm>
+#include <array>
 #include <iostream>
 #include <scorep/SCOREP_User_Functions.h>
 #include <scorep/SCOREP_User_Variables.h>
@@ -39,6 +42,16 @@ void region_begin(const std::string& region_name, std::string module, std::strin
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
+/// Region names that are known to have no region enter event and should not report an error
+/// on region exit
+static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
+#if PY_MAJOR_VERSION >= 3
+    "threading:_bootstrap_inner", "threading:_bootstrap"
+#else
+    "threading:__bootstrap_inner", "threading:__bootstrap"
+#endif
+};
+
 void region_end(const std::string& region_name)
 {
     const auto itRegion = regions.find(region_name);
@@ -51,6 +64,12 @@ void region_end(const std::string& region_name)
         static region_handle error_region;
         static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
         static bool error_printed = false;
+
+        if (std::find(EXIT_REGION_WHITELIST.begin(), EXIT_REGION_WHITELIST.end(), region_name) !=
+            EXIT_REGION_WHITELIST.end())
+        {
+            return;
+        }
 
         if (error_region.value == SCOREP_USER_INVALID_REGION)
         {

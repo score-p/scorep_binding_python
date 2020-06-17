@@ -313,7 +313,7 @@ def test_threads(scorep_env, instrumenter):
                                         ["--nocompiler",  "--instrumenter-type=" + instrumenter],
                                         env=scorep_env)
 
-    # assert std_err == "" TODO: Readd when issue #87 is resolved
+    assert std_err == ""
     assert "hello world\n" in std_out
     assert "Thread 0 started\n" in std_out
     assert "Thread 1 started\n" in std_out

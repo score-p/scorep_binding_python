@@ -32,22 +32,20 @@ for test in tests:
         results[test][instrumenter] = {}
 
         if instrumenter == "None":
-            enable_scorep = False
             scorep_settings = []
         else:
-            enable_scorep = True
-            scorep_settings = ["--instrumenter-type={}".format(instrumenter)]
+            scorep_settings = ["-m", "scorep", "--instrumenter-type={}".format(instrumenter)]
 
         print("#########")
         print("{}: {}".format(test, scorep_settings))
         print("#########")
+        max_reps_width = len(str(max(reps_x[test])))
         for reps in reps_x[test]:
             times = bench.call(test, [reps],
-                               enable_scorep,
                                scorep_settings=scorep_settings)
             times = np.array(times)
-            print("{:>8}: Range={:{prec}}-{:{prec}} Mean={:{prec}} Median={:{prec}}".format(
-                reps, times.min(), times.max(), times.mean(), np.median(times), prec='5.4f'))
+            print("{:>{width}}: Range={:{prec}}-{:{prec}} Mean={:{prec}} Median={:{prec}}".format(
+                reps, times.min(), times.max(), times.mean(), np.median(times), width=max_reps_width, prec='5.4f'))
             results[test][instrumenter][reps] = times
 
 with open("results.pkl", "wb") as f:

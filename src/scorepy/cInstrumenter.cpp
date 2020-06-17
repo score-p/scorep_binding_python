@@ -1,4 +1,5 @@
 #include "cInstrumenter.hpp"
+#include "cstring.h"
 #include "events.hpp"
 #include "pythonHelpers.hpp"
 #include <algorithm>
@@ -115,15 +116,12 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     case PyTrace_CALL:
     {
         const PyCodeObject& code = *frame.f_code;
-        const char* name = PyUnicode_AsUTF8(code.co_name);
-        const char* module_name = get_module_name(frame);
-        assert(name);
-        assert(module_name);
-        // TODO: Use string_view/CString comparison?
-        if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
+        const CString name = get_string_from_python(*code.co_name);
+        const CString module_name = get_module_name(frame);
+        if (name != "_unsetprofile" && !module_name.starts_with("scorep"))
         {
             const int line_number = code.co_firstlineno;
-            const auto file_name = get_file_name(frame);
+            const CString file_name = get_file_name(frame);
             region_begin(name, module_name, file_name, line_number,
                          reinterpret_cast<std::uintptr_t>(&code));
         }
@@ -132,12 +130,9 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     case PyTrace_RETURN:
     {
         const PyCodeObject& code = *frame.f_code;
-        const char* name = PyUnicode_AsUTF8(code.co_name);
-        const char* module_name = get_module_name(frame);
-        assert(name);
-        assert(module_name);
-        // TODO: Use string_view/CString comparison?
-        if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
+        const CString name = get_string_from_python(*code.co_name);
+        const CString module_name = get_module_name(frame);
+        if (name != "_unsetprofile" && !module_name.starts_with("scorep"))
         {
             region_end(name, module_name, reinterpret_cast<std::uintptr_t>(&code));
         }

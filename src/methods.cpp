@@ -1,6 +1,7 @@
 #include "methods.hpp"
 #include "scorepy/events.hpp"
 #include "scorepy/pathUtils.hpp"
+#include "scorepy/pythonHelpers.hpp"
 #include <Python.h>
 #include <cstdint>
 #include <scorep/SCOREP_User_Functions.h>
@@ -30,19 +31,20 @@ extern "C"
      */
     static PyObject* region_begin(PyObject* self, PyObject* args)
     {
-        const char* module;
-        const char* function_name;
-        const char* file_name;
+        scorepy::PythonCString module;
+        scorepy::PythonCString function_name;
+        scorepy::PythonCString file_name;
         PyObject* identifier = nullptr;
         std::uint64_t line_number = 0;
 
-        if (!PyArg_ParseTuple(args, "sssKO", &module, &function_name, &file_name, &line_number,
+        if (!PyArg_ParseTuple(args, "s#s#s#KO", &module.s, &module.l, &function_name.s,
+                              &function_name.l, &file_name.s, &file_name.l, &line_number,
                               &identifier))
         {
             return NULL;
         }
 
-        if (identifier == nullptr or identifier == Py_None)
+        if (identifier == Py_None)
         {
             scorepy::region_begin(function_name, module, file_name, line_number);
         }
@@ -60,16 +62,17 @@ extern "C"
      */
     static PyObject* region_end(PyObject* self, PyObject* args)
     {
-        const char* module;
-        const char* function_name;
+        scorepy::PythonCString module;
+        scorepy::PythonCString function_name;
         PyObject* identifier = nullptr;
 
-        if (!PyArg_ParseTuple(args, "ssO", &module, &function_name, &identifier))
+        if (!PyArg_ParseTuple(args, "s#s#O", &module.s, &module.l, &function_name.s,
+                              &function_name.l, &identifier))
         {
             return NULL;
         }
 
-        if (identifier == nullptr or identifier == Py_None)
+        if (identifier == Py_None)
         {
             scorepy::region_end(function_name, module);
         }

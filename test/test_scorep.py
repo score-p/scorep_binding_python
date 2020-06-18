@@ -250,10 +250,11 @@ def test_mpi(scorep_env, instrumenter):
                              "cases/mpi.py"],
                             env=scorep_env)
 
-    expected_std_out = r"\[0[0-9]\] \[0. 1. 2. 3. 4.\]\n\[0[0-9]] \[0. 1. 2. 3. 4.\]\n"
-
     assert re.search(r'\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED', std_err)
-    assert re.search(expected_std_out, std_out)
+    assert '[00] [0. 1. 2. 3. 4.]\n' in std_out
+    assert '[01] [0. 1. 2. 3. 4.]\n' in std_out
+    assert 'bar\n' in std_out
+    assert 'baz\n' in std_out
 
     std_out, std_err = call(["otf2-print", trace_path])
 

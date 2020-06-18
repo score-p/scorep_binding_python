@@ -71,7 +71,7 @@ for test in args.test:
         print("#########")
         loop_counts = args.loop_count if args.loop_count else reps_x[test]
         for reps in loop_counts:
-            times = bench.call(test, [reps],
+            times = bench.call(test, [str(reps)],
                                enable_scorep,
                                scorep_settings=scorep_settings)
             print("{:<8}: {}".format(reps, times))

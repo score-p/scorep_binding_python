@@ -11,7 +11,6 @@ def _err_exit(msg):
 
 
 def scorep_main(argv=None):
-    # print(sys.flags)
     if argv is None:
         argv = sys.argv
 
@@ -61,10 +60,9 @@ def scorep_main(argv=None):
     if len(prog_argv) == 0:
         _err_exit("Did not find a script to run")
 
-    if ("SCOREP_PYTHON_BINDINGS_INITALISED" not in os.environ) or (
-            os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] != "true"):
+    if os.environ.get("SCOREP_PYTHON_BINDINGS_INITIALISED") != "true":
         scorep.subsystem.init_environment(scorep_config, keep_files)
-        os.environ["SCOREP_PYTHON_BINDINGS_INITALISED"] = "true"
+        os.environ["SCOREP_PYTHON_BINDINGS_INITIALISED"] = "true"
         """
         python -m starts the module as skript. i.e. sys.argv will loke like:
         ['/home/gocht/Dokumente/code/scorep_python/scorep.py', '--mpi', 'mpi_test.py']
@@ -80,7 +78,7 @@ def scorep_main(argv=None):
 
         os.execve(sys.executable, new_args, os.environ)
     else:
-        scorep.subsystem.reset_pereload()
+        scorep.subsystem.reset_preload()
 
     # everything is ready
     sys.argv = prog_argv

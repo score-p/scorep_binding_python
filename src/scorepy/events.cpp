@@ -1,4 +1,7 @@
 #include "events.hpp"
+#include <Python.h>
+#include <algorithm>
+#include <array>
 #include <iostream>
 #include <scorep/SCOREP_User_Functions.h>
 #include <scorep/SCOREP_User_Variables.h>
@@ -9,10 +12,16 @@ namespace scorepy
 
 struct region_handle
 {
-    region_handle() = default;
+    constexpr region_handle() = default;
     ~region_handle() = default;
+    constexpr bool operator==(const region_handle& other)
+    {
+        return this->value == other.value;
+    }
     SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
 };
+
+constexpr region_handle uninitialised_region_handle = region_handle();
 
 static std::unordered_map<std::string, region_handle> regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
@@ -20,18 +29,28 @@ static std::unordered_map<std::string, region_handle> rewind_regions;
 void region_begin(const std::string& region_name, std::string module, std::string file_name,
                   std::uint64_t line_number)
 {
-    auto pair = regions.emplace(make_pair(region_name, region_handle()));
-    bool inserted_new = pair.second;
-    auto& handle = pair.first->second;
-    if (inserted_new)
+    auto& region_handle = regions[region_name];
+
+    if (region_handle == uninitialised_region_handle)
     {
-        SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
+        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
                                region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                                file_name.c_str(), line_number);
-        SCOREP_User_RegionSetGroup(handle.value, std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(region_handle.value,
+                                   std::string(module, 0, module.find('.')).c_str());
     }
-    SCOREP_User_RegionEnter(handle.value);
+    SCOREP_User_RegionEnter(region_handle.value);
 }
+
+/// Region names that are known to have no region enter event and should not report an error
+/// on region exit
+static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
+#if PY_MAJOR_VERSION >= 3
+    "threading:_bootstrap_inner", "threading:_bootstrap"
+#else
+    "threading:__bootstrap_inner", "threading:__bootstrap"
+#endif
+};
 
 void region_end(const std::string& region_name)
 {
@@ -45,6 +64,12 @@ void region_end(const std::string& region_name)
         static region_handle error_region;
         static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
         static bool error_printed = false;
+
+        if (std::find(EXIT_REGION_WHITELIST.begin(), EXIT_REGION_WHITELIST.end(), region_name) !=
+            EXIT_REGION_WHITELIST.end())
+        {
+            return;
+        }
 
         if (error_region.value == SCOREP_USER_INVALID_REGION)
         {

@@ -39,16 +39,13 @@ extern "C"
                               &line_number))
             return NULL;
 
-        static std::string region = "";
-        region = module;
-        region += ":";
-        region += region_name;
-        scorepy::region_begin(identifier, region, module, file_name, line_number);
+        const std::string& region = scorepy::make_region_name(module, region_name);
         if (region == "reload_test:foo")
         {
             std::cout << "Pointer: " << reinterpret_cast<size_t>(code_object) << std::endl;
             std::cout << "Pointer: " << code_object << std::endl;
         }
+        scorepy::region_begin(region, module, file_name, line_number);
 
         Py_RETURN_NONE;
     }
@@ -64,10 +61,7 @@ extern "C"
         if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
             return NULL;
 
-        static std::string region = "";
-        region = module;
-        region += ":";
-        region += region_name;
+        const std::string& region = scorepy::make_region_name(module, region_name);
         scorepy::region_end(region);
 
         Py_RETURN_NONE;
@@ -166,7 +160,7 @@ extern "C"
         Py_RETURN_NONE;
     }
 
-    static PyObject* get_expiriment_dir_name(PyObject* self, PyObject* args)
+    static PyObject* get_experiment_dir_name(PyObject* self, PyObject* args)
     {
 
         return PyUnicode_FromString(SCOREP_GetExperimentDirName());
@@ -184,7 +178,7 @@ extern "C"
         { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
         { "parameter_uint", parameter_uint, METH_VARARGS, "User parameter uint." },
         { "parameter_string", parameter_string, METH_VARARGS, "User parameter string." },
-        { "get_expiriment_dir_name", get_expiriment_dir_name, METH_VARARGS,
+        { "get_experiment_dir_name", get_experiment_dir_name, METH_VARARGS,
           "Get the Score-P experiment dir." },
         { NULL, NULL, 0, NULL } /* Sentinel */
     };

@@ -1,4 +1,5 @@
 import os
+import sys
 from distutils.core import setup, Extension
 import scorep.helper
 
@@ -24,8 +25,10 @@ cmodules = []
 src_folder = os.path.abspath('src')
 include += [src_folder]
 sources = ['src/methods.cpp', 'src/scorep_bindings.cpp', 'src/scorepy/events.cpp']
+if sys.version_info.major >= 3:
+    sources.extend(['src/classes.cpp', 'src/scorepy/cInstrumenter.cpp', 'src/scorepy/pythonHelpers.cpp'])
 
-cmodules.append(Extension('scorep.scorep_bindings',
+cmodules.append(Extension('scorep._bindings',
                           include_dirs=include,
                           define_macros=[('PY_SSIZE_T_CLEAN', '1')],
                           extra_compile_args=["-std=c++11"],

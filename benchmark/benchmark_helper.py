@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import time
+import tempfile
 
 
 class BenchmarkEnv():
@@ -12,19 +13,13 @@ class BenchmarkEnv():
         self.env["SCOREP_ENABLE_TRACING"] = "false"
         self.env["SCOREP_PROFILING_MAX_CALLPATH_DEPTH"] = "98"
         self.env["SCOREP_TOTAL_MEMORY"] = "3G"
-        self.exp_dir = "benchmark_dir"
+        self.exp_dir = tempfile.mkdtemp(prefix="benchmark_dir_")
         self.repetitions = repetitions
 
+    def __del__(self):
         shutil.rmtree(
             self.exp_dir,
             ignore_errors=True)
-        os.mkdir(self.exp_dir)
-
-    def __del__(self):
-        pass
-#         shutil.rmtree(
-#             self.exp_dir,
-#             ignore_errors=True)
 
     def call(self, script="", ops=[], enable_scorep=True, scorep_settings=[]):
         self.env["SCOREP_EXPERIMENT_DIRECTORY"] = self.exp_dir + \
@@ -36,18 +31,16 @@ class BenchmarkEnv():
             arguments.extend(scorep_settings)
         arguments.append(script)
         arguments.extend(ops)
+        print(arguments)
 
         runtimes = []
-        for i in range(self.repetitions):
+        for _ in range(self.repetitions):
             begin = time.time()
-            print(arguments)
             out = subprocess.run(
                 arguments,
-                env=self.env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+                env=self.env)
             end = time.time()
-            assert(out.returncode == 0)
+            assert out.returncode == 0
 
             runtime = end - begin
             runtimes.append(runtime)

@@ -44,7 +44,8 @@ To trace the full script, you need to run
 python -m scorep <script.py>
 ```
 
-The usual Score-P environment Variables will be respected. Please have a look at:
+The usual Score-P environment Variables will be respected.
+Please have a look at:
 
 [www.vi-hps.org](http://www.vi-hps.org/projects/score-p/)
 
@@ -62,20 +63,24 @@ python -m scorep --mpp=mpi --thread=pthread <script.py>
 
 ## Instrumenter
 The instrumenter ist the key part of the bindings.
-He registers with the Python tracing interface, and cares about the fowarding of events to Score-P.
-There are currently three different instrumenter types available as described in the following section [Instrumenter Types](#instrumenter-types) .
+It registers with the Python tracing interface, and cares about the fowarding of events to Score-P.
+There are currently five different instrumenter types available as described in the following section [Instrumenter Types](#instrumenter-types) .
 A user interface, to dynamically enable and disable the automatic instrumentation, using the python hooks, is also available and described under [Instrumenter User Interface](#instrumenter-user-interface)
 
 ### Instrumenter Types
-With version 2.0 of the python bindings, the term "instrumenter" is introduced. The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P. Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).
+With version 2.0 of the python bindings, the term "instrumenter" is introduced.
+The instrumenter describes the class that maps the Python `trace` or `profile` events to Score-P.
+Please be aware, that `trace` and `profile` does not refer to the traditional Score-P terms of tracing and profiling, but to the Python functions [sys.settrace](https://docs.python.org/3/library/sys.html#sys.settrace) and [sys.setprofile](https://docs.python.org/3/library/sys.html#sys.setprofile).
 
 The instrumenter that shall be used for tracing can be specified using `--instrumenter-type=<type>`.
-Currently there are the following tacers available:
+Currently there are the following instrumenters available:
  * `profile` (default) implements `call` and `return`  
  * `trace` implements `call` and `return`
+ * `cProfile` / `cTrace` are the same as the above but implemented in C++
  * `dummy` does nothing, can be used without `-m scorep` (as done by user instrumentation)
 
 The `profile` instrumenter should have a smaller overhead than `trace`.
+Using the instrumenters implemented in C++ additionally reduces the overhead but those are only available in Python 3.
 
 It is possible to disable the instrumenter passing  `--noinstrumenter`.
 However, the [Instrumenter User Interface](#instrumenter-user-interface) may override this flag.
@@ -196,22 +201,23 @@ scorep.user.parameter_uint(name, val)
 scorep.user.parameter_string(name, string)
 ```
 
-where `name` defines the name of the parameter or region, while `val` or `string` represents the value that is passed to Score-P. 
+where `name` defines the name of the parameter or region, while `val` or `string` represents the value that is passed to Score-P.
 
-Disabeling the recording with Score-P is still also possilbe:
+Disabling the recording with Score-P is still also possible:
 
 ```
 scorep.user.enable_recording()
 scorep.user.disable_recording()
 ```
 
-However, please be aware that the runtime impact of disabeling Score-P is rather small, as the instrumenter is still active. For details about the instrumenter, please see [Instrumenter](#Instrumenter).  
+However, please be aware that the runtime impact of disabling Score-P is rather small, as the instrumenter is still active.
+For details about the instrumenter, please see [Instrumenter](#Instrumenter).
 
 ## Overview about Flags
 
 The following flags are special to the python bindings:
 
- * `--noinstrumenter` disables the instrumentation of python code. Usefull for user instrumentation and to trace only specific code regions using `scorep.instrumenter.enable`.
+ * `--noinstrumenter` disables the instrumentation of python code. Useful for user instrumentation and to trace only specific code regions using `scorep.instrumenter.enable`.
  * `--instrumenter-type=<type>` choose an instrumenter. See  [Instrumenter](#Instrumenter).
  * `--keep-files` temporary files are kept.
 
@@ -235,7 +241,8 @@ To disable compiler instrumentation, please specify:
 python -m scorep --nocompiler <script.py>
 ```
 
-For other thread schemes just specify `--thread=<something>`. E.g. :
+For other thread schemes just specify `--thread=<something>`.
+E.g. :
 
 ```
 python -m scorep --thread=omp <script.py>
@@ -246,7 +253,7 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 # Compatibility
 ## Working
 * python3 
-* python2.7
+* python2.7, but not all features are supported
 * mpi using mpi4py
 * threaded applications
 

@@ -3,7 +3,7 @@ __all__ = ['ScorepTrace']
 import sys
 from scorep._instrumenters.utils import get_module_name, get_file_name
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
-from scorep import scorep_bindings
+import scorep._bindings
 
 try:
     import threading
@@ -40,7 +40,7 @@ class ScorepTrace(ScorepInstrumenter):
             if not code.co_name == "_unsettrace" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)
                 line_number = code.co_firstlineno
-                scorep_bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
+                scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
                 return self._localtrace
         return None
 
@@ -48,5 +48,5 @@ class ScorepTrace(ScorepInstrumenter):
         if why == 'return':
             code = frame.f_code
             modulename = get_module_name(frame)
-            scorep_bindings.region_end(modulename, code.co_name)
+            scorep._bindings.region_end(modulename, code.co_name)
         return self._localtrace

@@ -38,8 +38,9 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
-void region_begin(const std::string& region, const std::string module, const std::string file_name,
-                  const std::uint64_t line_number, const std::uintptr_t& identifier)
+void region_begin(const std::string& region, const std::string& module,
+                  const std::string& file_name, const std::uint64_t line_number,
+                  const std::uintptr_t& identifier)
 {
     auto& region_handle = regions[identifier];
 
@@ -65,8 +66,8 @@ void region_begin(const std::string& region, const std::string module, const std
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-void region_begin(const std::string& region, const std::string module, const std::string file_name,
-                  const std::uint64_t line_number)
+void region_begin(const std::string& region, const std::string& module,
+                  const std::string& file_name, const std::uint64_t line_number)
 {
     auto& region_name = make_region_name(module, region);
     auto& region_handle = user_regions[region_name];

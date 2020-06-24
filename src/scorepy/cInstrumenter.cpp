@@ -137,7 +137,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
         // TODO: Use string_view/CString comparison?
         if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
         {
-            region_end(module_name, name);
+            region_end(name, module_name);
         }
         break;
     }

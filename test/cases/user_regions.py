@@ -1,6 +1,7 @@
 import scorep.user
 import scorep.instrumenter
 
+
 def foo():
     scorep.user.region_begin("test_region")
     print("hello world")

@@ -4,7 +4,6 @@ import sys
 from scorep._instrumenters.utils import get_module_name, get_file_name
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
 import scorep._bindings
-import inspect
 
 try:
     import threading
@@ -41,7 +40,6 @@ class ScorepProfile(ScorepInstrumenter):
             code = frame.f_code
             modulename = get_module_name(frame)
 
-           
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)
                 line_number = code.co_firstlineno

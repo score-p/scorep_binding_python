@@ -276,6 +276,7 @@ def test_call_main(scorep_env, instrumenter):
     assert re.search(expected_std_err, std_err)
     assert std_out == expected_std_out
 
+
 @foreach_instrumenter
 def test_classes(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
@@ -293,7 +294,7 @@ def test_classes(scorep_env, instrumenter):
     std_out, std_err = call(["otf2-print", trace_path])
 
     assert std_err == ""
-    
+
     region_ids = []
     foo_count = 0
     for line in std_out.split("\n"):
@@ -301,19 +302,19 @@ def test_classes(scorep_env, instrumenter):
         if m is not None:
             foo_count += 1
             r_id = m.group(1)
-            
+
             if foo_count == 1:
                 region_ids.append(r_id)
                 continue
-            
+
             if foo_count < 4:
-                assert region_ids[-1] < r_id # check if foo regions are different
+                assert region_ids[-1] < r_id  # check if foo regions are different
             else:
-                assert r_id == region_ids[0] # check if last foo is fist foo
+                assert r_id == region_ids[0]  # check if last foo is fist foo
             region_ids.append(r_id)
-            
+
     assert len(region_ids) == 4
-    
+
 
 def test_dummy(scorep_env):
     std_out, std_err = call_with_scorep("cases/instrumentation.py",
@@ -349,7 +350,7 @@ def test_threads(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
     std_out, std_err = call_with_scorep("cases/use_threads.py",
-                                        ["--nocompiler",  "--instrumenter-type=" + instrumenter],
+                                        ["--nocompiler", "--instrumenter-type=" + instrumenter],
                                         env=scorep_env)
 
     assert std_err == ""

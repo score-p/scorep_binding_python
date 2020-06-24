@@ -1,3 +1,4 @@
+import reload_test
 import importlib
 import os
 
@@ -14,10 +15,9 @@ def bar():
 """
 
 
-with open("reload_test.py","w") as f:
+with open("reload_test.py", "w") as f:
     f.write(data1)
 
-import reload_test
 reload_test.foo()
 reload_test.foo()
 
@@ -25,7 +25,7 @@ importlib.reload(reload_test)
 reload_test.foo()
 
 
-with open("reload_test.py","w") as f:
+with open("reload_test.py", "w") as f:
     f.write(data2)
 
 importlib.reload(reload_test)
@@ -33,4 +33,3 @@ reload_test.foo("foo2")
 reload_test.bar()
 
 os.remove("reload_test.py")
-

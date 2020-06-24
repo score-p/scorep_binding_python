@@ -39,26 +39,18 @@ class ScorepProfile(ScorepInstrumenter):
         """
         if why == 'call':
             code = frame.f_code
-            
+            modulename = get_module_name(frame)
+
             if "foo" in code.co_name:
                 print("#########################################")
                 print("code.co_name == foo", id(frame.f_code))
+                print("region name == foo", modulename + ":" + code.co_name)
                 print("#########################################")
-                #print(frame.f_globals.get('__name__', None))
-            #print(code.co_name)
-                #print(code.__dir__())
-                #print(frame.f_locals["self"].__class__.__name__)
-            #print(frame.f_globals)
-            #print(frame.f_locals)
             
-                #print(dir(frame.f_globals))
-            
-            
-            modulename = get_module_name(frame)
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)
                 line_number = code.co_firstlineno
-                scorep_bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
+                scorep_bindings.region_begin(frame.f_code, modulename, code.co_name, full_file_name, line_number)
         elif why == 'return':
             code = frame.f_code
             modulename = get_module_name(frame)

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <scorep/SCOREP_User_Functions.h>
 
+#include <iostream>
+
 extern "C"
 {
 
@@ -30,16 +32,23 @@ extern "C"
         const char* module;
         const char* region_name;
         const char* file_name;
+        const PyObject* identifier;
         std::uint64_t line_number = 0;
 
-        if (!PyArg_ParseTuple(args, "sssK", &module, &region_name, &file_name, &line_number))
+        if (!PyArg_ParseTuple(args, "OsssK", &identifier, &module, &region_name, &file_name,
+                              &line_number))
             return NULL;
 
         static std::string region = "";
         region = module;
         region += ":";
         region += region_name;
-        scorepy::region_begin(region, module, file_name, line_number);
+        scorepy::region_begin(identifier, region, module, file_name, line_number);
+        if (region == "reload_test:foo")
+        {
+            std::cout << "Pointer: " << reinterpret_cast<size_t>(code_object) << std::endl;
+            std::cout << "Pointer: " << code_object << std::endl;
+        }
 
         Py_RETURN_NONE;
     }

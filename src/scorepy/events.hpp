@@ -1,13 +1,14 @@
 #pragma once
 
+#include <Python.h>
 #include <cstdint>
 #include <string>
 
 namespace scorepy
 {
-void region_begin(const std::string& region_name, std::string module, std::string file_name,
-                  std::uint64_t line_number);
-void region_end(const std::string& region_name);
+void region_begin(const PyObject*&, const std::string& region_name, std::string module,
+                  std::string file_name, std::uint64_t line_number);
+void region_end(const PyObject*&);
 
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number);
 void rewind_end(std::string region_name, bool value);

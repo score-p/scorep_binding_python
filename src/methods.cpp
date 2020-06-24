@@ -41,14 +41,13 @@ extern "C"
             return NULL;
         }
 
-        const std::string& region = scorepy::make_region_name(module, region_name);
         if (identifier == nullptr)
         {
-            scorepy::region_begin(region, module, file_name, line_number);
+            scorepy::region_begin(region_name, module, file_name, line_number);
         }
         else
         {
-            scorepy::region_begin(region, module, file_name, line_number,
+            scorepy::region_begin(region_name, module, file_name, line_number,
                                   reinterpret_cast<std::uintptr_t>(identifier));
         }
 
@@ -69,14 +68,13 @@ extern "C"
             return NULL;
         }
 
-        const std::string& region = scorepy::make_region_name(module, region_name);
         if (identifier == nullptr)
         {
-            scorepy::region_end(region);
+            scorepy::region_end(module, region_name);
         }
         else
         {
-            scorepy::region_end(region, reinterpret_cast<std::uintptr_t>(identifier));
+            scorepy::region_end(module, region_name, reinterpret_cast<std::uintptr_t>(identifier));
         }
 
         Py_RETURN_NONE;

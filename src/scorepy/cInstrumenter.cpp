@@ -122,9 +122,8 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
         if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
         {
             const int line_number = code.co_firstlineno;
-            const auto& region_name = make_region_name(module_name, name);
             const auto file_name = get_file_name(frame);
-            region_begin(region_name, module_name, file_name, line_number);
+            region_begin(name, module_name, file_name, line_number);
         }
         break;
     }
@@ -138,8 +137,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
         // TODO: Use string_view/CString comparison?
         if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
         {
-            const auto& region_name = make_region_name(module_name, name);
-            region_end(region_name);
+            region_end(module_name, name);
         }
         break;
     }

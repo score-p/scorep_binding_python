@@ -38,14 +38,14 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
-void region_begin(const std::string& region_name, const std::string module,
-                  const std::string file_name, const std::uint64_t line_number,
-                  const std::uintptr_t& identifier)
+void region_begin(const std::string& region, const std::string module, const std::string file_name,
+                  const std::uint64_t line_number, const std::uintptr_t& identifier)
 {
     auto& region_handle = regions[identifier];
 
     if (region_handle == uninitialised_region_handle)
     {
+        auto& region_name = make_region_name(module, region);
         auto it = user_regions.find(region_name);
         if (it == user_regions.end())
         {
@@ -65,9 +65,10 @@ void region_begin(const std::string& region_name, const std::string module,
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-void region_begin(const std::string& region_name, const std::string module,
-                  const std::string file_name, const std::uint64_t line_number)
+void region_begin(const std::string& region, const std::string module, const std::string file_name,
+                  const std::uint64_t line_number)
 {
+    auto& region_name = make_region_name(module, region);
     auto& region_handle = user_regions[region_name];
 
     if (region_handle == uninitialised_region_handle)
@@ -90,7 +91,8 @@ void region_begin(const std::string& region_name, const std::string module,
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-void region_end(const std::string& region_name, const std::uintptr_t& identifier)
+void region_end(const std::string& region, const std::string& module,
+                const std::uintptr_t& identifier)
 {
     const auto it_region = regions.find(identifier);
     if (it_region != regions.end())
@@ -99,12 +101,14 @@ void region_end(const std::string& region_name, const std::uintptr_t& identifier
     }
     else
     {
+        auto& region_name = make_region_name(module, region);
         region_end_error_handling(region_name);
     }
 }
 
-void region_end(const std::string& region_name)
+void region_end(const std::string& region, const std::string& module)
 {
+    auto& region_name = make_region_name(module, region);
     const auto it_region = user_regions.find(region_name);
     if (it_region != user_regions.end())
     {

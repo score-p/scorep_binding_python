@@ -1,5 +1,5 @@
 import scorep.user
-
+import scorep.instrumenter
 
 def foo():
     scorep.user.region_begin("test_region")
@@ -24,5 +24,8 @@ def foo4():
 
 foo()
 foo2()
-foo3()
+with scorep.instrumenter.enable():
+    foo3()
+with scorep.instrumenter.disable():
+    foo3()
 foo4()

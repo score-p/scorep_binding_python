@@ -60,7 +60,7 @@ void region_begin(const std::string& region_name, const std::string module,
         {
             region_handle = it->second;
         }
-        region_translations[region_name] = identifier;
+        region_translations[region_name + std::to_string(line_number)] = identifier;
     }
     SCOREP_User_RegionEnter(region_handle.value);
 }
@@ -72,7 +72,7 @@ void region_begin(const std::string& region_name, const std::string module,
 
     if (region_handle == uninitialised_region_handle)
     {
-        auto it_translation = region_translations.find(region_name);
+        auto it_translation = region_translations.find(region_name + std::to_string(line_number));
         if (it_translation == region_translations.end())
         {
             SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,

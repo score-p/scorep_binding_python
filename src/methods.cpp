@@ -32,20 +32,25 @@ extern "C"
         const char* module;
         const char* region_name;
         const char* file_name;
-        const PyObject* identifier;
+        PyObject* identifier = nullptr;
         std::uint64_t line_number = 0;
 
-        if (!PyArg_ParseTuple(args, "OsssK", &identifier, &module, &region_name, &file_name,
-                              &line_number))
+        if (!PyArg_ParseTuple(args, "sssK|O", &module, &region_name, &file_name, &line_number,
+                              &identifier))
+        {
             return NULL;
+        }
 
         const std::string& region = scorepy::make_region_name(module, region_name);
-        if (region == "reload_test:foo")
+        if (identifier == nullptr)
         {
-            std::cout << "Pointer: " << reinterpret_cast<size_t>(code_object) << std::endl;
-            std::cout << "Pointer: " << code_object << std::endl;
+            scorepy::region_begin(region, module, file_name, line_number);
         }
-        scorepy::region_begin(region, module, file_name, line_number);
+        else
+        {
+            scorepy::region_begin(region, module, file_name, line_number,
+                                  reinterpret_cast<std::uintptr_t>(identifier));
+        }
 
         Py_RETURN_NONE;
     }
@@ -57,12 +62,22 @@ extern "C"
     {
         const char* module;
         const char* region_name;
+        PyObject* identifier = nullptr;
 
-        if (!PyArg_ParseTuple(args, "ss", &module, &region_name))
+        if (!PyArg_ParseTuple(args, "ss|O", &module, &region_name, &identifier))
+        {
             return NULL;
+        }
 
         const std::string& region = scorepy::make_region_name(module, region_name);
-        scorepy::region_end(region);
+        if (identifier == nullptr)
+        {
+            scorepy::region_end(region);
+        }
+        else
+        {
+            scorepy::region_end(region, reinterpret_cast<std::uintptr_t>(identifier));
+        }
 
         Py_RETURN_NONE;
     }

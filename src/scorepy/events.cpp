@@ -23,24 +23,10 @@ struct region_handle
 
 constexpr region_handle uninitialised_region_handle = region_handle();
 
-static std::unordered_map<std::string, region_handle> regions;
+static std::unordered_map<std::uintptr_t, region_handle> regions;
+static std::unordered_map<std::string, std::uintptr_t> region_translations;
+static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
-
-void region_begin(const std::string& region_name, std::string module, std::string file_name,
-                  std::uint64_t line_number)
-{
-    auto& region_handle = regions[region_name];
-
-    if (region_handle == uninitialised_region_handle)
-    {
-        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
-                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                               file_name.c_str(), line_number);
-        SCOREP_User_RegionSetGroup(region_handle.value,
-                                   std::string(module, 0, module.find('.')).c_str());
-    }
-    SCOREP_User_RegionEnter(region_handle.value);
-}
 
 /// Region names that are known to have no region enter event and should not report an error
 /// on region exit
@@ -52,44 +38,113 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
-void region_end(const std::string& region_name)
+void region_begin(const std::string& region_name, const std::string module,
+                  const std::string file_name, const std::uint64_t line_number,
+                  const std::uintptr_t& identifier)
 {
-    const auto itRegion = regions.find(region_name);
-    if (itRegion != regions.end())
+    auto& region_handle = regions[identifier];
+
+    if (region_handle == uninitialised_region_handle)
     {
-        SCOREP_User_RegionEnd(itRegion->second.value);
+        auto it = user_regions.find(region_name);
+        if (it == user_regions.end())
+        {
+            SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
+                                   region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                                   file_name.c_str(), line_number);
+
+            SCOREP_User_RegionSetGroup(region_handle.value,
+                                       std::string(module, 0, module.find('.')).c_str());
+        }
+        else
+        {
+            region_handle = it->second;
+        }
+        region_translations[region_name] = identifier;
+    }
+    SCOREP_User_RegionEnter(region_handle.value);
+}
+
+void region_begin(const std::string& region_name, const std::string module,
+                  const std::string file_name, const std::uint64_t line_number)
+{
+    auto& region_handle = user_regions[region_name];
+
+    if (region_handle == uninitialised_region_handle)
+    {
+        auto it_translation = region_translations.find(region_name);
+        if (it_translation == region_translations.end())
+        {
+            SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
+                                   region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                                   file_name.c_str(), line_number);
+
+            SCOREP_User_RegionSetGroup(region_handle.value,
+                                       std::string(module, 0, module.find('.')).c_str());
+        }
+        else
+        {
+            region_handle = regions[it_translation->second];
+        }
+    }
+    SCOREP_User_RegionEnter(region_handle.value);
+}
+
+void region_end(const std::string& region_name, const std::uintptr_t& identifier)
+{
+    const auto it_region = regions.find(identifier);
+    if (it_region != regions.end())
+    {
+        SCOREP_User_RegionEnd(it_region->second.value);
     }
     else
     {
-        static region_handle error_region;
-        static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
-        static bool error_printed = false;
+        region_end_error_handling(region_name);
+    }
+}
 
-        if (std::find(EXIT_REGION_WHITELIST.begin(), EXIT_REGION_WHITELIST.end(), region_name) !=
-            EXIT_REGION_WHITELIST.end())
-        {
-            return;
-        }
+void region_end(const std::string& region_name)
+{
+    const auto it_region = user_regions.find(region_name);
+    if (it_region != user_regions.end())
+    {
+        SCOREP_User_RegionEnd(it_region->second.value);
+    }
+    else
+    {
+        region_end_error_handling(region_name);
+    }
+}
 
-        if (error_region.value == SCOREP_USER_INVALID_REGION)
-        {
-            SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
-                                   "error_region", SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp",
-                                   0);
-            SCOREP_User_RegionSetGroup(error_region.value, "error");
-        }
-        SCOREP_User_RegionEnter(error_region.value);
-        SCOREP_User_ParameterString(&scorep_param, "leave-region", region_name.c_str());
-        SCOREP_User_RegionEnd(error_region.value);
+void region_end_error_handling(const std::string& region_name)
+{
+    static region_handle error_region;
+    static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
+    static bool error_printed = false;
 
-        if (!error_printed)
-        {
-            std::cerr << "SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n"
-                      << "SCOREP_BINDING_PYTHON ERROR: For details look for \"error_region\" in "
-                         "the trace or profile."
-                      << std::endl;
-            error_printed = true;
-        }
+    if (std::find(EXIT_REGION_WHITELIST.begin(), EXIT_REGION_WHITELIST.end(), region_name) !=
+        EXIT_REGION_WHITELIST.end())
+    {
+        return;
+    }
+
+    if (error_region.value == SCOREP_USER_INVALID_REGION)
+    {
+        SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
+                               "error_region", SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp", 0);
+        SCOREP_User_RegionSetGroup(error_region.value, "error");
+    }
+    SCOREP_User_RegionEnter(error_region.value);
+    SCOREP_User_ParameterString(&scorep_param, "leave-region", region_name.c_str());
+    SCOREP_User_RegionEnd(error_region.value);
+
+    if (!error_printed)
+    {
+        std::cerr << "SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n"
+                  << "SCOREP_BINDING_PYTHON ERROR: For details look for \"error_region\" in "
+                     "the trace or profile."
+                  << std::endl;
+        error_printed = true;
     }
 }
 
@@ -136,7 +191,7 @@ void parameter_string(std::string name, std::string value)
 
 void oa_region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
 {
-    auto& handle = regions[region_name];
+    auto& handle = user_regions[region_name];
     SCOREP_User_OaPhaseBegin(&handle.value, &SCOREP_User_LastFileName, &SCOREP_User_LastFileHandle,
                              region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
                              file_name.c_str(), line_number);
@@ -144,7 +199,7 @@ void oa_region_begin(std::string region_name, std::string file_name, std::uint64
 
 void oa_region_end(std::string region_name)
 {
-    auto& handle = regions[region_name];
+    auto& handle = user_regions[region_name];
     SCOREP_User_OaPhaseEnd(handle.value);
 }
 

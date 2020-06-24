@@ -17,9 +17,16 @@ inline const std::string& make_region_name(const char* module_name, const char* 
     return region;
 }
 
-void region_begin(const PyObject*&, const std::string& region_name, std::string module,
-                  std::string file_name, std::uint64_t line_number);
-void region_end(const PyObject*&);
+void region_begin(const std::string& region_name, const std::string module,
+                  const std::string file_name, const std::uint64_t line_number,
+                  const std::uintptr_t& identifier);
+void region_begin(const std::string& region_name, const std::string module,
+                  const std::string file_name, const std::uint64_t line_number);
+
+void region_end(const std::string& region_name, const std::uintptr_t& identifier);
+void region_end(const std::string& region_name);
+
+void region_end_error_handling(const std::string& region_name);
 
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number);
 void rewind_end(std::string region_name, bool value);

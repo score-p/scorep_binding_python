@@ -46,7 +46,7 @@ void region_begin(const std::string& region, const std::string& module,
 
     if (region_handle == uninitialised_region_handle)
     {
-        auto& region_name = make_region_name(module, region);
+        const auto& region_name = make_region_name(module, region);
         auto it = user_regions.find(region_name);
         if (it == user_regions.end())
         {
@@ -69,7 +69,7 @@ void region_begin(const std::string& region, const std::string& module,
 void region_begin(const std::string& region, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number)
 {
-    auto& region_name = make_region_name(module, region);
+    const auto& region_name = make_region_name(module, region);
     auto& region_handle = user_regions[region_name];
 
     if (region_handle == uninitialised_region_handle)

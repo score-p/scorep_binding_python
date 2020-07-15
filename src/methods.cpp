@@ -35,7 +35,7 @@ extern "C"
         PyObject* identifier = nullptr;
         std::uint64_t line_number = 0;
 
-        if (!PyArg_ParseTuple(args, "sssK|O", &module, &function_name, &file_name, &line_number,
+        if (!PyArg_ParseTuple(args, "sssKO", &module, &function_name, &file_name, &line_number,
                               &identifier))
         {
             return NULL;
@@ -63,7 +63,7 @@ extern "C"
         const char* function_name;
         PyObject* identifier = nullptr;
 
-        if (!PyArg_ParseTuple(args, "ss|O", &module, &function_name, &identifier))
+        if (!PyArg_ParseTuple(args, "ssO", &module, &function_name, &identifier))
         {
             return NULL;
         }

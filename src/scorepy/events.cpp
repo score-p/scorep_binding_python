@@ -37,7 +37,8 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
-// Userd for regions, that have an idetifier, aka a code object id
+// Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
+// some decorated regions)
 void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number,
                   const std::uintptr_t& identifier)
@@ -56,7 +57,8 @@ void region_begin(const std::string& function_name, const std::string& module,
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-// Used for regions, that only have a function name, a module, a file and a line number (user regions)
+// Used for regions, that only have a function name, a module, a file and a line number (user
+// regions)
 void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number)
 {
@@ -74,7 +76,8 @@ void region_begin(const std::string& function_name, const std::string& module,
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-// Userd for regions, that have an idetifier, aka a code object id
+// Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
+// some decorated regions)
 void region_end(const std::string& function_name, const std::string& module,
                 const std::uintptr_t& identifier)
 {

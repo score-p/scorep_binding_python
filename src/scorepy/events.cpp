@@ -180,7 +180,7 @@ void parameter_string(std::string name, std::string value)
 void oa_region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
 {
     auto& handle = user_regions[region_name];
-    SCOREP_User_OaPhaseBegin(&handle.value, &SCOREP_User_LastFileName, NULL, region_name.c_str(),
+    SCOREP_User_OaPhaseBegin(&handle.value, NULL, NULL, region_name.c_str(),
                              SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 }
 

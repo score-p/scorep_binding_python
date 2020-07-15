@@ -75,6 +75,7 @@ class region(object):
         initally_registered = instrumenter.get_instrumenter().get_registered()
         with scorep.instrumenter.disable():
             if(self.user_region_name):
+                # The user did specify a region name, so its a user_region
                 self.module_name = "user"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)
@@ -86,56 +87,47 @@ class region(object):
 
                 scorep.instrumenter.get_instrumenter().region_begin(
                     self.module_name, self.region_name, full_file_name, line_number)
-            elif(callable(self.func)):
-                # looks like the decorator is invoked
-                if not initally_registered:
-                    self.region_name = self.func.__name__
-                    self.module_name = self.func.__module__
-                    self.code_obj = self.func.__code__
-                    file_name = self.func.__code__.co_filename
-                    line_number = self.func.__code__.co_firstlineno
+            elif callable(self.func) and not initally_registered:
+                # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
+                self.region_name = self.func.__name__
+                self.module_name = self.func.__module__
+                self.code_obj = self.func.__code__
+                file_name = self.func.__code__.co_filename
+                line_number = self.func.__code__.co_firstlineno
 
-                    if file_name is not None:
-                        full_file_name = os.path.abspath(file_name)
-                    else:
-                        full_file_name = "None"
-
-                    scorep.instrumenter.get_instrumenter().region_begin(
-                        self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
+                if file_name is not None:
+                    full_file_name = os.path.abspath(file_name)
                 else:
-                    # do not need to decorate a function, when we are registerd. It is
-                    # instrumented any way.
-                    # registerd. It is instrumented any way.
-                    pass
+                    full_file_name = "None"
+
+                scorep.instrumenter.get_instrumenter().region_begin(
+                    self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
+            elif callable(self.func) and initally_registered:
+                # The user did not specify a region name, and it's a callable, so it's a semi instrumented region. However, the instrumenter is active, so there is nothing to do.
+                pass
             else:
-                raise RuntimeError("a region name needs to be specified")
+                #The user did not specify a region name, and it's not a callable. So it is a context region without a region name. Throw an error.      
+                raise RuntimeError("A region name needs to be specified.")
 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if (callable(self.func)
-            and instrumenter.get_instrumenter().get_registered()
-                and not self.user_region_name):
-            # * we are a decorator
-            # * we are registered
-            # * the name is not specified by the user,
-            # The Instrumentation will care about the exit region
-            return False
-        elif (callable(self.func) and not self.user_region_name):
-            # * we are a decorator
-            # * we are not registered
-            # * the name is not specified by the user,
-            # We need to exit the region, and to pass the code object, as we are a decorator
-            scorep.instrumenter.get_instrumenter().region_end(
-                self.module_name, self.region_name, self.code_obj)
-        else:
-            # * we might be a decorator
-            # * we are not registered
-            # * a name is specified by the user,
-            # We need to exit the region and do not need to pass a code object
+        initally_registered = instrumenter.get_instrumenter().get_registered()
+        if self.user_region_name:
+            # The user did specify a region name, so its a user_region
             scorep.instrumenter.get_instrumenter().region_end(
                 self.module_name, self.region_name)
-            return False
+        elif callable(self.func) and not initally_registered:       
+            # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
+            scorep.instrumenter.get_instrumenter().region_end(
+                self.module_name, self.region_name, self.code_obj)
+        elif callable(self.func) and initally_registered:
+            # The user did not specify a region name, and it's a callable, so it's a semi instrumented region. However, the instrumenter is active, so there is nothing to do.
+            pass
+        else:
+            #The user did not specify a region name, and it's not a callable. So it is a context region without a region name. Throw an error.
+            raise RuntimeError("Something wen't wrong. Please do a Bug Report.")
+        return False                
 
 
 def rewind_begin(name, file_name=None, line_number=None):

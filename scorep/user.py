@@ -2,7 +2,6 @@ import inspect
 import os.path
 import scorep.instrumenter
 import functools
-from scorep import instrumenter
 
 
 def region_begin(name, file_name=None, line_number=None):
@@ -72,7 +71,7 @@ class region(object):
             return inner
 
     def __enter__(self):
-        initally_registered = instrumenter.get_instrumenter().get_registered()
+        initally_registered = scorep.instrumenter.get_instrumenter().get_registered()
         with scorep.instrumenter.disable():
             if(self.user_region_name):
                 # The user did specify a region name, so its a user_region
@@ -115,7 +114,7 @@ class region(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        initally_registered = instrumenter.get_instrumenter().get_registered()
+        initally_registered = scorep.instrumenter.get_instrumenter().get_registered()
         if self.user_region_name:
             # The user did specify a region name, so its a user_region
             scorep.instrumenter.get_instrumenter().region_end(

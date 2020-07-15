@@ -87,12 +87,11 @@ class region(object):
                 scorep.instrumenter.get_instrumenter().region_begin(
                     self.module_name, self.region_name, full_file_name, line_number)
             elif(callable(self.func)):
-                """
-                looks like the decorator is invoked
-                """
+                # looks like the decorator is invoked
                 if not initally_registered:
                     self.region_name = self.func.__name__
                     self.module_name = self.func.__module__
+                    self.code_obj = self.func.__code__
                     file_name = self.func.__code__.co_filename
                     line_number = self.func.__code__.co_firstlineno
 
@@ -102,11 +101,11 @@ class region(object):
                         full_file_name = "None"
 
                     scorep.instrumenter.get_instrumenter().region_begin(
-                        self.module_name, self.region_name, full_file_name, line_number)
+                        self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
                 else:
-                    """
-                    do not need to decorate a function, when we are registerd. It is instrumented any way.
-                    """
+                    # do not need to decorate a function, when we are registerd. It is
+                    # instrumented any way. # do not need to decorate a function, when we are
+                    # registerd. It is instrumented any way.
                     pass
             else:
                 raise RuntimeError("a region name needs to be specified")
@@ -117,12 +116,23 @@ class region(object):
         if (callable(self.func)
             and instrumenter.get_instrumenter().get_registered()
                 and not self.user_region_name):
-            """
-            looks like there is a decorator, we are registered and the name is not specified by the user,
-            so we do not need to do anything. The Instrumentation will take care.
-            """
+            # * we are a decorator
+            # * we are registered
+            # * the name is not specified by the user,
+            # The Instrumentation will care about the exit region
             return False
+        elif (callable(self.func) and not self.user_region_name):
+            # * we are a decorator
+            # * we are not registered
+            # * the name is not specified by the user,
+            # We need to exit the region, and to pass the code object, as we are a decorator
+            scorep.instrumenter.get_instrumenter().region_end(
+                self.module_name, self.region_name, self.code_obj)
         else:
+            # * we might be a decorator
+            # * we are not registered
+            # * a name is specified by the user,
+            # We need to exit the region and do not need to pass a code object
             scorep.instrumenter.get_instrumenter().region_end(
                 self.module_name, self.region_name)
             return False

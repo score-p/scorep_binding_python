@@ -41,7 +41,7 @@ extern "C"
             return NULL;
         }
 
-        if (identifier == nullptr)
+        if (identifier == nullptr or identifier == Py_None)
         {
             scorepy::region_begin(region, module, file_name, line_number);
         }
@@ -68,7 +68,7 @@ extern "C"
             return NULL;
         }
 
-        if (identifier == nullptr)
+        if (identifier == nullptr or identifier == Py_None)
         {
             scorepy::region_end(region, module);
         }

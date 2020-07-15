@@ -30,11 +30,11 @@ class BaseInstrumenter(_BaseInstrumenter):
         pass
 
     @abc.abstractmethod
-    def region_begin(self, module_name, function_name, file_name, line_number):
+    def region_begin(self, module_name, function_name, file_name, line_number, code_object):
         pass
 
     @abc.abstractmethod
-    def region_end(self, module_name, function_name):
+    def region_end(self, module_name, function_name, code_object):
         pass
 
     @abc.abstractmethod

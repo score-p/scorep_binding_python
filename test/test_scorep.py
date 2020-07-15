@@ -124,6 +124,21 @@ def test_context(scorep_env, instrumenter):
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
 
+@foreach_instrumenter
+def test_decorator(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    std_out, std_err = call_with_scorep("cases/decorator.py",
+                                        ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
+                                        env=scorep_env)
+
+    assert std_err == ""
+    assert std_out == "hello world\nhello world\nhello world\n"
+
+    std_out, std_err = call(["otf2-print", "-A", trace_path])
+
+    assert len(re.findall('REGION[ ]*[0-9 ]*Name: "__main__:foo"', std_out)) == 1
+
 
 def test_user_regions_no_scorep():
     std_out, std_err = call([sys.executable,

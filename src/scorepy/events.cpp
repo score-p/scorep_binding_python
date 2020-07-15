@@ -24,7 +24,6 @@ struct region_handle
 constexpr region_handle uninitialised_region_handle = region_handle();
 
 static std::unordered_map<std::uintptr_t, region_handle> regions;
-static std::unordered_map<std::string, std::uintptr_t> region_translations;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
@@ -38,6 +37,7 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
+// Userd for regions, that have an idetifier, aka a code object id
 void region_begin(const std::string& region, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number,
                   const std::uintptr_t& identifier)
@@ -46,26 +46,18 @@ void region_begin(const std::string& region, const std::string& module,
 
     if (region_handle == uninitialised_region_handle)
     {
-        const auto& region_name = make_region_name(module, region);
-        auto it = user_regions.find(region_name);
-        if (it == user_regions.end())
-        {
-            SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
-                                   region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                                   file_name.c_str(), line_number);
+        auto& region_name = make_region_name(module, region);
+        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
+                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                               file_name.c_str(), line_number);
 
-            SCOREP_User_RegionSetGroup(region_handle.value,
-                                       std::string(module, 0, module.find('.')).c_str());
-        }
-        else
-        {
-            region_handle = it->second;
-        }
-        region_translations[region_name + std::to_string(line_number)] = identifier;
+        SCOREP_User_RegionSetGroup(region_handle.value,
+                                   std::string(module, 0, module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
+// Userd for regions, that only have a function name, a module,  a file and a line number
 void region_begin(const std::string& region, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number)
 {
@@ -74,24 +66,17 @@ void region_begin(const std::string& region, const std::string& module,
 
     if (region_handle == uninitialised_region_handle)
     {
-        auto it_translation = region_translations.find(region_name + std::to_string(line_number));
-        if (it_translation == region_translations.end())
-        {
-            SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
-                                   region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                                   file_name.c_str(), line_number);
+        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
+                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
+                               file_name.c_str(), line_number);
 
-            SCOREP_User_RegionSetGroup(region_handle.value,
-                                       std::string(module, 0, module.find('.')).c_str());
-        }
-        else
-        {
-            region_handle = regions[it_translation->second];
-        }
+        SCOREP_User_RegionSetGroup(region_handle.value,
+                                   std::string(module, 0, module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
+// Userd for regions, that have an idetifier, aka a code object id
 void region_end(const std::string& region, const std::string& module,
                 const std::uintptr_t& identifier)
 {
@@ -107,6 +92,7 @@ void region_end(const std::string& region, const std::string& module,
     }
 }
 
+// Userd for regions, that only have a function name, a module
 void region_end(const std::string& region, const std::string& module)
 {
     auto& region_name = make_region_name(module, region);

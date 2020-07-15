@@ -90,7 +90,7 @@ void region_end(const std::string& function_name, const std::string& module,
     }
 }
 
-// Userd for regions, that only have a function name, a module
+// Used for regions, that only have a function name, a module (user regions)
 void region_end(const std::string& function_name, const std::string& module)
 {
     auto& region_name = make_region_name(module, function_name);

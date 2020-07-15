@@ -47,9 +47,8 @@ void region_begin(const std::string& function_name, const std::string& module,
     if (region_handle == uninitialised_region_handle)
     {
         auto& region_name = make_region_name(module, function_name);
-        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
-                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                               file_name.c_str(), line_number);
+        SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
+                               SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
         SCOREP_User_RegionSetGroup(region_handle.value,
                                    std::string(module, 0, module.find('.')).c_str());
@@ -66,9 +65,8 @@ void region_begin(const std::string& function_name, const std::string& module,
 
     if (region_handle == uninitialised_region_handle)
     {
-        SCOREP_User_RegionInit(&region_handle.value, NULL, &SCOREP_User_LastFileHandle,
-                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                               file_name.c_str(), line_number);
+        SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
+                               SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
         SCOREP_User_RegionSetGroup(region_handle.value,
                                    std::string(module, 0, module.find('.')).c_str());
@@ -121,8 +119,8 @@ void region_end_error_handling(const std::string& region_name)
 
     if (error_region.value == SCOREP_USER_INVALID_REGION)
     {
-        SCOREP_User_RegionInit(&error_region.value, NULL, &SCOREP_User_LastFileHandle,
-                               "error_region", SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp", 0);
+        SCOREP_User_RegionInit(&error_region.value, NULL, NULL, "error_region",
+                               SCOREP_USER_REGION_TYPE_FUNCTION, "scorep.cpp", 0);
         SCOREP_User_RegionSetGroup(error_region.value, "error");
     }
     SCOREP_User_RegionEnter(error_region.value);
@@ -146,9 +144,8 @@ void rewind_begin(std::string region_name, std::string file_name, std::uint64_t 
     auto& handle = pair.first->second;
     if (inserted_new)
     {
-        SCOREP_User_RegionInit(&handle.value, NULL, &SCOREP_User_LastFileHandle,
-                               region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                               file_name.c_str(), line_number);
+        SCOREP_User_RegionInit(&handle.value, NULL, NULL, region_name.c_str(),
+                               SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
     }
     SCOREP_User_RewindRegionEnter(handle.value);
 }
@@ -183,9 +180,8 @@ void parameter_string(std::string name, std::string value)
 void oa_region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
 {
     auto& handle = user_regions[region_name];
-    SCOREP_User_OaPhaseBegin(&handle.value, &SCOREP_User_LastFileName, &SCOREP_User_LastFileHandle,
-                             region_name.c_str(), SCOREP_USER_REGION_TYPE_FUNCTION,
-                             file_name.c_str(), line_number);
+    SCOREP_User_OaPhaseBegin(&handle.value, &SCOREP_User_LastFileName, NULL, region_name.c_str(),
+                             SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 }
 
 void oa_region_end(std::string region_name)

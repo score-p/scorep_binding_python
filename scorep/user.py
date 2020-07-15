@@ -104,7 +104,7 @@ class region(object):
                         self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
                 else:
                     # do not need to decorate a function, when we are registerd. It is
-                    # instrumented any way. # do not need to decorate a function, when we are
+                    # instrumented any way.
                     # registerd. It is instrumented any way.
                     pass
             else:

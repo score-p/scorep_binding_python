@@ -124,6 +124,7 @@ def test_context(scorep_env, instrumenter):
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
 
+
 @foreach_instrumenter
 def test_decorator(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)

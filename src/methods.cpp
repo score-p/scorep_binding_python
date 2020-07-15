@@ -30,12 +30,12 @@ extern "C"
     static PyObject* region_begin(PyObject* self, PyObject* args)
     {
         const char* module;
-        const char* region;
+        const char* function_name;
         const char* file_name;
         PyObject* identifier = nullptr;
         std::uint64_t line_number = 0;
 
-        if (!PyArg_ParseTuple(args, "sssK|O", &module, &region, &file_name, &line_number,
+        if (!PyArg_ParseTuple(args, "sssK|O", &module, &function_name, &file_name, &line_number,
                               &identifier))
         {
             return NULL;
@@ -43,11 +43,11 @@ extern "C"
 
         if (identifier == nullptr or identifier == Py_None)
         {
-            scorepy::region_begin(region, module, file_name, line_number);
+            scorepy::region_begin(function_name, module, file_name, line_number);
         }
         else
         {
-            scorepy::region_begin(region, module, file_name, line_number,
+            scorepy::region_begin(function_name, module, file_name, line_number,
                                   reinterpret_cast<std::uintptr_t>(identifier));
         }
 
@@ -60,21 +60,22 @@ extern "C"
     static PyObject* region_end(PyObject* self, PyObject* args)
     {
         const char* module;
-        const char* region;
+        const char* function_name;
         PyObject* identifier = nullptr;
 
-        if (!PyArg_ParseTuple(args, "ss|O", &module, &region, &identifier))
+        if (!PyArg_ParseTuple(args, "ss|O", &module, &function_name, &identifier))
         {
             return NULL;
         }
 
         if (identifier == nullptr or identifier == Py_None)
         {
-            scorepy::region_end(region, module);
+            scorepy::region_end(function_name, module);
         }
         else
         {
-            scorepy::region_end(region, module, reinterpret_cast<std::uintptr_t>(identifier));
+            scorepy::region_end(function_name, module,
+                                reinterpret_cast<std::uintptr_t>(identifier));
         }
 
         Py_RETURN_NONE;

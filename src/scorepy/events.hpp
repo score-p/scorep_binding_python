@@ -17,15 +17,15 @@ inline const std::string& make_region_name(const std::string& module_name, const
     return region;
 }
 
-void region_begin(const std::string& region, const std::string& module,
+void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number,
                   const std::uintptr_t& identifier);
-void region_begin(const std::string& region, const std::string& module,
+void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number);
 
-void region_end(const std::string& region, const std::string& module,
+void region_end(const std::string& function_name, const std::string& module,
                 const std::uintptr_t& identifier);
-void region_end(const std::string& region, const std::string& module);
+void region_end(const std::string& function_name, const std::string& module);
 
 void region_end_error_handling(const std::string& region_name);
 

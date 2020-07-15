@@ -56,7 +56,7 @@ void region_begin(const std::string& function_name, const std::string& module,
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-// Userd for regions, that only have a function name, a module,  a file and a line number
+// Used for regions, that only have a function name, a module, a file and a line number (user regions)
 void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number)
 {

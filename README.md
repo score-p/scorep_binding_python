@@ -261,6 +261,7 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 ## Not Working
 * python multiprocessing
     * Score-P does currently only support MPI or SHMEM. Any other multiprocessing approach cannot be traced.
+* tracking `importlib.reload()`
     
 # Acknowledgments
 The European Union initially supported this work as part of the European Union’s Horizon 2020 project READEX (grant agreement number 671657).

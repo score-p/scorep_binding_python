@@ -56,14 +56,14 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         finally:
             self.unregister()
 
-    def region_begin(self, module_name, function_name, file_name, line_number):
+    def region_begin(self, module_name, function_name, file_name, line_number, code_object=None):
         """Record a region begin event"""
         scorep._bindings.region_begin(
-            module_name, function_name, file_name, line_number)
+            module_name, function_name, file_name, line_number, code_object)
 
-    def region_end(self, module_name, function_name):
+    def region_end(self, module_name, function_name, code_object=None):
         """Record a region end event"""
-        scorep._bindings.region_end(module_name, function_name)
+        scorep._bindings.region_end(module_name, function_name, code_object)
 
     def rewind_begin(self, name, file_name=None, line_number=None):
         """

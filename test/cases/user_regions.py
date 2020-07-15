@@ -1,4 +1,5 @@
 import scorep.user
+import scorep.instrumenter
 
 
 def foo():
@@ -24,5 +25,8 @@ def foo4():
 
 foo()
 foo2()
-foo3()
+with scorep.instrumenter.enable():
+    foo3()
+with scorep.instrumenter.disable():
+    foo3()
 foo4()

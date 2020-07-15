@@ -40,7 +40,7 @@ class ScorepTrace(ScorepInstrumenter):
             if not code.co_name == "_unsettrace" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)
                 line_number = code.co_firstlineno
-                scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
+                scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number, code)
                 return self._localtrace
         return None
 
@@ -48,5 +48,5 @@ class ScorepTrace(ScorepInstrumenter):
         if why == 'return':
             code = frame.f_code
             modulename = get_module_name(frame)
-            scorep._bindings.region_end(modulename, code.co_name)
+            scorep._bindings.region_end(modulename, code.co_name, code)
         return self._localtrace

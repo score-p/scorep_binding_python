@@ -39,12 +39,13 @@ class ScorepProfile(ScorepInstrumenter):
         if why == 'call':
             code = frame.f_code
             modulename = get_module_name(frame)
+
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
                 full_file_name = get_file_name(frame)
                 line_number = code.co_firstlineno
-                scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number)
+                scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number, code)
         elif why == 'return':
             code = frame.f_code
             modulename = get_module_name(frame)
             if not code.co_name == "_unsetprofile" and not modulename[:6] == "scorep":
-                scorep._bindings.region_end(modulename, code.co_name)
+                scorep._bindings.region_end(modulename, code.co_name, code)

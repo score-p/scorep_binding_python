@@ -92,7 +92,7 @@ def test_user_regions(scorep_env, instrumenter):
                                         env=scorep_env)
 
     assert std_err == ""
-    assert std_out == "hello world\nhello world\nhello world3\nhello world4\n"
+    assert std_out == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
 
     std_out, std_err = call(["otf2-print", trace_path])
 
@@ -100,8 +100,8 @@ def test_user_regions(scorep_env, instrumenter):
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"', std_out)
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)
+    assert len(re.findall('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
+    assert len(re.findall('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"', std_out)
 
@@ -125,12 +125,28 @@ def test_context(scorep_env, instrumenter):
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
 
 
+@foreach_instrumenter
+def test_decorator(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    std_out, std_err = call_with_scorep("cases/decorator.py",
+                                        ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
+                                        env=scorep_env)
+
+    assert std_err == ""
+    assert std_out == "hello world\nhello world\nhello world\n"
+
+    std_out, std_err = call(["otf2-print", "-A", trace_path])
+
+    assert len(re.findall('REGION[ ]*[0-9 ]*Name: "__main__:foo"', std_out)) == 1
+
+
 def test_user_regions_no_scorep():
     std_out, std_err = call([sys.executable,
                              "cases/user_regions.py"])
 
     assert std_err == ""
-    assert std_out == "hello world\nhello world\nhello world3\nhello world4\n"
+    assert std_out == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
 
 
 @foreach_instrumenter
@@ -277,6 +293,45 @@ def test_call_main(scorep_env, instrumenter):
     assert std_out == expected_std_out
 
 
+@foreach_instrumenter
+def test_classes(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+    std_out, std_err = call_with_scorep("cases/classes.py",
+                                        ["--nocompiler", "--instrumenter-type=" + instrumenter],
+                                        expected_returncode=0,
+                                        env=scorep_env)
+
+    expected_std_err = ""
+    expected_std_out = "foo-2\ndoo\nfoo\nbar\nasdgh\nfoo-2\n"
+
+    assert std_out == expected_std_out
+    assert std_err == expected_std_err
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+
+    region_ids = []
+    foo_count = 0
+    for line in std_out.split("\n"):
+        m = re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo" <([0-9]*)>', line)
+        if m is not None:
+            foo_count += 1
+            r_id = m.group(1)
+
+            if foo_count == 1:
+                region_ids.append(r_id)
+                continue
+
+            if foo_count < 4:
+                assert region_ids[-1] < r_id  # check if foo regions are different
+            else:
+                assert r_id == region_ids[0]  # check if last foo is fist foo
+            region_ids.append(r_id)
+
+    assert len(region_ids) == 4
+
+
 def test_dummy(scorep_env):
     std_out, std_err = call_with_scorep("cases/instrumentation.py",
                                         ["--instrumenter-type=dummy"],
@@ -311,7 +366,7 @@ def test_threads(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
     std_out, std_err = call_with_scorep("cases/use_threads.py",
-                                        ["--nocompiler",  "--instrumenter-type=" + instrumenter],
+                                        ["--nocompiler", "--instrumenter-type=" + instrumenter],
                                         env=scorep_env)
 
     assert std_err == ""

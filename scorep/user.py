@@ -103,10 +103,13 @@ class region(object):
                 scorep.instrumenter.get_instrumenter().region_begin(
                     self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
             elif callable(self.func) and initally_registered:
-                # The user did not specify a region name, and it's a callable, so it's a semi instrumented region. However, the instrumenter is active, so there is nothing to do.
+                # The user did not specify a region name, and it's a callable, so it's a
+                # semi instrumented region. However, the instrumenter is active, so there
+                # is nothing to do.
                 pass
             else:
-                #The user did not specify a region name, and it's not a callable. So it is a context region without a region name. Throw an error.      
+                # The user did not specify a region name, and it's not a callable. So it
+                # is a context region without a region name. Throw an error.
                 raise RuntimeError("A region name needs to be specified.")
 
         return self
@@ -117,17 +120,20 @@ class region(object):
             # The user did specify a region name, so its a user_region
             scorep.instrumenter.get_instrumenter().region_end(
                 self.module_name, self.region_name)
-        elif callable(self.func) and not initally_registered:       
+        elif callable(self.func) and not initally_registered:
             # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
             scorep.instrumenter.get_instrumenter().region_end(
                 self.module_name, self.region_name, self.code_obj)
         elif callable(self.func) and initally_registered:
-            # The user did not specify a region name, and it's a callable, so it's a semi instrumented region. However, the instrumenter is active, so there is nothing to do.
+            # The user did not specify a region name, and it's a callable, so it's a
+            # semi instrumented region. However, the instrumenter is active, so there
+            # is nothing to do.
             pass
         else:
-            #The user did not specify a region name, and it's not a callable. So it is a context region without a region name. Throw an error.
+            # The user did not specify a region name, and it's not a callable. So it
+            # is a context region without a region name. Throw an error.
             raise RuntimeError("Something wen't wrong. Please do a Bug Report.")
-        return False                
+        return False
 
 
 def rewind_begin(name, file_name=None, line_number=None):

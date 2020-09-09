@@ -3,7 +3,7 @@
 [![Static analysis](https://github.com/score-p/scorep_binding_python/workflows/Static%20analysis/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Static+analysis")
 
 # scorep
-scorep is a module that allows tracing of python scripts using [Score-P](http://www.vi-hps.org/projects/score-p/).
+scorep is a module that allows tracing of python scripts using [Score-P](https://score-p.org/).
 
 # Table of Content
 
@@ -47,7 +47,7 @@ python -m scorep <script.py>
 The usual Score-P environment Variables will be respected.
 Please have a look at:
 
-[www.vi-hps.org](http://www.vi-hps.org/projects/score-p/)
+[score-p.org](https://score-p.org)
 
 and
 

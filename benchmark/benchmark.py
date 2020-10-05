@@ -25,10 +25,7 @@ reps_x = {
 
 
 def str_to_int(s):
-    try:
-        return int(s)
-    except ValueError:
-        return int(float(s))
+    return int(float(s))
 
 
 parser = argparse.ArgumentParser(description='Benchmark the instrumenters.',

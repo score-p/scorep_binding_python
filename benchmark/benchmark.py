@@ -65,10 +65,10 @@ for test in args.test:
         print("#########")
         print("{}: {}".format(test, scorep_settings))
         print("#########")
+        max_reps_width = len(str(max(reps_x[test])))
         loop_counts = args.loop_count if args.loop_count else reps_x[test]
         for reps in loop_counts:
             times = bench.call(test, [str(reps)],
-                               enable_scorep,
                                scorep_settings=scorep_settings)
             times = np.array(times)
             print("{:>{width}}: Range={:{prec}}-{:{prec}} Mean={:{prec}} Median={:{prec}}".format(

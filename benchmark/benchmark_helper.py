@@ -21,17 +21,14 @@ class BenchmarkEnv():
             self.exp_dir,
             ignore_errors=True)
 
-    def call(self, script="", ops=[], enable_scorep=True, scorep_settings=[]):
+    def call(self, script, ops=[], scorep_settings=[]):
         self.env["SCOREP_EXPERIMENT_DIRECTORY"] = self.exp_dir + \
             "/{}-{}-{}".format(script, ops, scorep_settings)
 
         arguments = [sys.executable]
-        if enable_scorep:
-            arguments.extend(["-m", "scorep"])
-            arguments.extend(scorep_settings)
+        arguments.extend(scorep_settings)
         arguments.append(script)
         arguments.extend(ops)
-        print(arguments)
 
         runtimes = []
         for _ in range(self.repetitions):

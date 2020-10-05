@@ -6,6 +6,7 @@ Created on 04.10.2019
 import sys
 import benchmark_helper
 import pickle
+import numpy as np
 
 tests = ["bm_baseline.py", "bm_simplefunc.py"]
 
@@ -31,20 +32,20 @@ for test in tests:
         results[test][instrumenter] = {}
 
         if instrumenter == "None":
-            enable_scorep = False
             scorep_settings = []
         else:
-            enable_scorep = True
-            scorep_settings = ["--instrumenter-type={}".format(instrumenter)]
+            scorep_settings = ["-m", "scorep", "--instrumenter-type={}".format(instrumenter)]
 
         print("#########")
         print("{}: {}".format(test, scorep_settings))
         print("#########")
+        max_reps_width = len(str(max(reps_x[test])))
         for reps in reps_x[test]:
             times = bench.call(test, [reps],
-                               enable_scorep,
                                scorep_settings=scorep_settings)
-            print("{:<8}: {}".format(reps, times))
+            times = np.array(times)
+            print("{:>{width}}: Range={:{prec}}-{:{prec}} Mean={:{prec}} Median={:{prec}}".format(
+                reps, times.min(), times.max(), times.mean(), np.median(times), width=max_reps_width, prec='5.4f'))
             results[test][instrumenter][reps] = times
 
 with open("results.pkl", "wb") as f:

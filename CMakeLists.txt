@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
 project(scorep_bindings)
 
-message(AUTHOR_WARNING
+option(DEV_MODE "Set this to ON to use CMake. However: NO SUPPORT IS PROVIDED, PIP IS THE SUPPORTED INSTALL MODE" OFF)
+
+if(NOT DEV_MODE)
+message(SEND_ERROR
   "CMake is only useful to develop this project, no support is provided."
-  "To install the module properly use pip. See the Readme for details.")
+  "To install the module properly use pip. See the Readme for details."
+  "To override this you might set DEV_MODE to ON"
+  "However: AGAIN NO SUPPORT IS PROVIDED, PIP IS THE SUPPORTED INSTALL MODE")
+endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

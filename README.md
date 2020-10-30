@@ -21,9 +21,10 @@ scorep is a module that allows tracing of python scripts using [Score-P](https:/
 - [Compatibility](#compatibility)
   * [Working](#working)
   * [Not Working](#not-working)
+- [Citing](#citing)
 - [Acknowledgments](#acknowledgments)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+<!-- <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small> -->
 
 # Install
 You need at least Score-P 5.0, build with `--enable-shared` and the gcc compiler plugin.
@@ -262,6 +263,19 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 * python multiprocessing
     * Score-P does currently only support MPI or SHMEM. Any other multiprocessing approach cannot be traced.
 * tracking `importlib.reload()`
-    
+
+# Citing
+
+If you publish some work using the python bindings, we would appriciate, if you could cite the following paper:
+
+```
+Gocht, A.; Schöne, R. & Frenzel, J.
+Advanced Python Performance Monitoring with Score-P
+Tools for High Performance Computing 2019, Springer International Publishing, to appear
+```
+
+A preprint can be found at: 
+http://arxiv.org/abs/2010.15444
+
 # Acknowledgments
 The European Union initially supported this work as part of the European Union’s Horizon 2020 project READEX (grant agreement number 671657).

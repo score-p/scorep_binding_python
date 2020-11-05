@@ -271,7 +271,7 @@ If you publish some work using the python bindings, we would appriciate, if you 
 ```
 Gocht, A.; Schöne, R. & Frenzel, J.
 Advanced Python Performance Monitoring with Score-P
-Tools for High Performance Computing 2019, Springer International Publishing, to appear
+Tools for High Performance Computing 2019, Springer International Publishing, accepted
 ```
 
 A preprint can be found at: 

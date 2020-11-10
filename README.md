@@ -236,11 +236,13 @@ The traditional `--mpi` does still work, and is similar to the following call:
 python -m scorep --compiler --thread=pthread --mpp=mpi <script.py>
 ```
 
-To disable compiler instrumentation, please specify:
+To disable compiler interface, please specify:
 
 ```
 python -m scorep --nocompiler <script.py>
 ```
+
+However, this will not remove any compiler instrumentation in any binary.
 
 For other thread schemes just specify `--thread=<something>`.
 E.g. :

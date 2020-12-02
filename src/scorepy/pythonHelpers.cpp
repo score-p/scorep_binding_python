@@ -26,7 +26,7 @@ std::string get_file_name(const PyFrameObject& frame)
         return "None";
     }
     char actual_path[PATH_MAX];
-    const char* full_file_name = PyUnicode_AsUTF8(filename); 
+    const char* full_file_name = PyUnicode_AsUTF8(filename);
     return full_file_name ? full_file_name : "ErrorPath";
 }
 } // namespace scorepy

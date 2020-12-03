@@ -38,7 +38,7 @@ jobs:
         make -j3 && make install
 
     - name: Setup environment
-      run: echo "::add-path::$HOME/scorep/bin"
+      run: echo "$HOME/scorep/bin" >> $GITHUB_PATH
     - name: set up Python
       uses: actions/setup-python@v2
       with:

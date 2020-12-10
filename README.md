@@ -56,11 +56,13 @@ and
 
 There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/wiki) in the wiki.
 
-Since version 0.9 it is possible to pass the traditional Score-P commands to the Score-P bindings, e.g.:
+Since version 0.9 it is possible to pass the traditional Score-P instrumentation commands to the Score-P bindings, e.g.:
 
 ```
 python -m scorep --mpp=mpi --thread=pthread <script.py>
 ```
+
+Please be aware that these commands are forwarded to `scorep-config`, not to `scorep`. Flags like `--verbose` won't work.
 
 ## Instrumenter
 The instrumenter ist the key part of the bindings.

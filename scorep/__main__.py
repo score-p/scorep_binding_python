@@ -78,7 +78,8 @@ def scorep_main(argv=None):
 
         os.execve(sys.executable, new_args, os.environ)
     else:
-        scorep.subsystem.reset_preload()
+        print("not resetting preload")
+        #scorep.subsystem.reset_preload()
 
     # everything is ready
     sys.argv = prog_argv

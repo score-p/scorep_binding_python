@@ -61,6 +61,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - id: cache
+      uses: actions/cache@v1
+      with:
+        path: ~/scorep
+        key: scorep
+
+    - name: Install system dependencies
+      run: sudo apt install gcc-7-plugin-dev libopenmpi-dev openmpi-bin
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir /tmp/buildScorep && cd /tmp/buildScorep
+        wget https://www.vi-hps.org/cms/upload/packages/scorep/scorep-6.0.tar.gz
+        tar xf scorep-6.0.tar.gz
+        cd scorep-6.0
+        mkdir build && cd build
+        ../configure --enable-shared --prefix=$HOME/scorep
+        make -j3 && make install
+    - name: Setup environment
+      run: echo "$HOME/scorep/bin" >> $GITHUB_PATH
+
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:

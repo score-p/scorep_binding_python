@@ -20,7 +20,7 @@ jobs:
       with:
         python-version: 3.7
     - name: Check Version
-      run: test ${{ github.event.release.tag_name }} = python -c "import scorep._version; print(scorep._version.__version__)"
+      run: test ${{ github.event.release.tag_name }} = python -c "import scorep._version; print('v'+scorep._version.__version__)"
     - name: Install system dependencies
       run: sudo apt install gcc-7-plugin-dev libopenmpi-dev openmpi-bin
     - name: Install dependencies

@@ -439,4 +439,3 @@ def test_threads(scorep_env, instrumenter):
             assert re.search(
                 '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
             )
-

@@ -439,3 +439,80 @@ def test_threads(scorep_env, instrumenter):
             assert re.search(
                 '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
             )
+
+@pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
+@foreach_instrumenter
+def test_io(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    print("start")
+    std_out, std_err = call_with_scorep(
+        "cases/io.py",
+        [
+            "--nocompiler",
+            "--instrumenter-type=" + instrumenter,
+            "--noinstrumenter",
+            "--io=runtime:posix",
+        ],
+        env=scorep_env,
+    )
+
+    assert std_err == ""
+    assert "test\n" in std_out
+
+    print("otf2-print")
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+
+    file_regex = "\\[POSIX I\\/O\\][ \\w:/]*test\\.txt"
+    # print_regex = "STDOUT_FILENO"
+
+    ops = {
+        "open": {"ENTER": "open64", "IO_CREATE_HANDLE": file_regex, "LEAVE": "open64"},
+        "seek": {"ENTER": "lseek64", "IO_SEEK": file_regex, "LEAVE": "lseek64"},
+        "write": {
+            "ENTER": "write",
+            "IO_OPERATION_BEGIN": file_regex,
+            "IO_OPERATION_COMPLETE": file_regex,
+            "LEAVE": "write",
+        },
+        "read": {
+            "ENTER": "read",
+            "IO_OPERATION_BEGIN": file_regex,
+            "IO_OPERATION_COMPLETE": file_regex,
+            "LEAVE": "read",
+        },
+        # for some reason there is no print in pytest
+        # "print": {
+        #     "ENTER": "read",
+        #     "IO_OPERATION_BEGIN": print_regex,
+        #     "IO_OPERATION_COMPLETE": print_regex,
+        #     "LEAVE": "read",
+        # },
+        "close": {"ENTER": "close", "IO_DESTROY_HANDLE": file_regex, "LEAVE": "close"},
+    }
+
+    io_trace = ""
+    io_trace_after = ""
+    in_expected_io = False
+    after_expected_io = False
+
+    for line in std_out.split("\n"):
+        if ("user_instrumenter:expect io" in line) and (in_expected_io is False):
+            in_expected_io = True
+        elif ("user_instrumenter:expect io" in line) and (in_expected_io is True):
+            in_expected_io = False
+            after_expected_io = True
+        if in_expected_io:
+            io_trace += line + "\n"
+        if after_expected_io:
+            io_trace_after += line + "\n"
+
+    for _, details in ops.items():
+        for event, data in details.items():
+            regex_str = '{event:}[ ]*[0-9 ]*[0-9 ]*(Region|Handle): "{data:}"'.format(
+                event=event, data=data
+            )
+            print(regex_str)
+            assert re.search(regex_str, io_trace)

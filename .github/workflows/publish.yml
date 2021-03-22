@@ -21,18 +21,9 @@ jobs:
         python-version: 3.7
     - name: Check Version
       run: test ${{ github.event.release.tag_name }} = `python -c "import scorep._version; print('v'+scorep._version.__version__)"`
-    - name: Install system dependencies
-      run: sudo apt install gcc-7-plugin-dev libopenmpi-dev openmpi-bin
     - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        mkdir /tmp/buildScorep && cd /tmp/buildScorep
-        wget https://www.vi-hps.org/cms/upload/packages/scorep/scorep-6.0.tar.gz
-        tar xf scorep-6.0.tar.gz
-        cd scorep-6.0
-        mkdir build && cd build
-        ../configure --enable-shared --prefix=$HOME/scorep
-        make -j3 && make install
+      run: sudo add-apt-repository ppa:andreasgocht/scorep
+      run: sudo apt install scorep
     - name: Setup environment
       run: echo "$HOME/scorep/bin" >> $GITHUB_PATH
 

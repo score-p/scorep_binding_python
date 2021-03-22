@@ -440,6 +440,7 @@ def test_threads(scorep_env, instrumenter):
             )
 
 
+@pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
 @foreach_instrumenter
 def test_io(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)

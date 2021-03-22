@@ -15,18 +15,15 @@ def call(arguments, expected_returncode=0, env=None):
     """
     if sys.version_info > (3, 5):
         out = subprocess.run(
-            arguments,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        print(out.stdout, out.stderr)
         assert out.returncode == expected_returncode
         stdout, stderr = (out.stdout, out.stderr)
     else:
         p = subprocess.Popen(
-            arguments,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         stdout, stderr = p.communicate()
         assert p.returncode == expected_returncode
     return stdout.decode("utf-8"), stderr.decode("utf-8")
@@ -49,17 +46,21 @@ def has_package(name):
 
 
 def requires_package(name):
-    return pytest.mark.skipif(not has_package(name), reason='%s is required' % name)
+    return pytest.mark.skipif(not has_package(name), reason="%s is required" % name)
 
 
 cinstrumenter_skip_mark = pytest.mark.skipif(
-    sys.version_info.major < 3, reason="CInstrumenter only available in Python 3")
+    sys.version_info.major < 3, reason="CInstrumenter only available in Python 3"
+)
 # All instrumenters (except dummy which isn't a real one)
-ALL_INSTRUMENTERS = ['profile', 'trace',
-                     pytest.param('cProfile', marks=cinstrumenter_skip_mark),
-                     pytest.param('cTrace', marks=cinstrumenter_skip_mark)]
+ALL_INSTRUMENTERS = [
+    "profile",
+    "trace",
+    pytest.param("cProfile", marks=cinstrumenter_skip_mark),
+    pytest.param("cTrace", marks=cinstrumenter_skip_mark),
+]
 
-foreach_instrumenter = pytest.mark.parametrize('instrumenter', ALL_INSTRUMENTERS)
+foreach_instrumenter = pytest.mark.parametrize("instrumenter", ALL_INSTRUMENTERS)
 
 
 @pytest.fixture
@@ -80,6 +81,7 @@ def get_trace_path(env):
 
 def test_has_version():
     import scorep
+
     assert scorep.__version__ is not None
 
 
@@ -87,12 +89,17 @@ def test_has_version():
 def test_user_regions(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/user_regions.py",
-                                        ["--nopython", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/user_regions.py",
+        ["--nopython", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_err == ""
-    assert std_out == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
+    assert (
+        std_out
+        == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
+    )
 
     std_out, std_err = call(["otf2-print", trace_path])
 
@@ -100,8 +107,12 @@ def test_user_regions(scorep_env, instrumenter):
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"', std_out)
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"', std_out)
-    assert len(re.findall('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
-    assert len(re.findall('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
+    assert (
+        len(re.findall('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
+    )
+    assert (
+        len(re.findall('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
+    )
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"', std_out)
 
@@ -110,9 +121,11 @@ def test_user_regions(scorep_env, instrumenter):
 def test_context(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/context.py",
-                                        ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/context.py",
+        ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_err == ""
     assert std_out == "hello world\nhello world\nhello world\n"
@@ -129,9 +142,11 @@ def test_context(scorep_env, instrumenter):
 def test_decorator(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/decorator.py",
-                                        ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/decorator.py",
+        ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_err == ""
     assert std_out == "hello world\nhello world\nhello world\n"
@@ -142,35 +157,41 @@ def test_decorator(scorep_env, instrumenter):
 
 
 def test_user_regions_no_scorep():
-    std_out, std_err = call([sys.executable,
-                             "cases/user_regions.py"])
+    std_out, std_err = call([sys.executable, "cases/user_regions.py"])
 
     assert std_err == ""
-    assert std_out == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
+    assert (
+        std_out
+        == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
+    )
 
 
 @foreach_instrumenter
 def test_user_rewind(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/user_rewind.py", ["--instrumenter-type=" + instrumenter], env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/user_rewind.py", ["--instrumenter-type=" + instrumenter], env=scorep_env
+    )
 
     assert std_err == ""
     assert std_out == "hello world\nhello world\n"
 
     std_out, std_err = call(["otf2-print", trace_path])
 
-    assert re.search('MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: OFF', std_out)
-    assert re.search('MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON', std_out)
+    assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: OFF", std_out)
+    assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON", std_out)
 
 
 @foreach_instrumenter
 def test_oa_regions(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/oa_regions.py",
-                                        ["--nopython", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/oa_regions.py",
+        ["--nopython", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_err == ""
     assert std_out == "hello world\n"
@@ -182,15 +203,15 @@ def test_oa_regions(scorep_env, instrumenter):
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "test_region"', std_out)
 
 
-@pytest.mark.parametrize('instrumenter', ALL_INSTRUMENTERS + [None])
+@pytest.mark.parametrize("instrumenter", ALL_INSTRUMENTERS + [None])
 def test_instrumentation(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
     # Also test when no instrumenter is given
     instrumenter_type = ["--instrumenter-type=" + instrumenter] if instrumenter else []
-    std_out, std_err = call_with_scorep("cases/instrumentation.py",
-                                        ["--nocompiler"] + instrumenter_type,
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/instrumentation.py", ["--nocompiler"] + instrumenter_type, env=scorep_env
+    )
 
     assert std_err == ""
     assert std_out == "hello world\nbaz\nbar\n"
@@ -198,18 +219,22 @@ def test_instrumentation(scorep_env, instrumenter):
     std_out, std_err = call(["otf2-print", trace_path])
 
     assert std_err == ""
-    for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
-        for event in ('ENTER', 'LEAVE'):
-            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)
+    for func in ("__main__:foo", "instrumentation2:bar", "instrumentation2:baz"):
+        for event in ("ENTER", "LEAVE"):
+            assert re.search(
+                '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
+            )
 
 
 @foreach_instrumenter
 def test_user_instrumentation(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/user_instrumentation.py",
-                                        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/user_instrumentation.py",
+        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_err == ""
     assert std_out == "hello world\nbaz\nbar\n"
@@ -225,13 +250,17 @@ def test_user_instrumentation(scorep_env, instrumenter):
 def test_error_region(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/error_region.py",
-                                        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/error_region.py",
+        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
-    assert std_err == \
-        'SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n' + \
-        'SCOREP_BINDING_PYTHON ERROR: For details look for "error_region" in the trace or profile.\n'
+    assert (
+        std_err
+        == "SCOREP_BINDING_PYTHON ERROR: There was a region exit without an enter!\n"
+        + 'SCOREP_BINDING_PYTHON ERROR: For details look for "error_region" in the trace or profile.\n'
+    )
     assert std_out == ""
 
     std_out, std_err = call(["otf2-print", trace_path])
@@ -239,53 +268,67 @@ def test_error_region(scorep_env, instrumenter):
     assert std_err == ""
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "error_region"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "error_region"', std_out)
-    assert re.search('PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,' +
-                     ' Value: "user:test_region"', std_out)
-    assert re.search('PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,' +
-                     ' Value: "user:test_region_2"', std_out)
+    assert re.search(
+        'PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,'
+        + ' Value: "user:test_region"',
+        std_out,
+    )
+    assert re.search(
+        'PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,'
+        + ' Value: "user:test_region_2"',
+        std_out,
+    )
 
 
-@requires_package('mpi4py')
-@requires_package('numpy')
+@requires_package("mpi4py")
+@requires_package("numpy")
 @foreach_instrumenter
 def test_mpi(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
-    std_out, std_err = call(["mpirun",
-                             "-n",
-                             "2",
-                             "-mca",
-                             "btl",
-                             "^openib",
-                             sys.executable,
-                             "-m",
-                             "scorep",
-                             "--mpp=mpi",
-                             "--nocompiler",
-                             "--noinstrumenter",
-                             "--instrumenter-type=" + instrumenter,
-                             "cases/mpi.py"],
-                            env=scorep_env)
+    std_out, std_err = call(
+        [
+            "mpirun",
+            "-n",
+            "2",
+            "-mca",
+            "btl",
+            "^openib",
+            sys.executable,
+            "-m",
+            "scorep",
+            "--mpp=mpi",
+            "--nocompiler",
+            "--noinstrumenter",
+            "--instrumenter-type=" + instrumenter,
+            "cases/mpi.py",
+        ],
+        env=scorep_env,
+    )
 
-    assert re.search(r'\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED', std_err)
-    assert '[00] [0. 1. 2. 3. 4.]\n' in std_out
-    assert '[01] [0. 1. 2. 3. 4.]\n' in std_out
-    assert 'bar\n' in std_out
-    assert 'baz\n' in std_out
+    assert re.search(r"\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED", std_err)
+    assert "[00] [0. 1. 2. 3. 4.]\n" in std_out
+    assert "[01] [0. 1. 2. 3. 4.]\n" in std_out
+    assert "bar\n" in std_out
+    assert "baz\n" in std_out
 
     std_out, std_err = call(["otf2-print", trace_path])
 
     assert std_err == ""
-    for func in ('instrumentation2:bar', 'instrumentation2:baz'):
-        for event in ('ENTER', 'LEAVE'):
-            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)
+    for func in ("instrumentation2:bar", "instrumentation2:baz"):
+        for event in ("ENTER", "LEAVE"):
+            assert re.search(
+                '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
+            )
 
 
 @foreach_instrumenter
 def test_call_main(scorep_env, instrumenter):
-    std_out, std_err = call_with_scorep("cases/call_main.py",
-                                        ["--nocompiler", "--instrumenter-type=" + instrumenter],
-                                        expected_returncode=1,
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/call_main.py",
+        ["--nocompiler", "--instrumenter-type=" + instrumenter],
+        expected_returncode=1,
+        env=scorep_env,
+    )
 
     expected_std_err = r"scorep: Someone called scorep\.__main__\.main"
     expected_std_out = ""
@@ -296,10 +339,12 @@ def test_call_main(scorep_env, instrumenter):
 @foreach_instrumenter
 def test_classes(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
-    std_out, std_err = call_with_scorep("cases/classes.py",
-                                        ["--nocompiler", "--instrumenter-type=" + instrumenter],
-                                        expected_returncode=0,
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/classes.py",
+        ["--nocompiler", "--instrumenter-type=" + instrumenter],
+        expected_returncode=0,
+        env=scorep_env,
+    )
 
     expected_std_err = ""
     expected_std_out = "foo-2\ndoo\nfoo\nbar\nasdgh\nfoo-2\n"
@@ -333,13 +378,15 @@ def test_classes(scorep_env, instrumenter):
 
 
 def test_dummy(scorep_env):
-    std_out, std_err = call_with_scorep("cases/instrumentation.py",
-                                        ["--instrumenter-type=dummy"],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/instrumentation.py", ["--instrumenter-type=dummy"], env=scorep_env
+    )
 
     assert std_err == ""
     assert std_out == "hello world\nbaz\nbar\n"
-    assert os.path.exists(scorep_env["SCOREP_EXPERIMENT_DIRECTORY"]), "Score-P directory exists for dummy test"
+    assert os.path.exists(
+        scorep_env["SCOREP_EXPERIMENT_DIRECTORY"]
+    ), "Score-P directory exists for dummy test"
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
@@ -347,9 +394,11 @@ def test_dummy(scorep_env):
 def test_numpy_dot(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/numpy_dot.py",
-                                        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/numpy_dot.py",
+        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_out == "[[ 7 10]\n [15 22]]\n"
     assert std_err == ""
@@ -357,17 +406,23 @@ def test_numpy_dot(scorep_env, instrumenter):
     std_out, std_err = call(["otf2-print", trace_path])
 
     assert std_err == ""
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out)
+    assert re.search(
+        'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out
+    )
+    assert re.search(
+        'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out
+    )
 
 
 @foreach_instrumenter
 def test_threads(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep("cases/use_threads.py",
-                                        ["--nocompiler", "--instrumenter-type=" + instrumenter],
-                                        env=scorep_env)
+    std_out, std_err = call_with_scorep(
+        "cases/use_threads.py",
+        ["--nocompiler", "--instrumenter-type=" + instrumenter],
+        env=scorep_env,
+    )
 
     assert std_err == ""
     assert "hello world\n" in std_out
@@ -379,6 +434,9 @@ def test_threads(scorep_env, instrumenter):
     std_out, std_err = call(["otf2-print", trace_path])
 
     assert std_err == ""
-    for func in ('__main__:foo', 'instrumentation2:bar', 'instrumentation2:baz'):
-        for event in ('ENTER', 'LEAVE'):
-            assert re.search('%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out)
+    for func in ("__main__:foo", "instrumentation2:bar", "instrumentation2:baz"):
+        for event in ("ENTER", "LEAVE"):
+            assert re.search(
+                '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
+            )
+

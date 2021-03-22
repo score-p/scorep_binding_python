@@ -17,6 +17,7 @@ def call(arguments, expected_returncode=0, env=None):
         out = subprocess.run(
             arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
+        print(out.stdout, out.stderr)
         assert out.returncode == expected_returncode
         stdout, stderr = (out.stdout, out.stderr)
     else:

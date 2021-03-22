@@ -9,11 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - id: cache
-      uses: actions/cache@v1
-      with:
-        path: ~/scorep
-        key: scorep
+
 
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
@@ -21,9 +17,13 @@ jobs:
         python-version: 3.7
     - name: Check Version
       run: test ${{ github.event.release.tag_name }} = `python -c "import scorep._version; print('v'+scorep._version.__version__)"`
-    - name: Install dependencies
+    
+    - name: Add Score-P repo
       run: sudo add-apt-repository ppa:andreasgocht/scorep
+    
+    - name: Install Score-P      
       run: sudo apt install scorep
+
     - name: Setup environment
       run: echo "$HOME/scorep/bin" >> $GITHUB_PATH
 

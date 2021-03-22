@@ -18,14 +18,11 @@ jobs:
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip
-    - id: cache
-      uses: actions/cache@v1
-      with:
-        path: ~/scorep
-        key: scorep
 
-    - name: Install dependencies
+    - name: Add Score-P repo
       run: sudo add-apt-repository ppa:andreasgocht/scorep
+    
+    - name: Install Score-P      
       run: sudo apt install scorep
 
     - name: Setup environment

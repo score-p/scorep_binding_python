@@ -477,7 +477,7 @@ def test_io(scorep_env, instrumenter):
             "IO_OPERATION_COMPLETE": file_regex,
             "LEAVE": "write",
         },
-        "close": {
+        "read": {
             "ENTER": "read",
             "IO_OPERATION_BEGIN": file_regex,
             "IO_OPERATION_COMPLETE": file_regex,
@@ -499,9 +499,9 @@ def test_io(scorep_env, instrumenter):
     after_expected_io = False
 
     for line in std_out.split("\n"):
-        if ("user_instrumenter:expect io" in line) and (in_expected_io == False):
+        if ("user_instrumenter:expect io" in line) and (in_expected_io is False):
             in_expected_io = True
-        elif ("user_instrumenter:expect io" in line) and (in_expected_io == True):
+        elif ("user_instrumenter:expect io" in line) and (in_expected_io is True):
             in_expected_io = False
             after_expected_io = True
         if in_expected_io:

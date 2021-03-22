@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.com/score-p/scorep_binding_python.svg?branch=master)](https://travis-ci.com/score-p/scorep_binding_python)
 [![Unit tests](https://github.com/score-p/scorep_binding_python/workflows/Unit%20tests/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Unit+tests")
 [![Static analysis](https://github.com/score-p/scorep_binding_python/workflows/Static%20analysis/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Static+analysis")
 

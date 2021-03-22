@@ -440,6 +440,7 @@ def test_threads(scorep_env, instrumenter):
                 '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
             )
 
+
 @pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
 @foreach_instrumenter
 def test_io(scorep_env, instrumenter):

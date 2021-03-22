@@ -516,4 +516,3 @@ def test_io(scorep_env, instrumenter):
             )
             print(regex_str)
             assert re.search(regex_str, io_trace)
-

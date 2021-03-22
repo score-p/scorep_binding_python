@@ -10,4 +10,3 @@ with scorep.instrumenter.enable("expect io"):
         print(data)
 
     os.remove("test.txt")
-

@@ -456,7 +456,7 @@ def test_io(scorep_env, instrumenter):
 
     print("start")
     std_out, std_err = call_with_scorep(
-        "cases/io.py",
+        "cases/file_io.py",
         [
             "--nocompiler",
             "--instrumenter-type=" + instrumenter,

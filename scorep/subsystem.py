@@ -33,12 +33,12 @@ def generate_ld_preload(scorep_config):
     return preload.strip()
 
 
-def generate_subsystem_code(config=[]):
+def generate_subsystem_code(config):
     """
     Generates the data needed to be preloaded.
     """
 
-    scorep_config = ["scorep-config"] + config + ["--user"]
+    scorep_config = ["scorep-config"] + config
 
     (return_code, _, _) = scorep.helper.call(scorep_config)
     if return_code != 0:

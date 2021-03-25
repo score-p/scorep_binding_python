@@ -120,6 +120,8 @@ def init_environment(scorep_config, keep_files=False, verbose=False):
     if verbose:
         _print_info("Score-P config: %s" % scorep_config)
 
+    old_env = os.environ.copy()
+
     subsystem_lib_name, temp_dir = generate(scorep_config, keep_files)
     scorep_ld_preload = generate_ld_preload(scorep_config)
 
@@ -136,7 +138,12 @@ def init_environment(scorep_config, keep_files=False, verbose=False):
 
     if verbose:
         for var in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
-            _print_info("%s='%s'" % (var, os.environ[var]))
+            # Shorten the setting to e.g.: FOO=new:$FOO
+            old_val = old_env.get(var)
+            new_val = os.environ[var]
+            if old_val:
+                new_val = new_val.replace(old_val, '$' + var)
+            _print_info('%s="%s"' % (var, new_val))
 
 
 def reset_preload():

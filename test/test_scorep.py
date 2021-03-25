@@ -2,10 +2,11 @@
 
 import os
 import pkgutil
+import platform
+import pytest
 import re
 import subprocess
 import sys
-import pytest
 
 
 def call(arguments, expected_returncode=0, env=None):
@@ -50,7 +51,8 @@ def requires_package(name):
 
 
 cinstrumenter_skip_mark = pytest.mark.skipif(
-    sys.version_info.major < 3, reason="CInstrumenter only available in Python 3"
+    sys.version_info.major < 3 or platform.python_implementation() == 'PyPy',
+    reason="CInstrumenter only available in Python 3 and not in PyPy"
 )
 # All instrumenters (except dummy which isn't a real one)
 ALL_INSTRUMENTERS = [
@@ -83,6 +85,12 @@ def test_has_version():
     import scorep
 
     assert scorep.__version__ is not None
+
+
+@cinstrumenter_skip_mark
+def test_has_c_instrumenter():
+    from scorep.instrumenter import has_c_instrumenter
+    assert has_c_instrumenter()
 
 
 @foreach_instrumenter

@@ -22,7 +22,7 @@ def scorep_main(argv=None):
     no_default_threads = False
     no_default_compiler = False
     no_instrumenter = False
-    if sys.version_info.major >= 3:
+    if scorep.instrumenter.has_c_instrumenter():
         instrumenter_type = "cProfile"
     else:
         instrumenter_type = "profile"

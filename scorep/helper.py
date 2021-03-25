@@ -4,9 +4,9 @@ import os
 import re
 
 
-def print_err(*args, **kwargs):
+def print_err(*args):
     """Print to stderr"""
-    print(*args, file=sys.stderr, **kwargs)
+    sys.stderr.write(' '.join(map(str, args)) + '\n')
 
 
 def call(arguments):

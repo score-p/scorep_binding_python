@@ -24,7 +24,10 @@ def scorep_main(argv=None):
     no_default_threads = False
     no_default_compiler = False
     no_instrumenter = False
-    instrumenter_type = "profile"
+    if scorep.instrumenter.has_c_instrumenter():
+        instrumenter_type = "cProfile"
+    else:
+        instrumenter_type = "profile"
 
     for elem in argv[1:]:
         if parse_scorep_commands:

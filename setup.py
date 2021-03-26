@@ -2,6 +2,7 @@ import os
 import sys
 from distutils.core import setup, Extension
 import scorep.helper
+from scorep.instrumenter import has_c_instrumenter
 
 if scorep.helper.get_scorep_version() < 5.0:
     raise RuntimeError(
@@ -25,17 +26,23 @@ cmodules = []
 src_folder = os.path.abspath('src')
 include += [src_folder]
 sources = ['src/methods.cpp', 'src/scorep_bindings.cpp', 'src/scorepy/events.cpp']
-if sys.version_info.major >= 3:
+define_macros = [('PY_SSIZE_T_CLEAN', '1')]
+# We are using the UTF-8 string features from Python 3
+# The C Instrumenter functions are not available on PyPy
+if has_c_instrumenter():
     sources.extend([
         'src/classes.cpp',
         'src/scorepy/cInstrumenter.cpp',
         'src/scorepy/pythonHelpers.cpp',
         'src/scorepy/pathUtils.cpp',
     ])
+    define_macros.append(('SCOREPY_ENABLE_CINSTRUMENTER', '1'))
+else:
+    define_macros.append(('SCOREPY_ENABLE_CINSTRUMENTER', '0'))
 
 cmodules.append(Extension('scorep._bindings',
                           include_dirs=include,
-                          define_macros=[('PY_SSIZE_T_CLEAN', '1')],
+                          define_macros=define_macros,
                           extra_compile_args=["-std=c++11"],
                           sources=sources))
 
@@ -70,6 +77,7 @@ Besides this, it uses the traditional python-tracing infrastructure.
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Operating System :: POSIX',
         'Operating System :: Unix',
     ],

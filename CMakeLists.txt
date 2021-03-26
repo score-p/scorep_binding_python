@@ -19,13 +19,16 @@ find_package(Python REQUIRED COMPONENTS Interpreter Development)
 Python_add_library(_bindings
   src/methods.cpp src/scorep_bindings.cpp src/scorepy/events.cpp
 )
-if(Python_VERSION_MAJOR GREATER_EQUAL 3)
+if(Python_VERSION_MAJOR GREATER_EQUAL 3 AND NOT Python_INTERPRETER_ID STREQUAL "PyPy")
   target_sources(_bindings PRIVATE
     src/classes.cpp
     src/scorepy/cInstrumenter.cpp
     src/scorepy/pathUtils.cpp
     src/scorepy/pythonHelpers.cpp
   )
+  target_compile_definitions(_bindings PRIVATE SCOREPY_ENABLE_CINSTRUMENTER=1)
+else()
+  target_compile_definitions(_bindings PRIVATE SCOREPY_ENABLE_CINSTRUMENTER=0)
 endif()
 target_link_libraries(_bindings PRIVATE Scorep::Plugin)
 target_compile_features(_bindings PRIVATE cxx_std_11)

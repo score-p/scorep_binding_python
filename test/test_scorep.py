@@ -424,7 +424,7 @@ def test_threads(scorep_env, instrumenter):
         env=scorep_env,
     )
 
-    assert std_err == ""
+    assert std_err == "" or "warning: Thread after main " in std_err
     assert "hello world\n" in std_out
     assert "Thread 0 started\n" in std_out
     assert "Thread 1 started\n" in std_out

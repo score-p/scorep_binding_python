@@ -4,8 +4,12 @@ import time
 import instrumentation2
 
 
+lock = threading.Lock()
+
+
 def worker(id, func):
-    print("Thread %s started" % id)
+    with lock:
+        print("Thread %s started" % id)
     # Use a random delay to add non-determinism to the output
     time.sleep(random.uniform(0.01, 0.9))
     func()

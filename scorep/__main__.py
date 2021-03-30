@@ -3,10 +3,11 @@ import sys
 
 import scorep.instrumenter
 import scorep.subsystem
+from scorep.helper import print_err
 
 
 def _err_exit(msg):
-    sys.stderr.write("%s: %s\n" % ("scorep", msg))
+    print_err("scorep: " + msg)
     sys.exit(1)
 
 
@@ -19,17 +20,25 @@ def scorep_main(argv=None):
     parse_scorep_commands = True
 
     keep_files = False
+    verbose = False
     no_default_threads = False
     no_default_compiler = False
     no_instrumenter = False
-    instrumenter_type = "profile"
+    if scorep.instrumenter.has_c_instrumenter():
+        instrumenter_type = "cProfile"
+    else:
+        instrumenter_type = "profile"
 
     for elem in argv[1:]:
         if parse_scorep_commands:
-            if elem == "--mpi":
+            if elem == "--":
+                parse_scorep_commands = False
+            elif elem == "--mpi":
                 scorep_config.append("--mpp=mpi")
             elif elem == "--keep-files":
                 keep_files = True
+            elif elem == "--verbose" or elem == '-v':
+                verbose = True
             elif "--thread=" in elem:
                 scorep_config.append(elem)
                 no_default_threads = True
@@ -61,7 +70,7 @@ def scorep_main(argv=None):
         _err_exit("Did not find a script to run")
 
     if os.environ.get("SCOREP_PYTHON_BINDINGS_INITIALISED") != "true":
-        scorep.subsystem.init_environment(scorep_config, keep_files)
+        scorep.subsystem.init_environment(scorep_config, keep_files, verbose)
         os.environ["SCOREP_PYTHON_BINDINGS_INITIALISED"] = "true"
         """
         python -m starts the module as skript. i.e. sys.argv will loke like:

@@ -1,10 +1,15 @@
 import os
-import sys
 import distutils.ccompiler
 import tempfile
 import shutil
 
 import scorep.helper
+from scorep.helper import print_err
+
+
+def _print_info(msg):
+    """Print an info message with a prefix"""
+    print_err("scorep: " + msg)
 
 
 def generate_subsystem_lib_name():
@@ -24,20 +29,19 @@ def generate_ld_preload(scorep_config):
     @return ld_preload string which needs to be passed to LD_PRELOAD
     """
 
-    (_, preload, _) = scorep.helper.call(
-        ["scorep-config"] + scorep_config + ["--user", "--preload-libs"])
-    return preload
+    (_, preload, _) = scorep.helper.call(["scorep-config"] + scorep_config + ["--preload-libs"])
+    return preload.strip()
 
 
-def generate_subsystem_code(config=[]):
+def generate_subsystem_code(config):
     """
     Generates the data needed to be preloaded.
     """
 
-    scorep_config = ["scorep-config"] + config + ["--user"]
+    scorep_config = ["scorep-config"] + config
 
-    (retrun_code, _, _) = scorep.helper.call(scorep_config)
-    if retrun_code != 0:
+    (return_code, _, _) = scorep.helper.call(scorep_config)
+    if return_code != 0:
         raise ValueError(
             "given config {} is not supported".format(scorep_config))
     (_, scorep_adapter_init, _) = scorep.helper.call(
@@ -75,9 +79,7 @@ def generate(scorep_config, keep_files=False):
 
     temp_dir = tempfile.mkdtemp(prefix="scorep.")
     if keep_files:
-        sys.stderr.write(
-            "Score-P files are keept at: {}\n".format(temp_dir))
-        sys.stderr.flush()
+        _print_info("Score-P files are kept at: " + temp_dir)
 
     with open(temp_dir + "/scorep_init.c", "w") as f:
         f.write(scorep_adapter_init)
@@ -99,34 +101,49 @@ def generate(scorep_config, keep_files=False):
     return(subsystem_lib_name, temp_dir)
 
 
-def init_environment(scorep_config=[], keep_files=False):
+def init_environment(scorep_config, keep_files=False, verbose=False):
     """
-    Set the inital needed environmet variables, to get everythin up an running.
-    As a few variables interact with LD env vars, the programms needs to be restarted after this.
+    Set the inital needed environment variables, to get everything up an running.
+    As a few variables interact with LD env vars, the program needs to be restarted after this.
 
     @param scorep_config configuration flags for score-p
     @param keep_files whether to keep the generated files, or not.
+    @param verbose Set to True to output information about config used and environment variables set.
     """
 
     if "libscorep" in os.environ.get("LD_PRELOAD", ""):
-        raise RuntimeError(
-            "Score-P is already loaded. This should not happen at this point")
+        raise RuntimeError("Score-P is already loaded. This should not happen at this point")
 
-    subsystem_lib_name, temp_dir = scorep.subsystem.generate(
-        scorep_config, keep_files)
+    if "--user" not in scorep_config:
+        scorep_config.append("--user")
+
+    if verbose:
+        _print_info("Score-P config: %s" % scorep_config)
+
+    old_env = os.environ.copy()
+
+    subsystem_lib_name, temp_dir = generate(scorep_config, keep_files)
     scorep_ld_preload = generate_ld_preload(scorep_config)
 
     scorep.helper.add_to_ld_library_path(temp_dir)
 
     preload_str = scorep_ld_preload + " " + subsystem_lib_name
-    if "LD_PRELOAD" in os.environ:
-        sys.stderr.write(
-            "LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
+    if os.environ.get("LD_PRELOAD"):
+        print_err("LD_PRELOAD is already specified. If Score-P is already loaded this might lead to errors.")
         preload_str = os.environ["LD_PRELOAD"] + " " + preload_str
         os.environ["SCOREP_LD_PRELOAD_BACKUP"] = os.environ["LD_PRELOAD"]
     else:
         os.environ["SCOREP_LD_PRELOAD_BACKUP"] = ""
     os.environ["LD_PRELOAD"] = preload_str
+
+    if verbose:
+        for var in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
+            # Shorten the setting to e.g.: FOO=new:$FOO
+            old_val = old_env.get(var)
+            new_val = os.environ[var]
+            if old_val:
+                new_val = new_val.replace(old_val, '$' + var)
+            _print_info('%s="%s"' % (var, new_val))
 
 
 def reset_preload():

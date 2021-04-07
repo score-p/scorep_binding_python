@@ -19,14 +19,22 @@ def call(arguments, expected_returncode=0, env=None):
             arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         print(out.stdout, out.stderr)
-        assert out.returncode == expected_returncode
+        try:
+            assert out.returncode == expected_returncode
+        except AssertionError as e:
+            e.args += ("stderr: {}".format(out.stderr.decode("utf-8")),)
+            raise
         stdout, stderr = (out.stdout, out.stderr)
     else:
         p = subprocess.Popen(
             arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         stdout, stderr = p.communicate()
-        assert p.returncode == expected_returncode
+        try:
+            assert p.returncode == expected_returncode
+        except AssertionError as e:
+            e.args += ("stderr: {}".format(stderr.decode("utf-8")),)
+            raise
     return stdout.decode("utf-8"), stderr.decode("utf-8")
 
 
@@ -51,8 +59,8 @@ def requires_package(name):
 
 
 cinstrumenter_skip_mark = pytest.mark.skipif(
-    sys.version_info.major < 3 or platform.python_implementation() == 'PyPy',
-    reason="CInstrumenter only available in Python 3 and not in PyPy"
+    sys.version_info.major < 3 or platform.python_implementation() == "PyPy",
+    reason="CInstrumenter only available in Python 3 and not in PyPy",
 )
 # All instrumenters (except dummy which isn't a real one)
 ALL_INSTRUMENTERS = [
@@ -90,6 +98,7 @@ def test_has_version():
 @cinstrumenter_skip_mark
 def test_has_c_instrumenter():
     from scorep.instrumenter import has_c_instrumenter
+
     assert has_c_instrumenter()
 
 

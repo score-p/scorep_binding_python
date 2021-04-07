@@ -1,5 +1,6 @@
 #include "methods.hpp"
 #include "scorepy/events.hpp"
+#include "scorepy/pathUtils.hpp"
 #include <Python.h>
 #include <cstdint>
 #include <scorep/SCOREP_User_Functions.h>
@@ -180,6 +181,16 @@ extern "C"
         return PyUnicode_FromString(SCOREP_GetExperimentDirName());
     }
 
+    static PyObject* abspath(PyObject* self, PyObject* args)
+    {
+        const char* path;
+
+        if (!PyArg_ParseTuple(args, "s", &path))
+            return NULL;
+
+        return PyUnicode_FromString(scorepy::abspath(path).c_str());
+    }
+
     static PyMethodDef ScorePMethods[] = {
         { "region_begin", region_begin, METH_VARARGS, "enter a region." },
         { "region_end", region_end, METH_VARARGS, "exit a region." },
@@ -194,6 +205,7 @@ extern "C"
         { "parameter_string", parameter_string, METH_VARARGS, "User parameter string." },
         { "get_experiment_dir_name", get_experiment_dir_name, METH_VARARGS,
           "Get the Score-P experiment dir." },
+        { "abspath", abspath, METH_VARARGS, "Estimates the absolute Path." },
         { NULL, NULL, 0, NULL } /* Sentinel */
     };
 }

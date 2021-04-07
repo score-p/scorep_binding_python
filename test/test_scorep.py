@@ -22,7 +22,7 @@ def call(arguments, expected_returncode=0, env=None):
         try:
             assert out.returncode == expected_returncode
         except AssertionError as e:
-            e.args += "stderr: {}".format(out.stderr.decode("utf-8"))
+            e.args += ("stderr: {}".format(out.stderr.decode("utf-8")),)
             raise
         stdout, stderr = (out.stdout, out.stderr)
     else:
@@ -33,7 +33,7 @@ def call(arguments, expected_returncode=0, env=None):
         try:
             assert p.returncode == expected_returncode
         except AssertionError as e:
-            e.args += "stderr: {}".format(stderr.decode("utf-8"))
+            e.args += ("stderr: {}".format(stderr.decode("utf-8")),)
             raise
     return stdout.decode("utf-8"), stderr.decode("utf-8")
 

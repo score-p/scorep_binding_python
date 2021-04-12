@@ -125,6 +125,11 @@ def init_environment(scorep_config, keep_files=False, verbose=False):
     subsystem_lib_name, temp_dir = generate(scorep_config, keep_files)
     scorep_ld_preload = generate_ld_preload(scorep_config)
 
+    if not os.access(temp_dir + "/" + subsystem_lib_name, os.X_OK):
+        clean_up(keep_files=keep_files)
+        raise RuntimeError(
+            "The Score-P Subsystem Library at {} cannot be executed. Cleaning up.".format(temp_dir + "/" + subsystem_lib_name))
+
     scorep.helper.add_to_ld_library_path(temp_dir)
 
     preload_str = scorep_ld_preload + " " + subsystem_lib_name

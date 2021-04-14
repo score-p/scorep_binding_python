@@ -88,22 +88,19 @@ class enable():
         return self
 
     def __call__(self, func):
-        get_instrumenter().unregister()
-        try:
+        with disable():
             self.func = func
 
             @functools.wraps(func)
             def inner(*args, **kwds):
                 with self._recreate_cm():
                     return func(*args, **kwds)
-        finally:
-            get_instrumenter().register()
         return inner
 
     def __enter__(self):
         self.tracer_registered = get_instrumenter().get_registered()
         if not self.tracer_registered:
-            if self.region_name:
+            if self.user_region_name:
                 self.module_name = "user_instrumenter"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)
@@ -130,16 +127,16 @@ class enable():
                 else:
                     full_file_name = "None"
 
-                scorep.instrumenter.get_instrumenter().region_begin(
+                get_instrumenter().region_begin(
                     self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
 
             get_instrumenter().register()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
         if not self.tracer_registered:
             get_instrumenter().unregister()
 
-            if self.region_name is not None:
+            if self.user_region_name:
                 get_instrumenter().region_end(
                     self.module_name, self.region_name)
             elif callable(self.func):
@@ -171,7 +168,7 @@ class disable():
         return self
 
     def __call__(self, func):
-        get_instrumenter().unregister()
+        self.__enter__()
         try:
             self.func = func
 
@@ -180,7 +177,7 @@ class disable():
                 with self._recreate_cm():
                     return func(*args, **kwds)
         finally:
-            get_instrumenter().register()
+            self.__exit__()
         return inner
 
     def __enter__(self):
@@ -188,7 +185,7 @@ class disable():
         if self.tracer_registered:
             get_instrumenter().unregister()
 
-            if self.region_name is not None:
+            if self.user_region_name:
                 self.module_name = "user_instrumenter"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)
@@ -214,12 +211,12 @@ class disable():
                 else:
                     full_file_name = "None"
 
-                scorep.instrumenter.get_instrumenter().region_begin(
+                get_instrumenter().region_begin(
                     self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
         if self.tracer_registered:
-            if self.region_name is not None:
+            if self.user_region_name:
                 get_instrumenter().region_end(
                     self.module_name, self.region_name)
             elif callable(self.func):

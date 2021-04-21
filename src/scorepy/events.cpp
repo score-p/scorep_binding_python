@@ -37,49 +37,60 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
+static region_handle create_user_region(const std::string& region_name, const CString module,
+                                        const CString file_name, const std::uint64_t line_number)
+{
+    region_handle handle;
+    SCOREP_User_RegionInit(&handle.value, NULL, NULL, region_name.c_str(),
+                           SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
+
+    // Extract main module name if module is like "mainmodule.submodule.subsubmodule"
+    const char* dot_pos = module.find('.');
+    if (dot_pos)
+    {
+        const std::string main_module(module.c_str(), dot_pos);
+        SCOREP_User_RegionSetGroup(handle.value, main_module.c_str());
+    }
+    else
+    {
+        SCOREP_User_RegionSetGroup(handle.value, module.c_str());
+    }
+    return handle;
+}
+
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
-void region_begin(const std::string& function_name, const std::string& module,
-                  const std::string& file_name, const std::uint64_t line_number,
-                  const std::uintptr_t& identifier)
+void region_begin(const CString function_name, const CString module, const CString file_name,
+                  const std::uint64_t line_number, const std::uintptr_t& identifier)
 {
     auto& region_handle = regions[identifier];
 
     if (region_handle == uninitialised_region_handle)
     {
-        auto& region_name = make_region_name(module, function_name);
-        SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
-                               SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
-
-        SCOREP_User_RegionSetGroup(region_handle.value,
-                                   std::string(module, 0, module.find('.')).c_str());
+        const auto& region_name = make_region_name(module, function_name);
+        region_handle = create_user_region(region_name, module, file_name, line_number);
     }
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
 // Used for regions, that only have a function name, a module, a file and a line number (user
 // regions)
-void region_begin(const std::string& function_name, const std::string& module,
-                  const std::string& file_name, const std::uint64_t line_number)
+void region_begin(const CString function_name, const CString module, const CString file_name,
+                  const std::uint64_t line_number)
 {
     const auto& region_name = make_region_name(module, function_name);
     auto& region_handle = user_regions[region_name];
 
     if (region_handle == uninitialised_region_handle)
     {
-        SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
-                               SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
-
-        SCOREP_User_RegionSetGroup(region_handle.value,
-                                   std::string(module, 0, module.find('.')).c_str());
+        region_handle = create_user_region(region_name, module, file_name, line_number);
     }
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
-void region_end(const std::string& function_name, const std::string& module,
-                const std::uintptr_t& identifier)
+void region_end(const CString function_name, const CString module, const std::uintptr_t& identifier)
 {
     const auto it_region = regions.find(identifier);
     if (it_region != regions.end())
@@ -94,7 +105,7 @@ void region_end(const std::string& function_name, const std::string& module,
 }
 
 // Used for regions, that only have a function name, a module (user regions)
-void region_end(const std::string& function_name, const std::string& module)
+void region_end(const CString function_name, const CString module)
 {
     auto& region_name = make_region_name(module, function_name);
     const auto it_region = user_regions.find(region_name);

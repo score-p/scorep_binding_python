@@ -137,7 +137,7 @@ class region(object):
 
 def rewind_begin(name, file_name=None, line_number=None):
     """
-    Begin of an User region. If file_name or line_number is None, both will
+    Begin of a Rewind region. If file_name or line_number is None, both will
     be determined automatically
     @param name name of the user region
     @param file_name file name of the user region
@@ -159,7 +159,7 @@ def rewind_begin(name, file_name=None, line_number=None):
 
 def rewind_end(name, value):
     """
-    End of an Rewind region.
+    End of a Rewind region.
     @param name name of the user region
     @param value True or False, whenether the region shall be rewinded or not.
     """

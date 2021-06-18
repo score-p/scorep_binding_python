@@ -194,7 +194,7 @@ extern "C"
         return PyUnicode_FromString(scorepy::abspath(path).c_str());
     }
 
-    static PyObject* manual_finalize(PyObject* self, PyObject* args)
+    static PyObject* force_finalize(PyObject* self, PyObject* args)
     {
         SCOREP_FinalizeMeasurement();
         Py_RETURN_NONE;
@@ -221,7 +221,7 @@ extern "C"
         { "get_experiment_dir_name", get_experiment_dir_name, METH_VARARGS,
           "Get the Score-P experiment dir." },
         { "abspath", abspath, METH_VARARGS, "Estimates the absolute Path." },
-        { "manual_finalize", manual_finalize, METH_VARARGS, "triggers a finalize" },
+        { "force_finalize", force_finalize, METH_VARARGS, "triggers a finalize" },
         { "reregister_exit_handler", reregister_exit_handler, METH_VARARGS,
           "register an new atexit handler" },
         { NULL, NULL, 0, NULL } /* Sentinel */

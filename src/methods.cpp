@@ -113,32 +113,6 @@ extern "C"
         Py_RETURN_NONE;
     }
 
-    static PyObject* oa_region_begin(PyObject* self, PyObject* args)
-    {
-        const char* region;
-        const char* file_name;
-        std::uint64_t line_number = 0;
-
-        if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
-            return NULL;
-
-        scorepy::oa_region_begin(region, file_name, line_number);
-
-        Py_RETURN_NONE;
-    }
-
-    static PyObject* oa_region_end(PyObject* self, PyObject* args)
-    {
-        const char* region;
-
-        if (!PyArg_ParseTuple(args, "s", &region))
-            return NULL;
-
-        scorepy::oa_region_end(region);
-
-        Py_RETURN_NONE;
-    }
-
     static PyObject* parameter_string(PyObject* self, PyObject* args)
     {
         const char* name;
@@ -211,8 +185,6 @@ extern "C"
         { "region_end", region_end, METH_VARARGS, "exit a region." },
         { "rewind_begin", rewind_begin, METH_VARARGS, "rewind begin." },
         { "rewind_end", rewind_end, METH_VARARGS, "rewind end." },
-        { "oa_region_begin", oa_region_begin, METH_VARARGS, "enter an online access region." },
-        { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
         { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },
         { "disable_recording", disable_recording, METH_VARARGS, "disable scorep recording." },
         { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },

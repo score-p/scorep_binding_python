@@ -200,26 +200,6 @@ def test_user_rewind(scorep_env, instrumenter):
     assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON", std_out)
 
 
-@foreach_instrumenter
-def test_oa_regions(scorep_env, instrumenter):
-    trace_path = get_trace_path(scorep_env)
-
-    std_out, std_err = call_with_scorep(
-        "cases/oa_regions.py",
-        ["--nopython", "--instrumenter-type=" + instrumenter],
-        env=scorep_env,
-    )
-
-    assert std_err == ""
-    assert std_out == "hello world\n"
-
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "test_region"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "test_region"', std_out)
-
-
 @pytest.mark.parametrize("instrumenter", ALL_INSTRUMENTERS + [None])
 def test_instrumentation(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)

@@ -180,17 +180,4 @@ void parameter_string(std::string name, std::string value)
     SCOREP_User_ParameterString(&scorep_param, name.c_str(), value.c_str());
 }
 
-void oa_region_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
-{
-    auto& handle = user_regions[region_name];
-    SCOREP_User_OaPhaseBegin(&handle.value, NULL, NULL, region_name.c_str(),
-                             SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
-}
-
-void oa_region_end(std::string region_name)
-{
-    auto& handle = user_regions[region_name];
-    SCOREP_User_OaPhaseEnd(handle.value);
-}
-
 } // namespace scorepy

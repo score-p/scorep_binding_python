@@ -46,14 +46,6 @@ class BaseInstrumenter(_BaseInstrumenter):
         pass
 
     @abc.abstractmethod
-    def oa_region_begin(self, name, file_name=None, line_number=None):
-        pass
-
-    @abc.abstractmethod
-    def oa_region_end(self, name):
-        pass
-
-    @abc.abstractmethod
     def user_enable_recording(self):
         pass
 

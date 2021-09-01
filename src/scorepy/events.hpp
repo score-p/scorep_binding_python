@@ -35,6 +35,4 @@ void parameter_int(std::string name, int64_t value);
 void parameter_uint(std::string name, uint64_t value);
 void parameter_string(std::string name, std::string value);
 
-void oa_region_begin(std::string region_name, std::string file_name, std::uint64_t line_number);
-void oa_region_end(std::string region_name);
 } // namespace scorepy

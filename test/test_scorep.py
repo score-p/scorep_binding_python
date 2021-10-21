@@ -234,13 +234,19 @@ def test_user_instrumentation(scorep_env, instrumenter):
     )
 
     assert std_err == ""
-    assert std_out == "hello world\nbaz\nbar\n"
+    assert std_out == "hello world\nbar\nhello world2\nbaz\n"
 
     std_out, std_err = call(["otf2-print", trace_path])
 
     assert std_err == ""
     assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
     assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo2"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo2"', std_out)
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
 
 
 @foreach_instrumenter

@@ -28,9 +28,8 @@ void CInstrumenter::deinit()
 
 void CInstrumenter::enable_instrumenter()
 {
-    const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int {
-        return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1;
-    };
+    const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int
+    { return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1; };
     if (threading_set_instrumenter)
     {
         PyRefObject result(PyObject_CallFunction(threading_set_instrumenter, "O", to_PyObject()),
@@ -115,32 +114,13 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     case PyTrace_CALL:
     {
         const PyCodeObject& code = *frame.f_code;
-        const char* name = PyUnicode_AsUTF8(code.co_name);
-        const char* module_name = get_module_name(frame);
-        assert(name);
-        assert(module_name);
-        // TODO: Use string_view/CString comparison?
-        if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
-        {
-            const int line_number = code.co_firstlineno;
-            const auto file_name = get_file_name(frame);
-            region_begin(name, module_name, file_name, line_number,
-                         reinterpret_cast<std::uintptr_t>(&code));
-        }
+        region_begin(frame, code);
         break;
     }
     case PyTrace_RETURN:
     {
         const PyCodeObject& code = *frame.f_code;
-        const char* name = PyUnicode_AsUTF8(code.co_name);
-        const char* module_name = get_module_name(frame);
-        assert(name);
-        assert(module_name);
-        // TODO: Use string_view/CString comparison?
-        if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
-        {
-            region_end(name, module_name, reinterpret_cast<std::uintptr_t>(&code));
-        }
+        region_end(frame, code);
         break;
     }
     }

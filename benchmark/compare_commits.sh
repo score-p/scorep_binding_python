@@ -12,7 +12,7 @@ function benchmark_branch {
 	head=`git rev-parse --short HEAD`
 	pip install .
 	cd $wd
-	taskset -c 0 python benchmark.py -o result-$1-$head.pkl
+	python benchmark.py -o result-$1-$head.pkl
 }
 
 sleep 5

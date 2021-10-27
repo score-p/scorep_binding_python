@@ -9,12 +9,17 @@
 #SBATCH --comment=no_monitoring
 #SBATCH --job-name benchmark_python
 
-module load Python/3.6.4-intel-2018a
-module unload intel
-module load intel
+module load Python/3.8.6-GCCcore-10.2.0
+module load Score-P/7.0-gompic-2020b
 
-export PATH=/scratch/rschoene/scorep-6-inst/bin:$PATH
+env_dir=~/virtenv/p-3.8.6-GCCcore-10.2.0-scorep-7.0-gompic-2020b/
 
-. ~/scorep_binding_python/test/bin/activate
+if [ ! -d $env_dir ]
+then
+	echo "Please create virtual env under: $env_dir"
+	exit -1
+fi
 
-srun python benchmark.py
+source $env_dir/bin/activate
+
+srun compare_commits.sh master faster

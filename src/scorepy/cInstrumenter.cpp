@@ -28,8 +28,9 @@ void CInstrumenter::deinit()
 
 void CInstrumenter::enable_instrumenter()
 {
-    const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int
-    { return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1; };
+    const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int {
+        return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1;
+    };
     if (threading_set_instrumenter)
     {
         PyRefObject result(PyObject_CallFunction(threading_set_instrumenter, "O", to_PyObject()),

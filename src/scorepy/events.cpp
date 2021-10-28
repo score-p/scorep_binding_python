@@ -39,9 +39,17 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
+#if PY_MAJOR_VERSION >= 3
+#include <frameobject.h>
+template void scorepy::region_begin<PyFrameObject, PyCodeObject>(const PyFrameObject&);
+template void scorepy::region_end<PyFrameObject, PyCodeObject>(const PyFrameObject&);
+#endif
+
 // Used for regions, that have an identifier, aka a code object id.
-void region_begin(const PyFrameObject& frame, const PyCodeObject& code)
+template <typename ScorePyFrameObject, typename ScorePyCodeObject>
+void region_begin(const ScorePyFrameObject& frame)
 {
+    const ScorePyCodeObject& code = *frame.f_code;
     auto& region_handle = regions[reinterpret_cast<std::uintptr_t>(&code)];
 
     if (region_handle == uninitialised_region_handle)
@@ -108,8 +116,10 @@ void region_begin(const std::string& function_name, const std::string& module,
     SCOREP_User_RegionEnter(region_handle.value);
 }
 
-void region_end(const PyFrameObject& frame, const PyCodeObject& code)
+template <typename ScorePyFrameObject, typename ScorePyCodeObject>
+void region_end(const ScorePyFrameObject& frame)
 {
+    const ScorePyCodeObject& code = *frame.f_code;
     const auto it_region = regions.find(reinterpret_cast<std::uintptr_t>(&code));
     if (it_region != regions.end())
     {

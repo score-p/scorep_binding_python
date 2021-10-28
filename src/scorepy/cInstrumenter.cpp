@@ -114,14 +114,12 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     {
     case PyTrace_CALL:
     {
-        const PyCodeObject& code = *frame.f_code;
-        region_begin(frame, code);
+        region_begin<PyFrameObject, PyCodeObject>(frame);
         break;
     }
     case PyTrace_RETURN:
     {
-        const PyCodeObject& code = *frame.f_code;
-        region_end(frame, code);
+        region_end<PyFrameObject, PyCodeObject>(frame);
         break;
     }
     }

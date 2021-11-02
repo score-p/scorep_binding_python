@@ -1,5 +1,6 @@
 #pragma once
 #include <Python.h>
+#include <frameobject.h>
 
 #include <cstdint>
 #include <string>
@@ -17,8 +18,8 @@ inline const std::string& make_region_name(const std::string& module_name, const
     return region;
 }
 
-template <typename PythonFrameObject, typename PythonCodeObject>
-void region_begin(const PythonFrameObject& frame);
+template <typename ScorePyFrameObject, typename ScorePyCodeObject>
+void region_begin(const ScorePyFrameObject& frame);
 
 void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number,
@@ -26,8 +27,8 @@ void region_begin(const std::string& function_name, const std::string& module,
 void region_begin(const std::string& function_name, const std::string& module,
                   const std::string& file_name, const std::uint64_t line_number);
 
-template <typename PythonFrameObject, typename PythonCodeObject>
-void region_end(const PythonFrameObject& frame);
+template <typename ScorePyFrameObject, typename ScorePyCodeObject>
+void region_end(const ScorePyFrameObject& frame);
 
 void region_end(const std::string& function_name, const std::string& module,
                 const std::uintptr_t& identifier);
@@ -43,8 +44,5 @@ void parameter_uint(std::string name, uint64_t value);
 void parameter_string(std::string name, std::string value);
 } // namespace scorepy
 
-#if PY_MAJOR_VERSION >= 3
-#include <frameobject.h>
 extern template void scorepy::region_begin<PyFrameObject, PyCodeObject>(const PyFrameObject&);
 extern template void scorepy::region_end<PyFrameObject, PyCodeObject>(const PyFrameObject&);
-#endif

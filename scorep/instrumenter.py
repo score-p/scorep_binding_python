@@ -1,6 +1,5 @@
 import inspect
 import os
-import platform
 import sys
 import functools
 

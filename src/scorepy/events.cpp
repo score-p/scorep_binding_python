@@ -1,13 +1,10 @@
+#include <Python.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
-#include <unordered_map>
-
 #include <scorep/SCOREP_User_Functions.h>
 #include <scorep/SCOREP_User_Variables.h>
-
-#include <Python.h>
-#include <frameobject.h>
+#include <unordered_map>
 
 #include "events.hpp"
 #include "pythonHelpers.hpp"
@@ -42,46 +39,11 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
 #endif
 };
 
-// pre c++20 hack ... c++20 knows concepts and require
-template <typename T>
-class has_co_firstlineno
-{
-    typedef char one;
-    struct two
-    {
-        char x[2];
-    };
-
-    template <typename C>
-    static one test(decltype(&C::co_firstlineno));
-    template <typename C>
-    static two test(...);
-
-public:
-    enum
-    {
-        value = sizeof(test<T>(0)) == sizeof(char)
-    };
-};
-
-// c++11 -.-
-template <bool B, class T = void>
-using enable_if_t = typename std::enable_if<B, T>::type;
-
-template <typename T>
-enable_if_t<!has_co_firstlineno<T>::value, int> co_firstlineno(const T&)
-{
-    return 0;
-}
-
-template <typename T>
-enable_if_t<has_co_firstlineno<T>::value, int> co_firstlineno(const T& t)
-{
-    return t.co_firstlineno;
-}
-
+#if PY_MAJOR_VERSION >= 3
+#include <frameobject.h>
 template void scorepy::region_begin<PyFrameObject, PyCodeObject>(const PyFrameObject&);
 template void scorepy::region_end<PyFrameObject, PyCodeObject>(const PyFrameObject&);
+#endif
 
 // Used for regions, that have an identifier, aka a code object id.
 template <typename ScorePyFrameObject, typename ScorePyCodeObject>
@@ -97,7 +59,7 @@ void region_begin(const ScorePyFrameObject& frame)
 
         if (function_name != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
         {
-            int line_number = co_firstlineno(code);
+            int line_number = code.co_firstlineno;
             std::string file_name = get_file_name(frame);
             auto& region_name = make_region_name(module_name, function_name);
             SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),

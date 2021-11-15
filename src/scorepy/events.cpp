@@ -1,10 +1,8 @@
-#include <Python.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
-#include <scorep/SCOREP_User_Functions.h>
-#include <scorep/SCOREP_User_Variables.h>
-#include <unordered_map>
+
+#include <Python.h>
 
 #include "events.hpp"
 #include "pythonHelpers.hpp"
@@ -12,20 +10,7 @@
 namespace scorepy
 {
 
-struct region_handle
-{
-    constexpr region_handle() = default;
-    ~region_handle() = default;
-    constexpr bool operator==(const region_handle& other)
-    {
-        return this->value == other.value;
-    }
-    SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
-};
-
-constexpr region_handle uninitialised_region_handle = region_handle();
-
-static std::unordered_map<std::uintptr_t, region_handle> regions;
+std::unordered_map<std::uintptr_t, region_handle> regions;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
@@ -38,44 +23,6 @@ static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
     "threading:__bootstrap_inner", "threading:__bootstrap"
 #endif
 };
-
-#if PY_MAJOR_VERSION >= 3
-#include <frameobject.h>
-template void scorepy::region_begin<PyFrameObject, PyCodeObject>(const PyFrameObject&);
-template void scorepy::region_end<PyFrameObject, PyCodeObject>(const PyFrameObject&);
-#endif
-
-// Used for regions, that have an identifier, aka a code object id.
-template <typename ScorePyFrameObject, typename ScorePyCodeObject>
-void region_begin(const ScorePyFrameObject& frame)
-{
-    const ScorePyCodeObject& code = *frame.f_code;
-    auto& region_handle = regions[reinterpret_cast<std::uintptr_t>(&code)];
-
-    if (region_handle == uninitialised_region_handle)
-    {
-        std::string function_name(PyUnicode_AsUTF8(code.co_name));
-        std::string module_name(get_module_name(frame));
-
-        if (function_name != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
-        {
-            int line_number = code.co_firstlineno;
-            std::string file_name = get_file_name(frame);
-            auto& region_name = make_region_name(module_name, function_name);
-            SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
-                                   SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(),
-                                   line_number);
-
-            SCOREP_User_RegionSetGroup(region_handle.value,
-                                       std::string(module_name, 0, module_name.find('.')).c_str());
-        }
-        else
-        {
-            return;
-        }
-    }
-    SCOREP_User_RegionEnter(region_handle.value);
-}
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
@@ -114,31 +61,6 @@ void region_begin(const std::string& function_name, const std::string& module,
                                    std::string(module, 0, module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(region_handle.value);
-}
-
-template <typename ScorePyFrameObject, typename ScorePyCodeObject>
-void region_end(const ScorePyFrameObject& frame)
-{
-    const ScorePyCodeObject& code = *frame.f_code;
-    const auto it_region = regions.find(reinterpret_cast<std::uintptr_t>(&code));
-    if (it_region != regions.end())
-    {
-        SCOREP_User_RegionEnd(it_region->second.value);
-    }
-    else
-    {
-        std::string function_name(PyUnicode_AsUTF8(code.co_name));
-        std::string module_name = get_module_name(frame);
-        if (function_name != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
-        {
-            auto& region_name = make_region_name(module_name, function_name);
-            region_end_error_handling(region_name);
-        }
-        else
-        {
-            return;
-        }
-    }
 }
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and

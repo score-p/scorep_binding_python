@@ -2,6 +2,7 @@
 
 import os
 import pkgutil
+import platform
 import pytest
 import re
 import subprocess

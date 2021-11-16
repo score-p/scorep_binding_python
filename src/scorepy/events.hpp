@@ -43,13 +43,12 @@ extern std::unordered_map<std::uintptr_t, region_handle> regions;
 /** tries to enter a region. Return true on success
  *
  */
-inline bool try_region_begin(const std::uintptr_t& identifier)
+inline bool try_region_begin(std::uintptr_t identifier)
 {
-    auto& region_handle = regions[identifier];
-
-    if (region_handle != uninitialised_region_handle)
+    auto it = regions.find(identifier);
+    if (it != regions.end())
     {
-        SCOREP_User_RegionEnter(region_handle.value);
+        SCOREP_User_RegionEnter(it->second.value);
         return true;
     }
     else
@@ -67,9 +66,9 @@ void region_begin(const std::string& function_name, const std::string& module,
 /** tries to end a region. Return true on success
  *
  */
-inline bool try_region_end(const std::uintptr_t& identifier)
+inline bool try_region_end(std::uintptr_t identifier)
 {
-    const auto it_region = regions.find(identifier);
+    auto it_region = regions.find(identifier);
     if (it_region != regions.end())
     {
         SCOREP_User_RegionEnd(it_region->second.value);

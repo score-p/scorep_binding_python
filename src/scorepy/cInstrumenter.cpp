@@ -126,7 +126,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
             if (std::string(name) != "_unsetprofile" && std::string(module_name, 0, 6) != "scorep")
             {
                 const int line_number = code.co_firstlineno;
-                const auto file_name = get_file_name(frame);
+                const std::string file_name = get_file_name(frame);
                 region_begin(name, module_name, file_name, line_number,
                              reinterpret_cast<std::uintptr_t>(&code));
             }

@@ -94,8 +94,8 @@ extern "C"
         const char* event;
         PyObject* arg;
 
-        if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!sO", const_cast<char**>(kwlist),
-                                         &PyFrame_Type, &frame, &event, &arg))
+        if (!PyArg_ParseTupleAndKeywords(args, kwds, "OsO", const_cast<char**>(kwlist), &frame,
+                                         &event, &arg))
         {
             return nullptr;
         }

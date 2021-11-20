@@ -21,7 +21,7 @@ void region_begin(std::string_view& function_name, std::string_view& module,
                   const std::string& file_name, const std::uint64_t line_number,
                   compat::PyCodeObject* identifier)
 {
-    region_handle region = regions[identifier];
+    region_handle& region = regions[identifier];
 
     if (region == uninitialised_region_handle)
     {
@@ -40,7 +40,7 @@ void region_begin(std::string_view& function_name, std::string_view& module,
                   const std::string& file_name, const std::uint64_t line_number)
 {
     std::string region_name = make_region_name(module, function_name);
-    region_handle region = user_regions[region_name];
+    region_handle& region = user_regions[region_name];
 
     if (region == uninitialised_region_handle)
     {

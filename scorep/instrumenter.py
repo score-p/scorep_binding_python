@@ -1,7 +1,6 @@
 import inspect
 import os
 import platform
-import sys
 import functools
 
 global_instrumenter = None

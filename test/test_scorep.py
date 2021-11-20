@@ -59,7 +59,8 @@ def requires_package(name):
 
 
 cinstrumenter_skip_mark = pytest.mark.skipif(
-    sys.version_info.major < 3 or platform.python_implementation() == "PyPy",
+    #sys.version_info.major < 3 or platform.python_implementation() == "PyPy",
+    False,
     reason="CInstrumenter only available in Python 3 and not in PyPy",
 )
 # All instrumenters (except dummy which isn't a real one)

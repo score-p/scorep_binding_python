@@ -23,14 +23,13 @@ namespace compat
     inline std::string_view get_string_as_utf_8(PyObject* py_string)
     {
         Py_ssize_t size = 0;
-        const char* string;
 
 #if PY_MAJOR_VERSION >= 3
+        const char* string;
         string = PyUnicode_AsUTF8AndSize(py_string, &size);
 #else
-        PyObject* tmp_string = PyUnicode_AsUTF8String(py_string);
-        size = PyUnicode_GET_DATA_SIZE(tmp_string);
-        string = PyUnicode_AS_DATA(tmp_string);
+        char* string;
+        PyString_AsStringAndSize(py_string, &string, &size);
 #endif
         return std::string_view(string, size);
     }

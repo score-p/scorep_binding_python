@@ -28,6 +28,25 @@ extern "C"
         Py_RETURN_NONE;
     }
 
+    static PyObject* try_region_begin(PyObject* self, PyObject* args)
+    {
+        PyObject* identifier = nullptr;
+        if (!PyArg_ParseTuple(args, "O", &identifier))
+        {
+            return NULL;
+        }
+
+        bool success = scorepy::try_region_begin(reinterpret_cast<PyCodeObject*>(identifier));
+        if (success)
+        {
+            Py_RETURN_TRUE;
+        }
+        else
+        {
+            Py_RETURN_FALSE;
+        }
+    }
+
     /** This code is not thread save. However, this does not matter as the python GIL is not
      * released.
      */
@@ -54,17 +73,38 @@ extern "C"
         std::string_view function_name(function_name_cstr, function_name_len);
         std::string_view file_name(file_name_cstr, file_name_len);
 
+        std::string file_name_abs = scorepy::abspath(file_name);
+
         if (identifier == nullptr or identifier == Py_None)
         {
-            scorepy::region_begin(function_name, module, std::string(file_name), line_number);
+            scorepy::region_begin(function_name, module, file_name_abs, line_number);
         }
         else
         {
-            scorepy::region_begin(function_name, module, std::string(file_name), line_number,
+            scorepy::region_begin(function_name, module, file_name_abs, line_number,
                                   reinterpret_cast<PyCodeObject*>(identifier));
         }
 
         Py_RETURN_NONE;
+    }
+
+    static PyObject* try_region_end(PyObject* self, PyObject* args)
+    {
+        PyObject* identifier = nullptr;
+        if (!PyArg_ParseTuple(args, "O", &identifier))
+        {
+            return NULL;
+        }
+
+        bool success = scorepy::try_region_end(reinterpret_cast<PyCodeObject*>(identifier));
+        if (success)
+        {
+            Py_RETURN_TRUE;
+        }
+        else
+        {
+            Py_RETURN_FALSE;
+        }
     }
 
     /** This code is not thread save. However, this does not matter as the python GIL is not
@@ -196,7 +236,11 @@ extern "C"
 
     static PyMethodDef ScorePMethods[] = {
         { "region_begin", region_begin, METH_VARARGS, "enter a region." },
+        { "try_region_begin", try_region_begin, METH_VARARGS,
+          "Tries to begin a region, returns True on Sucess." },
         { "region_end", region_end, METH_VARARGS, "exit a region." },
+        { "try_region_end", try_region_end, METH_VARARGS,
+          "Tries to end a region, returns True on Sucess." },
         { "rewind_begin", rewind_begin, METH_VARARGS, "rewind begin." },
         { "rewind_end", rewind_end, METH_VARARGS, "rewind end." },
         { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },

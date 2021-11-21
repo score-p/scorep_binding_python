@@ -88,19 +88,14 @@ class region(object):
                     self.module_name, self.region_name, full_file_name, line_number)
             elif callable(self.func) and not initally_registered:
                 # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
-                self.region_name = self.func.__name__
-                self.module_name = self.func.__module__
                 self.code_obj = self.func.__code__
-                file_name = self.func.__code__.co_filename
-                line_number = self.func.__code__.co_firstlineno
-
-                if file_name is not None:
-                    full_file_name = os.path.abspath(file_name)
-                else:
-                    full_file_name = "None"
-
-                scorep.instrumenter.get_instrumenter().region_begin(
-                    self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
+                if not scorep.instrumenter.get_instrumenter().try_region_begin(self.code_obj):
+                    self.region_name = self.func.__name__
+                    self.module_name = self.func.__module__
+                    file_name = self.func.__code__.co_filename
+                    line_number = self.func.__code__.co_firstlineno
+                    scorep.instrumenter.get_instrumenter().region_begin(
+                        self.module_name, self.region_name, file_name, line_number, self.code_obj)
             elif callable(self.func) and initally_registered:
                 # The user did not specify a region name, and it's a callable, so it's a
                 # semi instrumented region. However, the instrumenter is active, so there
@@ -121,8 +116,8 @@ class region(object):
                 self.module_name, self.region_name)
         elif callable(self.func) and not initally_registered:
             # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
-            scorep.instrumenter.get_instrumenter().region_end(
-                self.module_name, self.region_name, self.code_obj)
+            if not scorep.instrumenter.get_instrumenter().try_region_end(self.code_obj):
+                scorep.instrumenter.get_instrumenter().region_end(self.module_name, self.region_name, self.code_obj)
         elif callable(self.func) and initally_registered:
             # The user did not specify a region name, and it's a callable, so it's a
             # semi instrumented region. However, the instrumenter is active, so there

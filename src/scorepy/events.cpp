@@ -1,29 +1,16 @@
-#include "events.hpp"
-#include <Python.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
-#include <scorep/SCOREP_User_Functions.h>
-#include <scorep/SCOREP_User_Variables.h>
-#include <unordered_map>
+
+#include <Python.h>
+
+#include "events.hpp"
+#include "pythonHelpers.hpp"
 
 namespace scorepy
 {
 
-struct region_handle
-{
-    constexpr region_handle() = default;
-    ~region_handle() = default;
-    constexpr bool operator==(const region_handle& other)
-    {
-        return this->value == other.value;
-    }
-    SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
-};
-
-constexpr region_handle uninitialised_region_handle = region_handle();
-
-static std::unordered_map<std::uintptr_t, region_handle> regions;
+std::unordered_map<std::uintptr_t, region_handle> regions;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 

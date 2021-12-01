@@ -12,6 +12,9 @@ extern "C"
 
     extern const char* SCOREP_GetExperimentDirName(void);
 
+    extern void SCOREP_RegisterExitHandler(void);
+    extern void SCOREP_FinalizeMeasurement(void);
+
     static PyObject* enable_recording(PyObject* self, PyObject* args)
     {
         SCOREP_User_EnableRecording();
@@ -110,32 +113,6 @@ extern "C"
         Py_RETURN_NONE;
     }
 
-    static PyObject* oa_region_begin(PyObject* self, PyObject* args)
-    {
-        const char* region;
-        const char* file_name;
-        std::uint64_t line_number = 0;
-
-        if (!PyArg_ParseTuple(args, "ssK", &region, &file_name, &line_number))
-            return NULL;
-
-        scorepy::oa_region_begin(region, file_name, line_number);
-
-        Py_RETURN_NONE;
-    }
-
-    static PyObject* oa_region_end(PyObject* self, PyObject* args)
-    {
-        const char* region;
-
-        if (!PyArg_ParseTuple(args, "s", &region))
-            return NULL;
-
-        scorepy::oa_region_end(region);
-
-        Py_RETURN_NONE;
-    }
-
     static PyObject* parameter_string(PyObject* self, PyObject* args)
     {
         const char* name;
@@ -191,13 +168,23 @@ extern "C"
         return PyUnicode_FromString(scorepy::abspath(path).c_str());
     }
 
+    static PyObject* force_finalize(PyObject* self, PyObject* args)
+    {
+        SCOREP_FinalizeMeasurement();
+        Py_RETURN_NONE;
+    }
+
+    static PyObject* reregister_exit_handler(PyObject* self, PyObject* args)
+    {
+        SCOREP_RegisterExitHandler();
+        Py_RETURN_NONE;
+    }
+
     static PyMethodDef ScorePMethods[] = {
         { "region_begin", region_begin, METH_VARARGS, "enter a region." },
         { "region_end", region_end, METH_VARARGS, "exit a region." },
         { "rewind_begin", rewind_begin, METH_VARARGS, "rewind begin." },
         { "rewind_end", rewind_end, METH_VARARGS, "rewind end." },
-        { "oa_region_begin", oa_region_begin, METH_VARARGS, "enter an online access region." },
-        { "oa_region_end", oa_region_end, METH_VARARGS, "exit an online access region." },
         { "enable_recording", enable_recording, METH_VARARGS, "disable scorep recording." },
         { "disable_recording", disable_recording, METH_VARARGS, "disable scorep recording." },
         { "parameter_int", parameter_int, METH_VARARGS, "User parameter int." },
@@ -206,6 +193,9 @@ extern "C"
         { "get_experiment_dir_name", get_experiment_dir_name, METH_VARARGS,
           "Get the Score-P experiment dir." },
         { "abspath", abspath, METH_VARARGS, "Estimates the absolute Path." },
+        { "force_finalize", force_finalize, METH_VARARGS, "triggers a finalize" },
+        { "reregister_exit_handler", reregister_exit_handler, METH_VARARGS,
+          "register an new atexit handler" },
         { NULL, NULL, 0, NULL } /* Sentinel */
     };
 }

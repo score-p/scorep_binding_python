@@ -272,13 +272,18 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 If you publish some work using the python bindings, we would appriciate, if you could cite the following paper:
 
 ```
-Gocht, A.; Schöne, R. & Frenzel, J.
-Advanced Python Performance Monitoring with Score-P
-Tools for High Performance Computing 2019, Springer International Publishing, accepted
+Gocht A., Schöne R., Frenzel J. (2021)
+Advanced Python Performance Monitoring with Score-P.
+In: Mix H., Niethammer C., Zhou H., Nagel W.E., Resch M.M. (eds) Tools for High Performance Computing 2018 / 2019. Springer, Cham.
+https://doi.org/10.1007/978-3-030-66057-4_14 
 ```
 
 A preprint can be found at: 
 http://arxiv.org/abs/2010.15444
+
+The full paper is available at:
+https://doi.org/10.1007/978-3-030-66057-4_14 
+
 
 # Acknowledgments
 The European Union initially supported this work as part of the European Union’s Horizon 2020 project READEX (grant agreement number 671657).

@@ -82,15 +82,12 @@ class enable():
         else:
             self.user_region_name = True
         self.module_name = ""
-        self.func = None
 
     def _recreate_cm(self):
         return self
 
     def __call__(self, func):
         with disable():
-            self.func = func
-
             @functools.wraps(func)
             def inner(*args, **kwds):
                 with self._recreate_cm():
@@ -114,22 +111,6 @@ class enable():
                     self.module_name, self.region_name, full_file_name,
                     line_number)
 
-            elif callable(self.func):
-                # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
-                self.region_name = self.func.__name__
-                self.module_name = self.func.__module__
-                self.code_obj = self.func.__code__
-                file_name = self.func.__code__.co_filename
-                line_number = self.func.__code__.co_firstlineno
-
-                if file_name is not None:
-                    full_file_name = os.path.abspath(file_name)
-                else:
-                    full_file_name = "None"
-
-                get_instrumenter().region_begin(
-                    self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
-
             get_instrumenter().register()
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None):
@@ -139,9 +120,6 @@ class enable():
             if self.user_region_name:
                 get_instrumenter().region_end(
                     self.module_name, self.region_name)
-            elif callable(self.func):
-                get_instrumenter().region_end(
-                    self.module_name, self.region_name, self.code_obj)
 
 
 class disable():
@@ -170,8 +148,6 @@ class disable():
     def __call__(self, func):
         self.__enter__()
         try:
-            self.func = func
-
             @functools.wraps(func)
             def inner(*args, **kwds):
                 with self._recreate_cm():
@@ -198,29 +174,11 @@ class disable():
                 get_instrumenter().region_begin(
                     self.module_name, self.region_name, full_file_name,
                     line_number)
-            elif callable(self.func):
-                # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
-                self.region_name = self.func.__name__
-                self.module_name = self.func.__module__
-                self.code_obj = self.func.__code__
-                file_name = self.func.__code__.co_filename
-                line_number = self.func.__code__.co_firstlineno
-
-                if file_name is not None:
-                    full_file_name = os.path.abspath(file_name)
-                else:
-                    full_file_name = "None"
-
-                get_instrumenter().region_begin(
-                    self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None):
         if self.tracer_registered:
             if self.user_region_name:
                 get_instrumenter().region_end(
                     self.module_name, self.region_name)
-            elif callable(self.func):
-                get_instrumenter().region_end(
-                    self.module_name, self.region_name, self.code_obj)
 
             get_instrumenter().register()

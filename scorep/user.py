@@ -2,7 +2,6 @@ import inspect
 import os.path
 import scorep.instrumenter
 import functools
-import inspect
 
 
 def region_begin(name, file_name=None, line_number=None):

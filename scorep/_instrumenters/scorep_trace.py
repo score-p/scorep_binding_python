@@ -43,7 +43,7 @@ class ScorepTrace(ScorepInstrumenter):
                         full_file_name = code.co_filename
                         line_number = code.co_firstlineno
                         scorep._bindings.region_begin(modulename, code.co_name, full_file_name, line_number, code)
-                return self._localtrace
+            return self._localtrace
         return None
 
     def _localtrace(self, frame, why, arg):

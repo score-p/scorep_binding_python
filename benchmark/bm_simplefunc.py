@@ -1,8 +1,3 @@
-'''
-Created on 04.10.2019
-
-@author: gocht
-'''
 import sys
 
 
@@ -12,9 +7,8 @@ def add(val):
 
 result = 0
 iterations = int(sys.argv[1])
-iteration_list = list(range(iterations))
 
-for i in iteration_list:
+for i in range(iterations):
     result = add(result)
 
 assert(result == iterations)

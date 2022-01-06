@@ -4,21 +4,14 @@
 
 #include <Python.h>
 
-<<<<<<< HEAD
 #include "compat.hpp"
-=======
->>>>>>> master
 #include "events.hpp"
 #include "pythonHelpers.hpp"
 
 namespace scorepy
 {
 
-<<<<<<< HEAD
 std::unordered_map<compat::PyCodeObject*, region_handle> regions;
-=======
-std::unordered_map<std::uintptr_t, region_handle> regions;
->>>>>>> master
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 

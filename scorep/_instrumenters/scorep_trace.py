@@ -1,7 +1,7 @@
 __all__ = ['ScorepTrace']
 
 import sys
-from scorep._instrumenters.utils import get_module_name, get_file_name
+from scorep._instrumenters.utils import get_module_name
 from scorep._instrumenters.scorep_instrumenter import ScorepInstrumenter
 import scorep._bindings
 

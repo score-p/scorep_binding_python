@@ -13,6 +13,7 @@ scorep is a module that allows tracing of python scripts using [Score-P](https:/
   * [Instrumenter](#instrumenter)
     + [Instrumenter Types](#instrumenter-types)
     + [Instrumenter User Interface](#instrumenter-user-interface)
+    + [Instrumenter File](#instrumenter-file)
   * [MPI](#mpi)
   * [User Regions](#user-regions)
   * [Overview about Flags](#overview-about-flags)
@@ -154,6 +155,45 @@ with scorep.instrumenter.disable():
 ```
 will only disable the instrumenter, but `my_fun_calls` will not appear in the trace or profile, as the second call to `scorep.instrumenter.disable` did not change the state of the instrumenter.
 Please look to [User Regions](#user-regions), if you want to annotate a region, no matter what the instrumenter state is.
+
+### Instrumenter File
+
+Handing a Python file to `--instrumenter-file` allows the instrumentation of modules and functions without changing their code.
+The file handed to `--instrumenter-file` is executed before the script is executed so that the original function definition can be overwritten before the function is executed.
+However, using this approach, it is no longer possible to track the bring up of the module.
+
+To simplify the instrumentation, the user instrumentation contains two helper calls:
+```
+scorep.user.instrument_function(function, instrumenter_fun=scorep.user.region)
+scorep.user.instrument_module(module, instrumenter_fun=scorep.user.region):
+```
+while `instrumenter_fun` might be one of:
+ * `scorep.user.region`, decorator as explained below
+ * `scorep.instrumenter.enable`, decorator as explained above
+ * `scorep.instrumenter.disable`, decorator as explained above
+
+Using the `scorep.instrumenter` decorators, the instrumentation can be enabled or disabled from the given function.
+The function is executed below `enable` or `disable`.
+Using `scorep.user.region`, it is possible to instrument a full python program.
+However, I discourage this usage, as the overhead of the user instrumentation is higher than the built-in instrumenters.
+
+Using `scorep.user.instrument_module`, all functions of the given Python Module are instrumented.
+
+An example instrumenter file might look like the following:
+```
+import scorep.user
+
+# import module that shall be instrumented
+import module_to_instrument
+import module
+
+# hand over the imported module, containing functions which shall be instrumented
+scorep.user.instrument_module(module_to_instrument)
+
+# hand the function to be instrumented, and overwrite the original definiton of that function
+module.function_to_instrument = scorep.user.instrument_function(module.function_to_instrument)
+
+```
 
 ## MPI
 

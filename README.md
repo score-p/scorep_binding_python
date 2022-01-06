@@ -103,6 +103,7 @@ with scorep.instrumenter.enable():
 The main idea is to reduce the instrumentation overhead for regions that are not of interest.
 Whenever the instrumenter is disabled, function enter or exits will not be trace.
 However, user regions as described in [User Regions](#user-regions) are not affected.
+Both functions are also available as decorators.
 
 As an example:
 

@@ -7,6 +7,11 @@ import pytest
 import re
 import subprocess
 import sys
+import numpy
+
+
+def version_tuple(v):
+    return tuple(map(int, (v.split("."))))
 
 
 def call(arguments, expected_returncode=0, env=None):
@@ -416,6 +421,10 @@ def test_dummy(scorep_env):
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
+@requires_package("numpy")
+@pytest.mark.skipif(version_tuple(numpy.version.version) >= version_tuple("1.22.0"),
+                    reason="There are some changes regarding __array_function__ in 1.22.0,"
+                           "so the test is no longer needed")
 @foreach_instrumenter
 def test_numpy_dot(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)

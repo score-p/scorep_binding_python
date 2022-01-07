@@ -1,7 +1,6 @@
 import inspect
 import os
 import platform
-import sys
 import functools
 
 global_instrumenter = None
@@ -11,7 +10,7 @@ def has_c_instrumenter():
     """Return true if the C instrumenter(s) are available"""
     # We are using the UTF-8 string features from Python 3
     # The C Instrumenter functions are not available on PyPy
-    return sys.version_info.major >= 3 and platform.python_implementation() != 'PyPy'
+    return platform.python_implementation() != 'PyPy'
 
 
 def get_instrumenter(enable_instrumenter=False,

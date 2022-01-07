@@ -23,7 +23,13 @@ class ScorepDummy(base_instrumenter.BaseInstrumenter):
             locals = {}
         exec(cmd, globals, locals)
 
+    def try_region_begin(self, code_object):
+        pass
+
     def region_begin(self, module_name, function_name, file_name, line_number, code_object=None):
+        pass
+
+    def try_region_end(self, code_object):
         pass
 
     def region_end(self, module_name, function_name, code_object=None):

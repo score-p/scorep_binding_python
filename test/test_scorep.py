@@ -255,6 +255,29 @@ def test_user_instrumentation(scorep_env, instrumenter):
 
 
 @foreach_instrumenter
+def test_external_user_instrumentation(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    std_out, std_err = call_with_scorep(
+        "cases/instrumentation.py",
+        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" +
+            instrumenter, "--instrumenter-file=cases/external_instrumentation.py"],
+        env=scorep_env,
+    )
+
+    assert std_err == ""
+    assert std_out == "hello world\nbaz\nbar\n"
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+
+
+@foreach_instrumenter
 def test_error_region(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 

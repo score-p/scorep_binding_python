@@ -28,6 +28,7 @@ def scorep_main(argv=None):
         instrumenter_type = "cProfile"
     else:
         instrumenter_type = "profile"
+    instrumenter_file = None
 
     for elem in argv[1:]:
         if parse_scorep_commands:
@@ -52,6 +53,9 @@ def scorep_main(argv=None):
             elif "--instrumenter-type" in elem:
                 param = elem.split("=")
                 instrumenter_type = param[1]
+            elif "--instrumenter-file" in elem:
+                param = elem.split("=")
+                instrumenter_file = param[1]
             elif elem[0] == "-":
                 scorep_config.append(elem)
             else:
@@ -96,6 +100,11 @@ def scorep_main(argv=None):
 
     tracer = scorep.instrumenter.get_instrumenter(not no_instrumenter,
                                                   instrumenter_type)
+
+    if instrumenter_file:
+        with open(instrumenter_file) as f:
+            exec(f.read())
+
     try:
         with open(progname) as fp:
             code = compile(fp.read(), progname, 'exec')

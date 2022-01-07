@@ -135,6 +135,17 @@ class region(object):
         return False
 
 
+def instrument_function(fun, instrumenter_fun=region):
+    return instrumenter_fun()(fun)
+
+
+def instrument_module(module, instrumenter_fun=region):
+    for elem in dir(module):
+        module_fun = module.__dict__[elem]
+        if inspect.isfunction(module_fun):
+            module.__dict__[elem] = instrument_function(module_fun, instrumenter_fun)
+
+
 def rewind_begin(name, file_name=None, line_number=None):
     """
     Begin of a Rewind region. If file_name or line_number is None, both will

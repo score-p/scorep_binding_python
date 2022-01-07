@@ -1,5 +1,5 @@
 import os
-import distutils.ccompiler
+import setuptools.command.build_ext
 import tempfile
 import shutil
 
@@ -86,7 +86,7 @@ def generate(scorep_config, keep_files=False):
 
     subsystem_lib_name = generate_subsystem_lib_name()
 
-    cc = distutils.ccompiler.new_compiler()
+    cc = setuptools.command.build_ext.new_compiler()
     compiled_subsystem = cc.compile(
         [temp_dir + "/scorep_init.c"], output_dir=temp_dir)
     cc.link(

@@ -74,7 +74,7 @@ Besides this, it uses the traditional python-tracing infrastructure.
     packages=["scorep", "scorep._instrumenters"],
     ext_modules=cmodules,
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Testing",
@@ -88,6 +88,7 @@ Besides this, it uses the traditional python-tracing infrastructure.
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Operating System :: POSIX",

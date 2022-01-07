@@ -4,69 +4,58 @@
 
 #include <Python.h>
 
+#include "compat.hpp"
 #include "events.hpp"
 #include "pythonHelpers.hpp"
 
 namespace scorepy
 {
 
-std::unordered_map<std::uintptr_t, region_handle> regions;
+std::unordered_map<compat::PyCodeObject*, region_handle> regions;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
-/// Region names that are known to have no region enter event and should not report an error
-/// on region exit
-static const std::array<std::string, 2> EXIT_REGION_WHITELIST = {
-#if PY_MAJOR_VERSION >= 3
-    "threading:_bootstrap_inner", "threading:_bootstrap"
-#else
-    "threading:__bootstrap_inner", "threading:__bootstrap"
-#endif
-};
-
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
-void region_begin(const std::string& function_name, const std::string& module,
+void region_begin(std::string_view& function_name, std::string_view& module,
                   const std::string& file_name, const std::uint64_t line_number,
-                  const std::uintptr_t& identifier)
+                  compat::PyCodeObject* identifier)
 {
-    auto& region_handle = regions[identifier];
+    region_handle& region = regions[identifier];
 
-    if (region_handle == uninitialised_region_handle)
+    if (region == uninitialised_region_handle)
     {
         auto& region_name = make_region_name(module, function_name);
-        SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
+        SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
-        SCOREP_User_RegionSetGroup(region_handle.value,
-                                   std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
     }
-    SCOREP_User_RegionEnter(region_handle.value);
+    SCOREP_User_RegionEnter(region.value);
 }
 
 // Used for regions, that only have a function name, a module, a file and a line number (user
 // regions)
-void region_begin(const std::string& function_name, const std::string& module,
+void region_begin(std::string_view& function_name, std::string_view& module,
                   const std::string& file_name, const std::uint64_t line_number)
 {
-    const auto& region_name = make_region_name(module, function_name);
-    auto& region_handle = user_regions[region_name];
+    std::string region_name = make_region_name(module, function_name);
+    region_handle& region = user_regions[region_name];
 
-    if (region_handle == uninitialised_region_handle)
+    if (region == uninitialised_region_handle)
     {
-        SCOREP_User_RegionInit(&region_handle.value, NULL, NULL, region_name.c_str(),
+        SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
-        SCOREP_User_RegionSetGroup(region_handle.value,
-                                   std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
     }
-    SCOREP_User_RegionEnter(region_handle.value);
+    SCOREP_User_RegionEnter(region.value);
 }
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
-void region_end(const std::string& function_name, const std::string& module,
-                const std::uintptr_t& identifier)
+void region_end(std::string_view& function_name, std::string_view& module,
+                compat::PyCodeObject* identifier)
 {
     const auto it_region = regions.find(identifier);
     if (it_region != regions.end())
@@ -75,16 +64,16 @@ void region_end(const std::string& function_name, const std::string& module,
     }
     else
     {
-        auto& region_name = make_region_name(module, function_name);
+        std::string region_name = make_region_name(module, function_name);
         region_end_error_handling(region_name);
     }
 }
 
 // Used for regions, that only have a function name, a module (user regions)
-void region_end(const std::string& function_name, const std::string& module)
+void region_end(std::string_view& function_name, std::string_view& module)
 {
-    auto& region_name = make_region_name(module, function_name);
-    const auto it_region = user_regions.find(region_name);
+    std::string region_name = make_region_name(module, function_name);
+    auto it_region = user_regions.find(region_name);
     if (it_region != user_regions.end())
     {
         SCOREP_User_RegionEnd(it_region->second.value);
@@ -101,8 +90,8 @@ void region_end_error_handling(const std::string& region_name)
     static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;
     static bool error_printed = false;
 
-    if (std::find(EXIT_REGION_WHITELIST.begin(), EXIT_REGION_WHITELIST.end(), region_name) !=
-        EXIT_REGION_WHITELIST.end())
+    if (std::find(compat::exit_region_whitelist.begin(), compat::exit_region_whitelist.end(),
+                  region_name) != compat::exit_region_whitelist.end())
     {
         return;
     }

@@ -56,10 +56,18 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
         finally:
             self.unregister()
 
+    def try_region_begin(self, code_object):
+        """Tries to record a region begin event. Retruns True on success"""
+        return scorep._bindings.try_region_begin(code_object)
+
     def region_begin(self, module_name, function_name, file_name, line_number, code_object=None):
         """Record a region begin event"""
         scorep._bindings.region_begin(
             module_name, function_name, file_name, line_number, code_object)
+
+    def try_region_end(self, code_object):
+        """Tries to record a region end event. Retruns True on success"""
+        return scorep._bindings.try_region_end(code_object)
 
     def region_end(self, module_name, function_name, code_object=None):
         """Record a region end event"""

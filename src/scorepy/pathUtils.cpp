@@ -72,7 +72,7 @@ void normalize_path(std::string& path)
     path.resize(cur_out);
 }
 
-std::string abspath(const char* input_path)
+std::string abspath(std::string_view input_path)
 {
     std::string result;
     if (input_path[0] != '/')
@@ -85,7 +85,9 @@ std::string abspath(const char* input_path)
         result.append(1, '/').append(input_path);
     }
     else
+    {
         result = input_path;
+    }
     normalize_path(result);
     return result;
 }

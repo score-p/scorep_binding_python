@@ -7,6 +7,11 @@ import pytest
 import re
 import subprocess
 import sys
+import numpy
+
+
+def version_tuple(v):
+    return tuple(map(int, (v.split("."))))
 
 
 def call(arguments, expected_returncode=0, env=None):
@@ -59,8 +64,8 @@ def requires_package(name):
 
 
 cinstrumenter_skip_mark = pytest.mark.skipif(
-    sys.version_info.major < 3 or platform.python_implementation() == "PyPy",
-    reason="CInstrumenter only available in Python 3 and not in PyPy",
+    platform.python_implementation() == "PyPy",
+    reason="CInstrumenter only available in CPython and not in PyPy",
 )
 # All instrumenters (except dummy which isn't a real one)
 ALL_INSTRUMENTERS = [
@@ -250,6 +255,29 @@ def test_user_instrumentation(scorep_env, instrumenter):
 
 
 @foreach_instrumenter
+def test_external_user_instrumentation(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    std_out, std_err = call_with_scorep(
+        "cases/instrumentation.py",
+        ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" +
+            instrumenter, "--instrumenter-file=cases/external_instrumentation.py"],
+        env=scorep_env,
+    )
+
+    assert std_err == ""
+    assert std_out == "hello world\nbaz\nbar\n"
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
+    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+
+
+@foreach_instrumenter
 def test_error_region(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
@@ -393,6 +421,10 @@ def test_dummy(scorep_env):
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
+@requires_package("numpy")
+@pytest.mark.skipif(version_tuple(numpy.version.version) >= version_tuple("1.22.0"),
+                    reason="There are some changes regarding __array_function__ in 1.22.0,"
+                           "so the test is no longer needed")
 @foreach_instrumenter
 def test_numpy_dot(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)

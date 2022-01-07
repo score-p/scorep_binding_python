@@ -53,7 +53,7 @@ cmodules.append(
         "scorep._bindings",
         include_dirs=include,
         define_macros=define_macros,
-        extra_compile_args=["-std=c++11"],
+        extra_compile_args=["-std=c++17"],
         sources=sources,
     )
 )

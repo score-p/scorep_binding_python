@@ -8,5 +8,5 @@ namespace scorepy
 /// Assumes an absolute, non-empty path
 void normalize_path(std::string& path);
 /// Makes the path absolute and normalized, see Python os.path.abspath
-std::string abspath(const char* input_path);
+std::string abspath(std::string_view input_path);
 } // namespace scorepy

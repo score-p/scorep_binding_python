@@ -11,10 +11,10 @@ jobs:
     - uses: actions/checkout@master
 
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
     - name: Check Version
       run: test ${{ github.event.release.tag_name }} = `python -c "import scorep._version; print('v'+scorep._version.__version__)"`
     
@@ -35,7 +35,7 @@ jobs:
       run: >-
         python -m
         build --sdist --outdir dist/ .
-    - name: Publish distribution 📦 to Test PyPI
+    - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}

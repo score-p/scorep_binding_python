@@ -52,7 +52,7 @@ Please have a look at:
 
 and
 
-[Score-P Documentation](http://scorepci.pages.jsc.fz-juelich.de/scorep-pipelines/docs/latest/pdf/scorep.pdf)
+[Score-P Documentation](https://perftools.pages.jsc.fz-juelich.de/cicd/scorep/tags/latest/html/)
 
 There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/wiki) in the wiki.
 

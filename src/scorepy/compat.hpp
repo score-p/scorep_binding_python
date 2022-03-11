@@ -36,5 +36,8 @@ namespace compat
 
     using PyCodeObject = PyCodeObject;
 
+    using destructor = destructor;
+    using code_dealloc = std::add_pointer<void(PyCodeObject*)>::type; // void(*)(PyCodeObject*)
+
 } // namespace compat
 } // namespace scorepy

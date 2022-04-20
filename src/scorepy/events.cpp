@@ -16,45 +16,17 @@ std::unordered_map<compat::PyCodeObject*, region_handle> regions;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
-static compat::code_dealloc python_code_dealloc = nullptr;
-
 /**
- * @brief our code deallocator, which removes code objects form the regions map, after calling the
- * original code object.
+ * @brief when Python PyCodeObject is deallocated, remove it from our regions list.
  *
  * @param co code object to remove
  */
-void code_dealloc(PyCodeObject* co)
+void on_dealloc(PyCodeObject* co)
 {
-    python_code_dealloc(co);
     regions.erase(co);
 }
 
-/**
- * @brief We need to make sure, that the we register our own dealloc function, so we can handle the
- * deleteion of code_objects in our code.
- *
- */
-struct RegisterCodeDealloc
-{
-    RegisterCodeDealloc()
-    {
-        if (!python_code_dealloc)
-        {
-            python_code_dealloc = reinterpret_cast<compat::code_dealloc>(PyCode_Type.tp_dealloc);
-            PyCode_Type.tp_dealloc = reinterpret_cast<compat::destructor>(code_dealloc);
-        }
-        else
-        {
-            std::cerr << "WARNING: Score-P Python's code_dealloc is alredy registerd!" << std::endl;
-        }
-    }
-};
-
-// we only need this on CPython.
-#ifndef PYPY_VERSION
-static RegisterCodeDealloc register_dealloc;
-#endif
+static compat::RegisterCodeDealloc register_dealloc(on_dealloc);
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <functional>
+#include <iostream>
 #include <string_view>
 
 #include <Python.h>
@@ -38,6 +40,45 @@ namespace compat
 
     using destructor = destructor;
     using code_dealloc = std::add_pointer<void(PyCodeObject*)>::type; // void(*)(PyCodeObject*)
+
+    /**
+     * @brief For CPython we need to make sure, that the we register our own dealloc function, so we
+     * can handle the deleteion of code_objects in our code.
+     */
+    struct RegisterCodeDealloc
+    {
+        RegisterCodeDealloc(std::function<void(PyCodeObject* co)> on_dealloc_fun)
+        {
+            external_on_dealloc_fun = on_dealloc_fun;
+            // PyPy does not need this, as CodeObjects are compiled, and therefore live for the
+            // programms lifetime
+#ifndef PYPY_VERSION
+            if (!python_code_dealloc)
+            {
+                python_code_dealloc =
+                    reinterpret_cast<compat::code_dealloc>(PyCode_Type.tp_dealloc);
+                PyCode_Type.tp_dealloc = reinterpret_cast<compat::destructor>(dealloc_fun);
+            }
+            else
+            {
+                std::cerr << "WARNING: Score-P Python's code_dealloc is alredy registerd!"
+                          << std::endl;
+            }
+#endif
+        }
+
+        static void dealloc_fun(PyCodeObject* co)
+        {
+            if (external_on_dealloc_fun && python_code_dealloc)
+            {
+                external_on_dealloc_fun(co);
+                python_code_dealloc(co);
+            }
+        }
+
+        inline static compat::code_dealloc python_code_dealloc;
+        inline static std::function<void(PyCodeObject* co)> external_on_dealloc_fun;
+    };
 
 } // namespace compat
 } // namespace scorepy

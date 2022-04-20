@@ -1,7 +1,5 @@
 #include <algorithm>
 #include <array>
-#include <iostream>
-#include <mutex>
 
 #include <Python.h>
 

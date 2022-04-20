@@ -50,7 +50,11 @@ struct RegisterCodeDealloc
         }
     }
 };
+
+// we only need this on CPython.
+#ifndef PYPY_VERSION
 static RegisterCodeDealloc register_dealloc;
+#endif
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)

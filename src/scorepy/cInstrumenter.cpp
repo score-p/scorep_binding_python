@@ -129,7 +129,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
         }
         if (frame.f_back != nullptr)
         {
-            region_add_caller_line(frame.f_back.f_lineno);
+            region_add_caller_line(frame.f_back->f_lineno);
         }
         break;
     }

@@ -30,10 +30,9 @@ struct region_handle
 constexpr region_handle uninitialised_region_handle = region_handle();
 
 /// Combine the arguments into a region name
-/// Return value is a statically allocated string to avoid memory (re)allocations
-inline const std::string& make_region_name(std::string_view& module_name, std::string_view& name)
+inline std::string make_region_name(std::string_view& module_name, std::string_view& name)
 {
-    static std::string region;
+    std::string region;
     region = module_name;
     region += ":";
     region += name;

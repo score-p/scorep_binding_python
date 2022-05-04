@@ -11,6 +11,7 @@ namespace scorepy
 {
 
 std::unordered_map<compat::PyCodeObject*, region_handle> regions;
+std::unordered_map<compat::PyCodeObject*, caller_handle> callers;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
@@ -36,7 +37,7 @@ void region_begin(std::string_view& function_name, std::string_view& module,
 
     if (region == uninitialised_region_handle)
     {
-        auto& region_name = make_region_name(module, function_name);
+        auto region_name = make_region_name(module, function_name);
         SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
@@ -131,6 +132,25 @@ void region_add_caller(std::string value)
 {
     static SCOREP_User_ParameterHandle caller = SCOREP_USER_INVALID_PARAMETER;
     SCOREP_User_ParameterString(&caller, "caller", value.c_str());
+}
+
+void region_add_caller(std::string_view& function_name, std::string_view& module,
+                       const std::string& file_name, const std::uint64_t line_number,
+                       compat::PyCodeObject* identifier)
+
+{
+    caller_handle& caller = callers[identifier];
+
+    if (caller == uninitialised_caller_handle)
+    {
+        // caller is only needed on first registration.
+        auto caller_region_name = std::string("Caller: ") + make_region_name(module, function_name);
+        SCOREP_User_ParameterInt64(&caller.value, caller_region_name.c_str(), line_number);
+    }
+    else
+    {
+        SCOREP_User_ParameterInt64(&caller.value, "", line_number);
+    }
 }
 
 void region_add_caller_line(int64_t value)

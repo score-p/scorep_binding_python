@@ -27,7 +27,24 @@ struct region_handle
     SCOREP_User_RegionHandle value = SCOREP_USER_INVALID_REGION;
 };
 
+struct caller_handle
+{
+    constexpr caller_handle() = default;
+    ~caller_handle() = default;
+    constexpr bool operator==(const caller_handle& other)
+    {
+        return this->value == other.value;
+    }
+    constexpr bool operator!=(const caller_handle& other)
+    {
+        return this->value != other.value;
+    }
+
+    SCOREP_User_ParameterHandle value = SCOREP_USER_INVALID_PARAMETER;
+};
+
 constexpr region_handle uninitialised_region_handle = region_handle();
+constexpr caller_handle uninitialised_caller_handle = caller_handle();
 
 /// Combine the arguments into a region name
 inline std::string make_region_name(std::string_view& module_name, std::string_view& name)
@@ -40,6 +57,7 @@ inline std::string make_region_name(std::string_view& module_name, std::string_v
 }
 
 extern std::unordered_map<compat::PyCodeObject*, region_handle> regions;
+extern std::unordered_map<compat::PyCodeObject*, caller_handle> callers;
 
 /** tries to enter a region. Return true on success
  *
@@ -85,8 +103,22 @@ void region_end(std::string_view& function_name, std::string_view& module,
                 compat::PyCodeObject* identifier);
 void region_end(std::string_view& function_name, std::string_view& module);
 
-void region_add_caller(std::string value);
-void region_add_caller_line(uint64_t value);
+inline bool try_add_caller(compat::PyCodeObject* identifier, const std::uint64_t line_number)
+{
+    auto it = callers.find(identifier);
+    if (it != callers.end())
+    {
+        SCOREP_User_ParameterInt64(&it->second.value, "", line_number);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+void region_add_caller(std::string_view& function_name, std::string_view& module,
+                       const std::string& file_name, const std::uint64_t line_number,
+                       compat::PyCodeObject* identifier);
 
 void region_end_error_handling(const std::string& region_name);
 

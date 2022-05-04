@@ -129,7 +129,20 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
         }
         if (frame.f_back != nullptr)
         {
-            region_add_caller_line(frame.f_back->f_lineno);
+            PyCodeObject* caller_code = frame.f_back->f_code;
+
+            bool success = try_add_caller(caller_code, frame.f_back->f_lineno);
+            if (!success)
+            {
+                std::string_view name = compat::get_string_as_utf_8(caller_code->co_name);
+                std::string_view module_name = get_module_name(*frame.f_back);
+                if (name.compare("_unsetprofile") != 0 && module_name.compare(0, 6, "scorep") != 0)
+                {
+                    const int line_number = frame.f_back->f_lineno;
+                    const std::string file_name = get_file_name(*frame.f_back);
+                    region_add_caller(name, module_name, file_name, line_number, caller_code);
+                }
+            }
         }
         break;
     }

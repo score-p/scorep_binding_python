@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <array>
-#include <iostream>
 
 #include <Python.h>
 
@@ -14,6 +13,18 @@ namespace scorepy
 std::unordered_map<compat::PyCodeObject*, region_handle> regions;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
+
+/**
+ * @brief when Python PyCodeObject is deallocated, remove it from our regions list.
+ *
+ * @param co code object to remove
+ */
+void on_dealloc(PyCodeObject* co)
+{
+    regions.erase(co);
+}
+
+static compat::RegisterCodeDealloc register_dealloc(on_dealloc);
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)

@@ -127,6 +127,18 @@ void region_end_error_handling(const std::string& region_name)
     }
 }
 
+void region_add_caller(std::string value)
+{
+    static SCOREP_User_ParameterHandle caller = SCOREP_USER_INVALID_PARAMETER;
+    SCOREP_User_ParameterString(&caller, "caller", value.c_str());
+}
+
+void region_add_caller_line(int64_t value)
+{
+    static SCOREP_User_ParameterHandle caller_line = SCOREP_USER_INVALID_PARAMETER;
+    SCOREP_User_ParameterInt64(&caller_line, "Called from line", value);
+}
+
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number)
 {
     auto pair = rewind_regions.emplace(make_pair(region_name, region_handle()));

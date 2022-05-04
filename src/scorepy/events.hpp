@@ -86,6 +86,9 @@ void region_end(std::string_view& function_name, std::string_view& module,
                 compat::PyCodeObject* identifier);
 void region_end(std::string_view& function_name, std::string_view& module);
 
+void region_add_caller(std::string value);
+void region_add_caller_line(uint64_t value);
+
 void region_end_error_handling(const std::string& region_name);
 
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number);

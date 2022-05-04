@@ -127,6 +127,10 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
                 region_begin(name, module_name, file_name, line_number, code);
             }
         }
+        if (frame.f_back != nullptr)
+        {
+            region_add_caller_line(frame.f_back.f_lineno);
+        }
         break;
     }
     case PyTrace_RETURN:

@@ -23,6 +23,7 @@ static std::unordered_map<std::string, region_handle> rewind_regions;
 void on_dealloc(PyCodeObject* co)
 {
     regions.erase(co);
+    callers.erase(co);
 }
 
 static compat::RegisterCodeDealloc register_dealloc(on_dealloc);

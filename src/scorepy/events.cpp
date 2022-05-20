@@ -11,7 +11,6 @@ namespace scorepy
 {
 
 std::unordered_map<compat::PyCodeObject*, region_handle> regions;
-std::unordered_map<compat::PyCodeObject*, caller_handle> callers;
 static std::unordered_map<std::string, region_handle> user_regions;
 static std::unordered_map<std::string, region_handle> rewind_regions;
 
@@ -23,7 +22,6 @@ static std::unordered_map<std::string, region_handle> rewind_regions;
 void on_dealloc(PyCodeObject* co)
 {
     regions.erase(co);
-    callers.erase(co);
 }
 
 static compat::RegisterCodeDealloc register_dealloc(on_dealloc);
@@ -63,6 +61,40 @@ void region_begin(std::string_view& function_name, std::string_view& module,
         SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(region.value);
+}
+
+void region_begin_with_callsite(
+    std::string_view& function_name, std::string_view& module, const std::string& file_name,
+    const std::uint64_t line_number, compat::PyCodeObject* identifier,
+    compat::PyCodeObject* callsite_identifier, std::string_view& callsite_function_name,
+    std::string_view& callsite_module, const std::string& callsite_file_name,
+    const std::uint64_t callsite_line_number_start, uint32_t callsite_line)
+{
+    region_handle& region = regions[identifier];
+
+    if (region == uninitialised_region_handle)
+    {
+        auto region_name = make_region_name(module, function_name);
+        SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
+                               SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
+
+        SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
+    }
+
+    region_handle& callsite_region = regions[callsite_identifier];
+    if (callsite_region == uninitialised_region_handle)
+    {
+        auto region_name = make_region_name(callsite_module, callsite_function_name);
+        SCOREP_User_RegionInit(&callsite_region.value, NULL, NULL, region_name.c_str(),
+                               SCOREP_USER_REGION_TYPE_FUNCTION, callsite_file_name.c_str(),
+                               callsite_line_number_start);
+
+        SCOREP_User_RegionSetGroup(
+            callsite_region.value,
+            std::string(callsite_module, 0, callsite_module.find('.')).c_str());
+    }
+
+    SCOREP_User_RegionEnterWithCallsite(region.value, callsite_region.value, callsite_line);
 }
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and

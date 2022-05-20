@@ -152,7 +152,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
                     region_begin_with_callsite(name, module_name, file_name, line_number, code,
                                                callsite_code, callsite_name, callsite_module_name,
                                                callsite_file_name, callsite_line_number_start,
-                                               frame.f_back->f_lineno);
+                                               PyFrame_GetLineNumber(frame.f_back));
                 }
             }
         }

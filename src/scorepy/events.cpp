@@ -93,7 +93,7 @@ void region_begin_with_callsite(
             callsite_region.value,
             std::string(callsite_module, 0, callsite_module.find('.')).c_str());
     }
-
+    std::cout << "RegionEnterWithCallsite" << std::endl;
     SCOREP_User_RegionEnterWithCallsite(region.value, callsite_region.value, callsite_line);
 }
 
@@ -105,6 +105,7 @@ void region_end(std::string_view& function_name, std::string_view& module,
     const auto it_region = regions.find(identifier);
     if (it_region != regions.end())
     {
+        std::cout << "RegionEnd" << std::endl;
         SCOREP_User_RegionEnd(it_region->second.value);
     }
     else
@@ -159,37 +160,6 @@ void region_end_error_handling(const std::string& region_name)
                   << std::endl;
         error_printed = true;
     }
-}
-
-void region_add_caller(std::string value)
-{
-    static SCOREP_User_ParameterHandle caller = SCOREP_USER_INVALID_PARAMETER;
-    SCOREP_User_ParameterString(&caller, "caller", value.c_str());
-}
-
-void region_add_caller(std::string_view& function_name, std::string_view& module,
-                       const std::string& file_name, const std::uint64_t line_number,
-                       compat::PyCodeObject* identifier)
-
-{
-    caller_handle& caller = callers[identifier];
-
-    if (caller == uninitialised_caller_handle)
-    {
-        // caller is only needed on first registration.
-        auto caller_region_name = std::string("Caller: ") + make_region_name(module, function_name);
-        SCOREP_User_ParameterInt64(&caller.value, caller_region_name.c_str(), line_number);
-    }
-    else
-    {
-        SCOREP_User_ParameterInt64(&caller.value, "", line_number);
-    }
-}
-
-void region_add_caller_line(int64_t value)
-{
-    static SCOREP_User_ParameterHandle caller_line = SCOREP_USER_INVALID_PARAMETER;
-    SCOREP_User_ParameterInt64(&caller_line, "Called from line", value);
 }
 
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number)

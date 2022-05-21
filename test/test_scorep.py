@@ -76,6 +76,7 @@ ALL_INSTRUMENTERS = [
 ]
 
 foreach_instrumenter = pytest.mark.parametrize("instrumenter", ALL_INSTRUMENTERS)
+foreach_cinstrumenter = pytest.mark.parametrize("instrumenter", ALL_INSTRUMENTERS[2:3])
 
 
 @pytest.fixture
@@ -552,3 +553,31 @@ def test_io(scorep_env, instrumenter):
             )
             print(regex_str)
             assert re.search(regex_str, io_trace)
+
+
+@foreach_cinstrumenter
+def test_callsite(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    # Also test when no instrumenter is given
+    instrumenter_type = ["--instrumenter-type=" + instrumenter]
+    std_out, std_err = call_with_scorep(
+        "cases/callsite.py", ["--nocompiler"] + instrumenter_type, env=scorep_env
+    )
+
+    assert std_err == ""
+    assert std_out == "foo\nbar\n"
+
+    std_out, std_err = call(["otf2-print", trace_path])
+
+    assert std_err == ""
+    region_callsite = [("__main__:foo", "__main__:<module>", 9),
+                       ("__main__:bar", "__main__:foo", 7)]
+
+    for region, callsite, callsite_line in region_callsite:
+        assert re.search(
+            'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "%s" \\<[0-9]*\\>\n'
+            '[ ]*ADDITIONAL ATTRIBUTES: \\("CALLSITE_REGION" \\<[0-9]*\\>; REGION; "%s" \\<[0-9]*\\>\\)\\, '
+            '\\("CALLSITE_LINE" \\<[0-9]*\\>; UINT32; %s\\)' % (
+                region, callsite, callsite_line), std_out
+        )

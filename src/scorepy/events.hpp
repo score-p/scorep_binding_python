@@ -71,7 +71,6 @@ inline bool try_region_begin_with_callsite(compat::PyCodeObject* identifier,
         auto callsite_it = regions.find(callsite_identifier);
         if (it != regions.end())
         {
-            std::cout << "try RegionEnterWithCallsite" << std::endl;
             SCOREP_User_RegionEnterWithCallsite(it->second.value, callsite_it->second.value,
                                                 callsite_line);
             return true;

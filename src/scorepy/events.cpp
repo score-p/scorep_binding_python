@@ -93,7 +93,6 @@ void region_begin_with_callsite(
             callsite_region.value,
             std::string(callsite_module, 0, callsite_module.find('.')).c_str());
     }
-    std::cout << "RegionEnterWithCallsite" << std::endl;
     SCOREP_User_RegionEnterWithCallsite(region.value, callsite_region.value, callsite_line);
 }
 
@@ -105,7 +104,6 @@ void region_end(std::string_view& function_name, std::string_view& module,
     const auto it_region = regions.find(identifier);
     if (it_region != regions.end())
     {
-        std::cout << "RegionEnd" << std::endl;
         SCOREP_User_RegionEnd(it_region->second.value);
     }
     else

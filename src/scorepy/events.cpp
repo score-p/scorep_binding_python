@@ -81,7 +81,14 @@ void region_begin_with_callsite(
         SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
     }
 
+    if (callsite_identifier == nullptr)
+    {
+        SCOREP_User_RegionEnter(region.value);
+        return;
+    }
+
     region_handle& callsite_region = regions[callsite_identifier];
+
     if (callsite_region == uninitialised_region_handle)
     {
         auto region_name = make_region_name(callsite_module, callsite_function_name);

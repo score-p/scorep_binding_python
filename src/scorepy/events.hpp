@@ -69,7 +69,7 @@ inline bool try_region_begin_with_callsite(compat::PyCodeObject* identifier,
     if (it != regions.end())
     {
         auto callsite_it = regions.find(callsite_identifier);
-        if (it != regions.end())
+        if (callsite_it != regions.end())
         {
             SCOREP_User_RegionEnterWithCallsite(it->second.value, callsite_it->second.value,
                                                 callsite_line);

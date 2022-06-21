@@ -4,11 +4,15 @@ import os
 import re
 
 
+def print_err(*args):
+    """Print to stderr"""
+    sys.stderr.write(' '.join(map(str, args)) + '\n')
+
+
 def call(arguments):
     """
     return a triple with (returncode, stdout, stderr) from the call to subprocess
     """
-    result = ()
     if sys.version_info > (3, 5):
         out = subprocess.run(
             arguments,
@@ -74,15 +78,15 @@ def add_to_ld_library_path(path):
         os.environ["LD_LIBRARY_PATH"] = ':'.join([path] + library_paths)
 
 
-def generate_compile_deps(config=[]):
+def generate_compile_deps(config):
     """
     Generates the data needed for compilation.
     """
 
-    scorep_config = ["scorep-config"] + config + ["--user"]
+    scorep_config = ["scorep-config"] + config
 
-    (retrun_code, _, _) = call(scorep_config)
-    if retrun_code != 0:
+    (return_code, _, _) = call(scorep_config)
+    if return_code != 0:
         raise ValueError(
             "given config {} is not supported".format(config))
 

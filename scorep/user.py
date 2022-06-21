@@ -88,19 +88,14 @@ class region(object):
                     self.module_name, self.region_name, full_file_name, line_number)
             elif callable(self.func) and not initally_registered:
                 # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
-                self.region_name = self.func.__name__
-                self.module_name = self.func.__module__
                 self.code_obj = self.func.__code__
-                file_name = self.func.__code__.co_filename
-                line_number = self.func.__code__.co_firstlineno
-
-                if file_name is not None:
-                    full_file_name = os.path.abspath(file_name)
-                else:
-                    full_file_name = "None"
-
-                scorep.instrumenter.get_instrumenter().region_begin(
-                    self.module_name, self.region_name, full_file_name, line_number, self.code_obj)
+                if not scorep.instrumenter.get_instrumenter().try_region_begin(self.code_obj):
+                    self.region_name = self.func.__name__
+                    self.module_name = self.func.__module__
+                    file_name = self.func.__code__.co_filename
+                    line_number = self.func.__code__.co_firstlineno
+                    scorep.instrumenter.get_instrumenter().region_begin(
+                        self.module_name, self.region_name, file_name, line_number, self.code_obj)
             elif callable(self.func) and initally_registered:
                 # The user did not specify a region name, and it's a callable, so it's a
                 # semi instrumented region. However, the instrumenter is active, so there
@@ -121,8 +116,8 @@ class region(object):
                 self.module_name, self.region_name)
         elif callable(self.func) and not initally_registered:
             # The user did not specify a region name, and it's a callable, so it's a semi instrumented region
-            scorep.instrumenter.get_instrumenter().region_end(
-                self.module_name, self.region_name, self.code_obj)
+            if not scorep.instrumenter.get_instrumenter().try_region_end(self.code_obj):
+                scorep.instrumenter.get_instrumenter().region_end(self.module_name, self.region_name, self.code_obj)
         elif callable(self.func) and initally_registered:
             # The user did not specify a region name, and it's a callable, so it's a
             # semi instrumented region. However, the instrumenter is active, so there
@@ -135,9 +130,20 @@ class region(object):
         return False
 
 
+def instrument_function(fun, instrumenter_fun=region):
+    return instrumenter_fun()(fun)
+
+
+def instrument_module(module, instrumenter_fun=region):
+    for elem in dir(module):
+        module_fun = module.__dict__[elem]
+        if inspect.isfunction(module_fun):
+            module.__dict__[elem] = instrument_function(module_fun, instrumenter_fun)
+
+
 def rewind_begin(name, file_name=None, line_number=None):
     """
-    Begin of an User region. If file_name or line_number is None, both will
+    Begin of a Rewind region. If file_name or line_number is None, both will
     be determined automatically
     @param name name of the user region
     @param file_name file name of the user region
@@ -159,39 +165,11 @@ def rewind_begin(name, file_name=None, line_number=None):
 
 def rewind_end(name, value):
     """
-    End of an Rewind region.
+    End of a Rewind region.
     @param name name of the user region
     @param value True or False, whenether the region shall be rewinded or not.
     """
     scorep.instrumenter.get_instrumenter().rewind_end(name, value)
-
-
-def oa_region_begin(name, file_name=None, line_number=None):
-    """
-    Begin of an Online Access region. If file_name or line_number is None, both will
-    be determined automatically
-    @param name name of the user region
-    @param file_name file name of the user region
-    @param line_number line number of the user region
-    """
-
-    with scorep.instrumenter.disable():
-
-        if file_name is None or line_number is None:
-            frame = inspect.currentframe().f_back
-            file_name = frame.f_globals.get('__file__', None)
-            line_number = frame.f_lineno
-        if file_name is not None:
-            full_file_name = os.path.abspath(file_name)
-        else:
-            full_file_name = "None"
-
-        scorep.instrumenter.get_instrumenter().oa_region_begin(
-            name, full_file_name, line_number)
-
-
-def oa_region_end(name):
-    scorep.instrumenter.get_instrumenter().oa_region_end(name)
 
 
 def enable_recording():

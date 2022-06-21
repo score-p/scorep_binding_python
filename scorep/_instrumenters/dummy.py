@@ -23,7 +23,13 @@ class ScorepDummy(base_instrumenter.BaseInstrumenter):
             locals = {}
         exec(cmd, globals, locals)
 
+    def try_region_begin(self, code_object):
+        pass
+
     def region_begin(self, module_name, function_name, file_name, line_number, code_object=None):
+        pass
+
+    def try_region_end(self, code_object):
         pass
 
     def region_end(self, module_name, function_name, code_object=None):
@@ -33,12 +39,6 @@ class ScorepDummy(base_instrumenter.BaseInstrumenter):
         pass
 
     def rewind_end(self, name, value):
-        pass
-
-    def oa_region_begin(self, name, file_name=None, line_number=None):
-        pass
-
-    def oa_region_end(self, name):
         pass
 
     def user_enable_recording(self):

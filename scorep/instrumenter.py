@@ -1,7 +1,16 @@
 import inspect
 import os
+import platform
+import functools
 
 global_instrumenter = None
+
+
+def has_c_instrumenter():
+    """Return true if the C instrumenter(s) are available"""
+    # We are using the UTF-8 string features from Python 3
+    # The C Instrumenter functions are not available on PyPy
+    return platform.python_implementation() != 'PyPy'
 
 
 def get_instrumenter(enable_instrumenter=False,
@@ -65,13 +74,29 @@ class enable():
     If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
 
-    def __init__(self, region_name=None):
+    def __init__(self, region_name=""):
         self.region_name = region_name
+        if region_name == "":
+            self.user_region_name = False
+        else:
+            self.user_region_name = True
+        self.module_name = ""
+
+    def _recreate_cm(self):
+        return self
+
+    def __call__(self, func):
+        with disable():
+            @functools.wraps(func)
+            def inner(*args, **kwds):
+                with self._recreate_cm():
+                    return func(*args, **kwds)
+        return inner
 
     def __enter__(self):
         self.tracer_registered = get_instrumenter().get_registered()
         if not self.tracer_registered:
-            if self.region_name:
+            if self.user_region_name:
                 self.module_name = "user_instrumenter"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)
@@ -87,11 +112,11 @@ class enable():
 
             get_instrumenter().register()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
         if not self.tracer_registered:
             get_instrumenter().unregister()
 
-            if self.region_name is not None:
+            if self.user_region_name:
                 get_instrumenter().region_end(
                     self.module_name, self.region_name)
 
@@ -107,15 +132,35 @@ class disable():
     If a region name is given, the region the contextmanager is active will be marked in the trace or profile
     """
 
-    def __init__(self, region_name=None):
+    def __init__(self, region_name=""):
         self.region_name = region_name
+        if region_name == "":
+            self.user_region_name = False
+        else:
+            self.user_region_name = True
+        self.module_name = ""
+        self.func = None
+
+    def _recreate_cm(self):
+        return self
+
+    def __call__(self, func):
+        self.__enter__()
+        try:
+            @functools.wraps(func)
+            def inner(*args, **kwds):
+                with self._recreate_cm():
+                    return func(*args, **kwds)
+        finally:
+            self.__exit__()
+        return inner
 
     def __enter__(self):
         self.tracer_registered = get_instrumenter().get_registered()
         if self.tracer_registered:
             get_instrumenter().unregister()
 
-            if self.region_name is not None:
+            if self.user_region_name:
                 self.module_name = "user_instrumenter"
                 frame = inspect.currentframe().f_back
                 file_name = frame.f_globals.get('__file__', None)
@@ -129,9 +174,9 @@ class disable():
                     self.module_name, self.region_name, full_file_name,
                     line_number)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
         if self.tracer_registered:
-            if self.region_name is not None:
+            if self.user_region_name:
                 get_instrumenter().region_end(
                     self.module_name, self.region_name)
 

@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.com/score-p/scorep_binding_python.svg?branch=master)](https://travis-ci.com/score-p/scorep_binding_python)
 [![Unit tests](https://github.com/score-p/scorep_binding_python/workflows/Unit%20tests/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Unit+tests")
 [![Static analysis](https://github.com/score-p/scorep_binding_python/workflows/Static%20analysis/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Static+analysis")
 
@@ -14,6 +13,7 @@ scorep is a module that allows tracing of python scripts using [Score-P](https:/
   * [Instrumenter](#instrumenter)
     + [Instrumenter Types](#instrumenter-types)
     + [Instrumenter User Interface](#instrumenter-user-interface)
+    + [Instrumenter File](#instrumenter-file)
   * [MPI](#mpi)
   * [User Regions](#user-regions)
   * [Overview about Flags](#overview-about-flags)
@@ -52,7 +52,7 @@ Please have a look at:
 
 and
 
-[Score-P Documentation](http://scorepci.pages.jsc.fz-juelich.de/scorep-pipelines/docs/latest/pdf/scorep.pdf)
+[Score-P Documentation](https://perftools.pages.jsc.fz-juelich.de/cicd/scorep/tags/latest/html/)
 
 There is also a small [HowTo](https://github.com/score-p/scorep_binding_python/wiki) in the wiki.
 
@@ -103,6 +103,7 @@ with scorep.instrumenter.enable():
 The main idea is to reduce the instrumentation overhead for regions that are not of interest.
 Whenever the instrumenter is disabled, function enter or exits will not be trace.
 However, user regions as described in [User Regions](#user-regions) are not affected.
+Both functions are also available as decorators.
 
 As an example:
 
@@ -155,6 +156,45 @@ with scorep.instrumenter.disable():
 ```
 will only disable the instrumenter, but `my_fun_calls` will not appear in the trace or profile, as the second call to `scorep.instrumenter.disable` did not change the state of the instrumenter.
 Please look to [User Regions](#user-regions), if you want to annotate a region, no matter what the instrumenter state is.
+
+### Instrumenter File
+
+Handing a Python file to `--instrumenter-file` allows the instrumentation of modules and functions without changing their code.
+The file handed to `--instrumenter-file` is executed before the script is executed so that the original function definition can be overwritten before the function is executed.
+However, using this approach, it is no longer possible to track the bring up of the module.
+
+To simplify the instrumentation, the user instrumentation contains two helper calls:
+```
+scorep.user.instrument_function(function, instrumenter_fun=scorep.user.region)
+scorep.user.instrument_module(module, instrumenter_fun=scorep.user.region):
+```
+while `instrumenter_fun` might be one of:
+ * `scorep.user.region`, decorator as explained below
+ * `scorep.instrumenter.enable`, decorator as explained above
+ * `scorep.instrumenter.disable`, decorator as explained above
+
+Using the `scorep.instrumenter` decorators, the instrumentation can be enabled or disabled from the given function.
+The function is executed below `enable` or `disable`.
+Using `scorep.user.region`, it is possible to instrument a full python program.
+However, I discourage this usage, as the overhead of the user instrumentation is higher than the built-in instrumenters.
+
+Using `scorep.user.instrument_module`, all functions of the given Python Module are instrumented.
+
+An example instrumenter file might look like the following:
+```
+import scorep.user
+
+# import module that shall be instrumented
+import module_to_instrument
+import module
+
+# hand over the imported module, containing functions which shall be instrumented
+scorep.user.instrument_module(module_to_instrument)
+
+# hand the function to be instrumented, and overwrite the original definiton of that function
+module.function_to_instrument = scorep.user.instrument_function(module.function_to_instrument)
+
+```
 
 ## MPI
 
@@ -273,13 +313,18 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 If you publish some work using the python bindings, we would appriciate, if you could cite the following paper:
 
 ```
-Gocht, A.; Schöne, R. & Frenzel, J.
-Advanced Python Performance Monitoring with Score-P
-Tools for High Performance Computing 2019, Springer International Publishing, accepted
+Gocht A., Schöne R., Frenzel J. (2021)
+Advanced Python Performance Monitoring with Score-P.
+In: Mix H., Niethammer C., Zhou H., Nagel W.E., Resch M.M. (eds) Tools for High Performance Computing 2018 / 2019. Springer, Cham.
+https://doi.org/10.1007/978-3-030-66057-4_14 
 ```
 
 A preprint can be found at: 
 http://arxiv.org/abs/2010.15444
+
+The full paper is available at:
+https://doi.org/10.1007/978-3-030-66057-4_14 
+
 
 # Acknowledgments
 The European Union initially supported this work as part of the European Union’s Horizon 2020 project READEX (grant agreement number 671657).

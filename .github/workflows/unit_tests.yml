@@ -1,15 +1,15 @@
 name: Unit tests
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   SCOREP_TIMER: clock_gettime # tsc causes warnings
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", 'pypy-2.7', 'pypy-3.6', 'pypy-3.7', 'pypy-3.8']
       fail-fast: false
 
     steps:
@@ -18,24 +18,12 @@ jobs:
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip
-    - id: cache
-      uses: actions/cache@v1
-      with:
-        path: ~/scorep
-        key: scorep
 
-    - name: Install system dependencies
-      run: sudo apt install gcc-7-plugin-dev libopenmpi-dev openmpi-bin
-    - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        mkdir /tmp/buildScorep && cd /tmp/buildScorep
-        wget https://www.vi-hps.org/cms/upload/packages/scorep/scorep-6.0.tar.gz
-        tar xf scorep-6.0.tar.gz
-        cd scorep-6.0
-        mkdir build && cd build
-        ../configure --enable-shared --prefix=$HOME/scorep
-        make -j3 && make install
+    - name: Add Score-P repo
+      run: sudo add-apt-repository ppa:andreasgocht/scorep
+    
+    - name: Install Score-P      
+      run: sudo apt install scorep
 
     - name: Setup environment
       run: echo "$HOME/scorep/bin" >> $GITHUB_PATH

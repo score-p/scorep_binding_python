@@ -35,6 +35,7 @@ jobs:
     - name: Install Python packages
       run: |
         pip install --upgrade pip
+        pip install --upgrade setuptools
         pip install numpy mpi4py pytest
 
     - name: Build python bindings

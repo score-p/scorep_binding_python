@@ -1,5 +1,5 @@
-[![Unit tests](https://github.com/score-p/scorep_binding_python/workflows/Unit%20tests/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Unit+tests"&branch=master)
-[![Static analysis](https://github.com/score-p/scorep_binding_python/workflows/Static%20analysis/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions?query=workflow%3A"Static+analysis"&branch=master)
+[![Unit tests](https://github.com/score-p/scorep_binding_python/workflows/Unit%20tests/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions)
+[![Static analysis](https://github.com/score-p/scorep_binding_python/workflows/Static%20analysis/badge.svg?branch=master)](https://github.com/score-p/scorep_binding_python/actions)
 
 # scorep
 scorep is a module that allows tracing of python scripts using [Score-P](https://score-p.org/).

@@ -13,7 +13,7 @@ if not ("shared=yes" in link_mode):
         'Score-P not build with "--enable-shared". Link mode is:\n{}'.format(link_mode)
     )
 
-check_compiler = scorep.helper.get_scorep_config("C99 compiler used:")
+check_compiler = scorep.helper.get_scorep_config("C99 compiler")
 if "gcc" in check_compiler:
     gcc_plugin = scorep.helper.get_scorep_config("GCC plug-in support:")
     if not ("yes" in gcc_plugin):

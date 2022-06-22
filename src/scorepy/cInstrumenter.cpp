@@ -28,9 +28,8 @@ void CInstrumenter::deinit()
 
 void CInstrumenter::enable_instrumenter()
 {
-    const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int {
-        return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1;
-    };
+    const auto callback = [](PyObject* obj, PyFrameObject* frame, int what, PyObject* arg) -> int
+    { return from_PyObject(obj)->on_event(*frame, what, arg) ? 0 : -1; };
     if (threading_set_instrumenter)
     {
         PyRefObject result(PyObject_CallFunction(threading_set_instrumenter, "O", to_PyObject()),
@@ -115,16 +114,55 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     case PyTrace_CALL:
     {
         PyCodeObject* code = frame.f_code;
-        bool success = try_region_begin(code);
-        if (!success)
+        if (frame.f_back == nullptr)
         {
-            std::string_view name = compat::get_string_as_utf_8(code->co_name);
-            std::string_view module_name = get_module_name(frame);
-            if (name.compare("_unsetprofile") != 0 && module_name.compare(0, 6, "scorep") != 0)
+            bool success = try_region_begin(code);
+            if (!success)
             {
-                const int line_number = code->co_firstlineno;
-                const std::string file_name = get_file_name(frame);
-                region_begin(name, module_name, file_name, line_number, code);
+                std::string_view name = compat::get_string_as_utf_8(code->co_name);
+                std::string_view module_name = get_module_name(frame);
+                if (name.compare("_unsetprofile") != 0 && module_name.compare(0, 6, "scorep") != 0)
+                {
+                    const int line_number = code->co_firstlineno;
+                    const std::string file_name = get_file_name(frame);
+                    region_begin(name, module_name, file_name, line_number, code);
+                }
+            }
+        }
+        else
+        {
+            PyCodeObject* callsite_code = frame.f_back->f_code;
+            bool success = try_region_begin_with_callsite(code, callsite_code,
+                                                          PyFrame_GetLineNumber(frame.f_back));
+            if (!success)
+            {
+                std::string_view name = compat::get_string_as_utf_8(code->co_name);
+                std::string_view module_name = get_module_name(frame);
+                if (name.compare("_unsetprofile") != 0 && module_name.compare(0, 6, "scorep") != 0)
+                {
+                    const int line_number = code->co_firstlineno;
+                    const std::string file_name = get_file_name(frame);
+
+                    std::string_view callsite_name =
+                        compat::get_string_as_utf_8(callsite_code->co_name);
+                    std::string_view callsite_module_name = get_module_name(*frame.f_back);
+                    if (callsite_name.compare("_unsetprofile") == 0 ||
+                        callsite_module_name.compare(0, 6, "scorep") == 0 ||
+                        (callsite_module_name.compare("threading") == 0 &&
+                         (callsite_name.compare("_bootstrap_inner") == 0 ||
+                          callsite_name.compare("_bootstrap")))) // there needs to be a better way
+                    {
+                        callsite_code = nullptr; // dont save that handle
+                    }
+
+                    const int callsite_line_number_start = code->co_firstlineno;
+                    const std::string callsite_file_name = get_file_name(frame);
+
+                    region_begin_with_callsite(name, module_name, file_name, line_number, code,
+                                               callsite_code, callsite_name, callsite_module_name,
+                                               callsite_file_name, callsite_line_number_start,
+                                               PyFrame_GetLineNumber(frame.f_back));
+                }
             }
         }
         break;
@@ -132,6 +170,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     case PyTrace_RETURN:
     {
         PyCodeObject* code = frame.f_code;
+
         bool success = try_region_end(code);
         if (!success)
         {

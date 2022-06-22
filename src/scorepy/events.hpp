@@ -30,10 +30,9 @@ struct region_handle
 constexpr region_handle uninitialised_region_handle = region_handle();
 
 /// Combine the arguments into a region name
-/// Return value is a statically allocated string to avoid memory (re)allocations
-inline const std::string& make_region_name(std::string_view& module_name, std::string_view& name)
+inline std::string make_region_name(std::string_view& module_name, std::string_view& name)
 {
-    static std::string region;
+    std::string region;
     region = module_name;
     region += ":";
     region += name;
@@ -59,11 +58,39 @@ inline bool try_region_begin(compat::PyCodeObject* identifier)
     }
 }
 
+/** tries to enter a region. Return true on success
+ *
+ */
+inline bool try_region_begin_with_callsite(compat::PyCodeObject* identifier,
+                                           compat::PyCodeObject* callsite_identifier,
+                                           uint32_t callsite_line)
+{
+    auto it = regions.find(identifier);
+    if (it != regions.end())
+    {
+        auto callsite_it = regions.find(callsite_identifier);
+        if (callsite_it != regions.end())
+        {
+            SCOREP_User_RegionEnterWithCallsite(it->second.value, callsite_it->second.value,
+                                                callsite_line);
+            return true;
+        }
+    }
+    return false;
+}
+
 void region_begin(std::string_view& function_name, std::string_view& module,
                   const std::string& file_name, const std::uint64_t line_number,
                   compat::PyCodeObject* identifier);
 void region_begin(std::string_view& function_name, std::string_view& module,
                   const std::string& file_name, const std::uint64_t line_number);
+
+void region_begin_with_callsite(
+    std::string_view& function_name, std::string_view& module, const std::string& file_name,
+    const std::uint64_t line_number, compat::PyCodeObject* identifier,
+    compat::PyCodeObject* callsite_identifier, std::string_view& callsite_function_name,
+    std::string_view& callsite_module, const std::string& callsite_file_name,
+    const std::uint64_t callsite_line_number_start, uint32_t callsite_line);
 
 /** tries to end a region. Return true on success
  *

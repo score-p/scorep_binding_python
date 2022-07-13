@@ -119,3 +119,9 @@ class ScorepInstrumenter(base_instrumenter.BaseInstrumenter):
     def user_parameter_string(self, name, string):
         """Record a parameter of type string"""
         scorep._bindings.parameter_string(name, string)
+
+    def force_finalize(self):
+        scorep._bindings.force_finalize()
+
+    def reregister_exit_handler(self):
+        scorep._bindings.reregister_exit_handler()

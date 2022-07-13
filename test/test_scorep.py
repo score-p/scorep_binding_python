@@ -5,7 +5,6 @@ import pkgutil
 import platform
 import pytest
 import re
-import subprocess
 import sys
 import numpy
 

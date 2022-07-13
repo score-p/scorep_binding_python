@@ -32,7 +32,7 @@ def call(arguments, expected_returncode=0, env=None):
     return stdout.decode("utf-8"), stderr.decode("utf-8")
 
 
-def call_with_scorep(file: pathlib.Path, scorep_arguments=None, expected_returncode=0, env=None):
+def call_with_scorep(file, scorep_arguments=None, expected_returncode=0, env=None):
     """
     Shortcut for running a python file with the scorep module
 
@@ -44,7 +44,7 @@ def call_with_scorep(file: pathlib.Path, scorep_arguments=None, expected_returnc
     return call(arguments + [str(file)], expected_returncode=expected_returncode, env=env)
 
 
-def call_otf2_print(trace_path: pathlib.Path):
+def call_otf2_print(trace_path):
     trace, std_err = call(["otf2-print", str(trace_path)])
     return trace, std_err
 
@@ -67,12 +67,12 @@ class OTF2_Parameter:
 
 
 class OTF2_Trace:
-    def __init__(self, trace_path: pathlib.Path):
+    def __init__(self, trace_path):
         self.path = pathlib.Path(trace_path)
         self.trace, self.std_err = call_otf2_print(self.path)
         assert self.std_err == ""
 
-    def __contains__(self, otf2_element: OTF2_Region | OTF2_Parameter):
+    def __contains__(self, otf2_element):
         result = []
         if isinstance(otf2_element, OTF2_Region):
             for event in ("ENTER", "LEAVE"):
@@ -90,7 +90,7 @@ class OTF2_Trace:
             raise NotImplementedError
         return all(result)
 
-    def findall(self, otf2_element: OTF2_Region):
+    def findall(self, otf2_element):
         result = []
         if isinstance(otf2_element, OTF2_Region):
             for event in ("ENTER", "LEAVE"):

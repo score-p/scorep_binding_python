@@ -42,4 +42,4 @@ jobs:
       run: pip install .
     - name: Run tests
       working-directory: test
-      run: pytest
+      run: pytest -vv

@@ -55,3 +55,9 @@ class ScorepDummy(base_instrumenter.BaseInstrumenter):
 
     def user_parameter_string(self, name, string):
         pass
+
+    def force_finalize(self):
+        pass
+
+    def reregister_exit_handler(self):
+        pass

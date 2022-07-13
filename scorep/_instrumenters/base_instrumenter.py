@@ -64,3 +64,11 @@ class BaseInstrumenter(_BaseInstrumenter):
     @abc.abstractmethod
     def user_parameter_string(self, name, string):
         pass
+
+    @abc.abstractmethod
+    def force_finalize(self):
+        pass
+
+    @abc.abstractmethod
+    def reregister_exit_handler(self):
+        pass

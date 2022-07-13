@@ -1,6 +1,5 @@
 import sys
 import subprocess
-import pathlib
 import re
 
 
@@ -68,7 +67,7 @@ class OTF2_Parameter:
 
 class OTF2_Trace:
     def __init__(self, trace_path):
-        self.path = pathlib.Path(trace_path)
+        self.path = trace_path
         self.trace, self.std_err = call_otf2_print(self.path)
         assert self.std_err == ""
 

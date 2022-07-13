@@ -53,7 +53,7 @@ class OTF2_Region:
     def __init__(self, region):
         self.region = region
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.region
 
 
@@ -62,7 +62,7 @@ class OTF2_Parameter:
         self.parameter = parameter
         self.value = value
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "{}:{}".format(self.parameter, self.value)
 
 
@@ -79,13 +79,12 @@ class OTF2_Trace:
                 search_str = "{event}[ ]*[0-9 ]*[0-9 ]*Region: \"{region}\"".format(
                     event=event, region=otf2_element.region)
                 search_res = re.search(search_str, self.trace)
-                result.append(search_res != None)
+                result.append(search_res is not None)
         elif isinstance(otf2_element, OTF2_Parameter):
-            search_str = "PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: \"{parameter}\" <[0-9]*>, Value: \"{value}\"".format(
-                parameter=otf2_element.parameter,
-                value=otf2_element.value)
+            search_str = "PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: \"{parameter}\" <[0-9]*>, Value: \"{value}\""
+            search_str = search_str.format(parameter=otf2_element.parameter, value=otf2_element.value)
             search_res = re.search(search_str, self.trace)
-            result.append(search_res != None)
+            result.append(search_res is not None)
         else:
             raise NotImplementedError
         return all(result)

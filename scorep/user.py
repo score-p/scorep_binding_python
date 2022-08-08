@@ -73,7 +73,7 @@ class region(object):
     def __enter__(self):
         initally_registered = scorep.instrumenter.get_instrumenter().get_registered()
         with scorep.instrumenter.disable():
-            if(self.user_region_name):
+            if self.user_region_name:
                 # The user did specify a region name, so its a user_region
                 self.module_name = "user"
                 frame = inspect.currentframe().f_back

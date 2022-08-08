@@ -102,7 +102,7 @@ def generate(scorep_config, keep_files=False):
         extra_postargs=linker_flags)
 
     os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] = temp_dir
-    return(subsystem_lib_name, temp_dir)
+    return subsystem_lib_name, temp_dir
 
 
 def init_environment(scorep_config, keep_files=False, verbose=False):

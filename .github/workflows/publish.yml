@@ -18,9 +18,6 @@ jobs:
     - name: Check Version
       run: test ${{ github.event.release.tag_name }} = `python -c "import scorep._version; print('v'+scorep._version.__version__)"`
 
-    - name: Install MPI
-      run: sudo apt-get -y install openmpi-common openmpi-bin libopenmpi-dev
-
     - name: Add Score-P repo
       run: sudo add-apt-repository ppa:andreasgocht/scorep
     

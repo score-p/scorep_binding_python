@@ -265,7 +265,7 @@ def test_mpi(scorep_env, instrumenter):
         env=scorep_env,
     )
 
-    assert re.search(r"\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED", std_err)
+    assert re.search(r"\[Score-P\] [\w/.: ]*MPI_THREAD_\(SERIALIZED\|MULTIPLE\) ", std_err)
     assert "[00] [0. 1. 2. 3. 4.]\n" in std_out
     assert "[01] [0. 1. 2. 3. 4.]\n" in std_out
     assert "bar\n" in std_out

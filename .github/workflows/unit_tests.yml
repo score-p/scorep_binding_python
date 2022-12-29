@@ -3,18 +3,20 @@ on: [push, pull_request, workflow_dispatch]
 
 env:
   SCOREP_TIMER: clock_gettime # tsc causes warnings
+  RDMAV_FORK_SAFE: 
+  IBV_FORK_SAFE: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", 'pypy-2.7', 'pypy-3.6', 'pypy-3.7', 'pypy-3.8']
+        python: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11", 'pypy-2.7', 'pypy-3.6', 'pypy-3.7', 'pypy-3.8']
       fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v1
+    - uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip
@@ -23,12 +25,12 @@ jobs:
       run: sudo add-apt-repository ppa:andreasgocht/scorep
     
     - name: Install Score-P      
-      run: sudo apt install scorep
+      run: sudo apt-get -y install scorep
 
     - name: Setup environment
       run: echo "$HOME/scorep/bin" >> $GITHUB_PATH
     - name: set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{matrix.python}}
         architecture: x64

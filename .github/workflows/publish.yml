@@ -12,17 +12,17 @@ jobs:
 
 
     - name: Set up Python 3.8
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
     - name: Check Version
       run: test ${{ github.event.release.tag_name }} = `python -c "import scorep._version; print('v'+scorep._version.__version__)"`
-    
+
     - name: Add Score-P repo
       run: sudo add-apt-repository ppa:andreasgocht/scorep
     
     - name: Install Score-P      
-      run: sudo apt install scorep
+      run: sudo apt-get -y install scorep
 
     - name: Setup environment
       run: echo "$HOME/scorep/bin" >> $GITHUB_PATH

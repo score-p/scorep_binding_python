@@ -19,11 +19,14 @@ jobs:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip
 
+    - name: Install MPI
+      run: sudo apt-get -y install openmpi-common openmpi-bin libopenmpi-dev
+
     - name: Add Score-P repo
       run: sudo add-apt-repository ppa:andreasgocht/scorep
     
     - name: Install Score-P      
-      run: sudo apt install scorep
+      run: sudo apt-get -y install scorep
 
     - name: Setup environment
       run: echo "$HOME/scorep/bin" >> $GITHUB_PATH

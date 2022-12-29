@@ -310,7 +310,7 @@ Please be aware the `--user` is always passed to Score-P, as this is needed for 
 
 # Citing
 
-If you publish some work using the python bindings, we would appriciate, if you could cite the following paper:
+If you publish some work using the python bindings, we would appriciate, if you could cite one of the following paper:
 
 ```
 Gocht A., Schöne R., Frenzel J. (2021)
@@ -324,6 +324,18 @@ http://arxiv.org/abs/2010.15444
 
 The full paper is available at:
 https://doi.org/10.1007/978-3-030-66057-4_14 
+
+
+```
+Gocht-Zech A., Grund A. and Schöne R. (2021)
+Controlling the Runtime Overhead of Python Monitoring with Selective Instrumentation
+In: 2021 IEEE/ACM International Workshop on Programming and Performance Visualization Tools (ProTools)
+https://doi.org/10.1109/ProTools54808.2021.00008
+```
+
+The full paper is available at:
+
+https://doi.org/10.1109/ProTools54808.2021.00008
 
 
 # Acknowledgments

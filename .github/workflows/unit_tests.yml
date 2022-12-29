@@ -3,6 +3,8 @@ on: [push, pull_request, workflow_dispatch]
 
 env:
   SCOREP_TIMER: clock_gettime # tsc causes warnings
+  RDMAV_FORK_SAFE: 
+  IBV_FORK_SAFE: 
 
 jobs:
   build:

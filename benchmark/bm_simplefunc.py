@@ -11,4 +11,4 @@ iterations = int(sys.argv[1])
 for i in range(iterations):
     result = add(result)
 
-assert(result == iterations)
+assert result == iterations

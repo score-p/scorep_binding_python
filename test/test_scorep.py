@@ -5,54 +5,15 @@ import pkgutil
 import platform
 import pytest
 import re
-import subprocess
 import sys
 import numpy
+
+import utils
+from utils import OTF2_Trace, OTF2_Region, OTF2_Parameter
 
 
 def version_tuple(v):
     return tuple(map(int, (v.split("."))))
-
-
-def call(arguments, expected_returncode=0, env=None):
-    """
-    Calls the command specificied by arguments and checks the returncode via assert
-    return (stdout, stderr) from the call to subprocess
-    """
-    if sys.version_info > (3, 5):
-        out = subprocess.run(
-            arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        print(out.stdout, out.stderr)
-        try:
-            assert out.returncode == expected_returncode
-        except AssertionError as e:
-            e.args += ("stderr: {}".format(out.stderr.decode("utf-8")),)
-            raise
-        stdout, stderr = (out.stdout, out.stderr)
-    else:
-        p = subprocess.Popen(
-            arguments, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        stdout, stderr = p.communicate()
-        try:
-            assert p.returncode == expected_returncode
-        except AssertionError as e:
-            e.args += ("stderr: {}".format(stderr.decode("utf-8")),)
-            raise
-    return stdout.decode("utf-8"), stderr.decode("utf-8")
-
-
-def call_with_scorep(file, scorep_arguments=None, expected_returncode=0, env=None):
-    """
-    Shortcut for running a python file with the scorep module
-
-    @return (stdout, stderr) from the call to subprocess
-    """
-    arguments = [sys.executable, "-m", "scorep"]
-    if scorep_arguments:
-        arguments.extend(scorep_arguments)
-    return call(arguments + [file], expected_returncode=expected_returncode, env=env)
 
 
 def has_package(name):
@@ -61,6 +22,13 @@ def has_package(name):
 
 def requires_package(name):
     return pytest.mark.skipif(not has_package(name), reason="%s is required" % name)
+
+
+def functions_in_trace(function, otf2_print):
+    for event in ("ENTER", "LEAVE"):
+        assert re.search(
+            '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, function), otf2_print
+        )
 
 
 cinstrumenter_skip_mark = pytest.mark.skipif(
@@ -111,7 +79,7 @@ def test_has_c_instrumenter():
 def test_user_regions(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/user_regions.py",
         ["--nopython", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -123,27 +91,18 @@ def test_user_regions(scorep_env, instrumenter):
         == "hello world\nhello world\nhello world3\nhello world3\nhello world4\n"
     )
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_2"', std_out)
-    assert (
-        len(re.findall('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
-    )
-    assert (
-        len(re.findall('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo3"', std_out)) == 2
-    )
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region_4"', std_out)
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("user:test_region") in trace
+    assert OTF2_Region("user:test_region_2") in trace
+    assert len(trace.findall(OTF2_Region("__main__:foo3"))) == 4
+    assert OTF2_Region("user:test_region_4") in trace
 
 
 @foreach_instrumenter
 def test_context(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/context.py",
         ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -152,19 +111,16 @@ def test_context(scorep_env, instrumenter):
     assert std_err == ""
     assert std_out == "hello world\nhello world\nhello world\n"
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "user:test_region"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("user:test_region") in trace
+    assert OTF2_Region("__main__:foo") in trace
 
 
 @foreach_instrumenter
 def test_decorator(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/decorator.py",
         ["--noinstrumenter", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -173,13 +129,12 @@ def test_decorator(scorep_env, instrumenter):
     assert std_err == ""
     assert std_out == "hello world\nhello world\nhello world\n"
 
-    std_out, std_err = call(["otf2-print", "-A", trace_path])
-
-    assert len(re.findall('REGION[ ]*[0-9 ]*Name: "__main__:foo"', std_out)) == 1
+    trace = OTF2_Trace(trace_path)
+    assert len(trace.findall(OTF2_Region("__main__:foo"))) == 6
 
 
 def test_user_regions_no_scorep():
-    std_out, std_err = call([sys.executable, "cases/user_regions.py"])
+    std_out, std_err = utils.call([sys.executable, "cases/user_regions.py"])
 
     assert std_err == ""
     assert (
@@ -192,17 +147,16 @@ def test_user_regions_no_scorep():
 def test_user_rewind(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/user_rewind.py", ["--instrumenter-type=" + instrumenter], env=scorep_env
     )
 
     assert std_err == ""
     assert std_out == "hello world\nhello world\n"
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: OFF", std_out)
-    assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON", std_out)
+    trace = OTF2_Trace(trace_path)
+    assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: OFF", str(trace))
+    assert re.search("MEASUREMENT_ON_OFF[ ]*[0-9 ]*[0-9 ]*Mode: ON", str(trace))
 
 
 @pytest.mark.parametrize("instrumenter", ALL_INSTRUMENTERS + [None])
@@ -211,28 +165,24 @@ def test_instrumentation(scorep_env, instrumenter):
 
     # Also test when no instrumenter is given
     instrumenter_type = ["--instrumenter-type=" + instrumenter] if instrumenter else []
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/instrumentation.py", ["--nocompiler"] + instrumenter_type, env=scorep_env
     )
 
     assert std_err == ""
     assert std_out == "hello world\nbaz\nbar\n"
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    for func in ("__main__:foo", "instrumentation2:bar", "instrumentation2:baz"):
-        for event in ("ENTER", "LEAVE"):
-            assert re.search(
-                '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
-            )
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("__main__:foo") in trace
+    assert OTF2_Region("instrumentation2:bar") in trace
+    assert OTF2_Region("instrumentation2:baz") in trace
 
 
 @foreach_instrumenter
 def test_user_instrumentation(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/user_instrumentation.py",
         ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -241,24 +191,18 @@ def test_user_instrumentation(scorep_env, instrumenter):
     assert std_err == ""
     assert std_out == "hello world\nbar\nhello world2\nbaz\n"
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo2"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo2"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("__main__:foo") in trace
+    assert OTF2_Region("__main__:foo2") in trace
+    assert OTF2_Region("instrumentation2:bar") in trace
+    assert OTF2_Region("instrumentation2:baz") in trace
 
 
 @foreach_instrumenter
 def test_external_user_instrumentation(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/instrumentation.py",
         ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" +
             instrumenter, "--instrumenter-file=cases/external_instrumentation.py"],
@@ -268,20 +212,16 @@ def test_external_user_instrumentation(scorep_env, instrumenter):
     assert std_err == ""
     assert std_out == "hello world\nbaz\nbar\n"
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:bar"', std_out)
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "instrumentation2:baz"', std_out)
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("instrumentation2:bar") in trace
+    assert OTF2_Region("instrumentation2:baz") in trace
 
 
 @foreach_instrumenter
 def test_error_region(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/error_region.py",
         ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -294,21 +234,10 @@ def test_error_region(scorep_env, instrumenter):
     )
     assert std_out == ""
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    assert re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "error_region"', std_out)
-    assert re.search('LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "error_region"', std_out)
-    assert re.search(
-        'PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,'
-        + ' Value: "user:test_region"',
-        std_out,
-    )
-    assert re.search(
-        'PARAMETER_STRING[ ]*[0-9 ]*[0-9 ]*Parameter: "leave-region" <[0-9]*>,'
-        + ' Value: "user:test_region_2"',
-        std_out,
-    )
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("error_region") in trace
+    assert OTF2_Parameter("leave-region", "user:test_region") in trace
+    assert OTF2_Parameter("leave-region", "user:test_region_2") in trace
 
 
 @requires_package("mpi4py")
@@ -316,7 +245,7 @@ def test_error_region(scorep_env, instrumenter):
 @foreach_instrumenter
 def test_mpi(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
-    std_out, std_err = call(
+    std_out, std_err = utils.call(
         [
             "mpirun",
             "-n",
@@ -336,25 +265,20 @@ def test_mpi(scorep_env, instrumenter):
         env=scorep_env,
     )
 
-    assert re.search(r"\[Score-P\] [\w/.: ]*MPI_THREAD_FUNNELED", std_err)
+    assert re.search(r"\[Score-P\] [\w/.: ]*MPI_THREAD_\(SERIALIZED\|MULTIPLE\) ", std_err)
     assert "[00] [0. 1. 2. 3. 4.]\n" in std_out
     assert "[01] [0. 1. 2. 3. 4.]\n" in std_out
     assert "bar\n" in std_out
     assert "baz\n" in std_out
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    for func in ("instrumentation2:bar", "instrumentation2:baz"):
-        for event in ("ENTER", "LEAVE"):
-            assert re.search(
-                '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
-            )
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("instrumentation2:bar") in trace
+    assert OTF2_Region("instrumentation2:baz") in trace
 
 
 @foreach_instrumenter
 def test_call_main(scorep_env, instrumenter):
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/call_main.py",
         ["--nocompiler", "--instrumenter-type=" + instrumenter],
         expected_returncode=1,
@@ -370,7 +294,7 @@ def test_call_main(scorep_env, instrumenter):
 @foreach_instrumenter
 def test_classes(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/classes.py",
         ["--nocompiler", "--instrumenter-type=" + instrumenter],
         expected_returncode=0,
@@ -383,13 +307,11 @@ def test_classes(scorep_env, instrumenter):
     assert std_out == expected_std_out
     assert std_err == expected_std_err
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
+    trace = OTF2_Trace(trace_path)
 
     region_ids = []
     foo_count = 0
-    for line in std_out.split("\n"):
+    for line in str(trace).split("\n"):
         m = re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo" <([0-9]*)>', line)
         if m is not None:
             foo_count += 1
@@ -409,7 +331,7 @@ def test_classes(scorep_env, instrumenter):
 
 
 def test_dummy(scorep_env):
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/instrumentation.py", ["--instrumenter-type=dummy"], env=scorep_env
     )
 
@@ -424,12 +346,12 @@ def test_dummy(scorep_env):
 @requires_package("numpy")
 @pytest.mark.skipif(version_tuple(numpy.version.version) >= version_tuple("1.22.0"),
                     reason="There are some changes regarding __array_function__ in 1.22.0,"
-                           "so the test is no longer needed")
+                    "so the test is no longer needed")
 @foreach_instrumenter
 def test_numpy_dot(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/numpy_dot.py",
         ["--nocompiler", "--noinstrumenter", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -438,22 +360,15 @@ def test_numpy_dot(scorep_env, instrumenter):
     assert std_out == "[[ 7 10]\n [15 22]]\n"
     assert std_err == ""
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    assert re.search(
-        'ENTER[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out
-    )
-    assert re.search(
-        'LEAVE[ ]*[0-9 ]*[0-9 ]*Region: "numpy.__array_function__:dot"', std_out
-    )
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("numpy.__array_function__:dot") in trace
 
 
 @foreach_instrumenter
 def test_threads(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/use_threads.py",
         ["--nocompiler", "--instrumenter-type=" + instrumenter],
         env=scorep_env,
@@ -466,14 +381,10 @@ def test_threads(scorep_env, instrumenter):
     assert "bar\n" in std_out
     assert "baz\n" in std_out
 
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
-    for func in ("__main__:foo", "instrumentation2:bar", "instrumentation2:baz"):
-        for event in ("ENTER", "LEAVE"):
-            assert re.search(
-                '%s[ ]*[0-9 ]*[0-9 ]*Region: "%s"' % (event, func), std_out
-            )
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("__main__:foo") in trace
+    assert OTF2_Region("instrumentation2:bar") in trace
+    assert OTF2_Region("instrumentation2:baz") in trace
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="not tested for python 2")
@@ -482,7 +393,7 @@ def test_io(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
 
     print("start")
-    std_out, std_err = call_with_scorep(
+    std_out, std_err = utils.call_with_scorep(
         "cases/file_io.py",
         [
             "--nocompiler",
@@ -496,10 +407,7 @@ def test_io(scorep_env, instrumenter):
     assert std_err == ""
     assert "test\n" in std_out
 
-    print("otf2-print")
-    std_out, std_err = call(["otf2-print", trace_path])
-
-    assert std_err == ""
+    trace = utils.OTF2_Trace(trace_path)
 
     file_regex = "\\[POSIX I\\/O\\][ \\w:/]*test\\.txt"
     # print_regex = "STDOUT_FILENO"
@@ -534,7 +442,7 @@ def test_io(scorep_env, instrumenter):
     in_expected_io = False
     after_expected_io = False
 
-    for line in std_out.split("\n"):
+    for line in str(trace).split("\n"):
         if ("user_instrumenter:expect io" in line) and (in_expected_io is False):
             in_expected_io = True
         elif ("user_instrumenter:expect io" in line) and (in_expected_io is True):
@@ -552,3 +460,21 @@ def test_io(scorep_env, instrumenter):
             )
             print(regex_str)
             assert re.search(regex_str, io_trace)
+
+
+@foreach_instrumenter
+def test_force_finalize(scorep_env, instrumenter):
+    trace_path = get_trace_path(scorep_env)
+
+    # Also test when no instrumenter is given
+    instrumenter_type = ["--instrumenter-type=" + instrumenter]
+    std_out, std_err = utils.call_with_scorep(
+        "cases/force_finalize.py", instrumenter_type, env=scorep_env
+    )
+
+    assert std_err == ""
+    assert std_out == "foo\nbar\n"
+
+    trace = OTF2_Trace(trace_path)
+    assert OTF2_Region("__main__:foo") in trace
+    assert OTF2_Region("__main__:bar") not in trace

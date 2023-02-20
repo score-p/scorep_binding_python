@@ -85,10 +85,10 @@ def generate_compile_deps(config):
 
     scorep_config = ["scorep-config"] + config
 
-    (return_code, _, _) = call(scorep_config)
+    (return_code, stdout, stderr) = call(scorep_config)
     if return_code != 0:
         raise ValueError(
-            "given config {} is not supported".format(config))
+            "given config {} is not supported\nstdout: {}\nstrerr: {}".format(config, stdout, stderr))
 
     (_, ldflags, _) = call(scorep_config + ["--ldflags"])
     (_, libs, _) = call(scorep_config + ["--libs"])

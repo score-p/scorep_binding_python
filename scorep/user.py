@@ -73,7 +73,7 @@ class region(object):
     def __enter__(self):
         initally_registered = scorep.instrumenter.get_instrumenter().get_registered()
         with scorep.instrumenter.disable():
-            if(self.user_region_name):
+            if self.user_region_name:
                 # The user did specify a region name, so its a user_region
                 self.module_name = "user"
                 frame = inspect.currentframe().f_back
@@ -190,3 +190,18 @@ def parameter_uint(name, val):
 
 def parameter_string(name, string):
     scorep.instrumenter.get_instrumenter().user_parameter_string(name, string)
+
+
+def force_finalize():
+    """
+    Forces a finalisation, which might trigger traces or profiles to be written.
+    Events after a call to @force_finalize() might not be recorded.
+    """
+    scorep.instrumenter.get_instrumenter().force_finalize()
+
+
+def reregister_exit_handler():
+    """
+    Registers necessary atexit handler again if they have been overwritten.
+    """
+    scorep.instrumenter.get_instrumenter().reregister_exit_handler()

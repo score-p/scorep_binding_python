@@ -1,5 +1,4 @@
 import os
-import distutils.ccompiler
 import tempfile
 import shutil
 
@@ -86,7 +85,12 @@ def generate(scorep_config, keep_files=False):
 
     subsystem_lib_name = generate_subsystem_lib_name()
 
+    # setuptools, which replaces distutils, calls uname in python < 3.9 during distutils bootstraping.
+    # When LD_PRELOAD is set, this leads to preloading Score-P to uname, and crashes the later tracing.
+    # To avoid this, we need to do the distutils bootstrap as late as possible.
+    import distutils.ccompiler
     cc = distutils.ccompiler.new_compiler()
+
     compiled_subsystem = cc.compile(
         [temp_dir + "/scorep_init.c"], output_dir=temp_dir)
     cc.link(
@@ -98,7 +102,7 @@ def generate(scorep_config, keep_files=False):
         extra_postargs=linker_flags)
 
     os.environ["SCOREP_PYTHON_BINDINGS_TEMP_DIR"] = temp_dir
-    return(subsystem_lib_name, temp_dir)
+    return subsystem_lib_name, temp_dir
 
 
 def init_environment(scorep_config, keep_files=False, verbose=False):

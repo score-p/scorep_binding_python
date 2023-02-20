@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   Cpp:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
     - name: Formatting
@@ -13,10 +13,10 @@ jobs:
         clangFormatVersion: 9
 
   Python:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: 3.8
     - name: Install Python packages

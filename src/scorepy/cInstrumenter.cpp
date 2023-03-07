@@ -1,6 +1,7 @@
 #include "cInstrumenter.hpp"
 #include "events.hpp"
 #include "pythonHelpers.hpp"
+#include "pythoncapi_compat.h"
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -114,7 +115,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
     {
     case PyTrace_CALL:
     {
-        PyCodeObject* code = frame.f_code;
+        PyCodeObject* code = PyFrame_GetCode(&frame);
         bool success = try_region_begin(code);
         if (!success)
         {
@@ -127,11 +128,12 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
                 region_begin(name, module_name, file_name, line_number, code);
             }
         }
+        Py_DECREF(code);
         break;
     }
     case PyTrace_RETURN:
     {
-        PyCodeObject* code = frame.f_code;
+        PyCodeObject* code = PyFrame_GetCode(&frame);
         bool success = try_region_end(code);
         if (!success)
         {
@@ -143,6 +145,7 @@ bool CInstrumenter::on_event(PyFrameObject& frame, int what, PyObject*)
                 region_end(name, module_name, code);
             }
         }
+        Py_DECREF(code);
         break;
     }
     }

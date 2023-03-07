@@ -73,9 +73,9 @@ auto cast_to_PyFunc(TFunc* func) -> detail::ReplaceArgsToPyObject_t<TFunc>*
 
 /// Return the module name the frame belongs to.
 /// The pointer is valid for the lifetime of the frame
-std::string_view get_module_name(const PyFrameObject& frame);
+std::string_view get_module_name(PyFrameObject& frame);
 /// Return the file name the frame belongs to
-std::string get_file_name(const PyFrameObject& frame);
+std::string get_file_name(PyFrameObject& frame);
 
 // Implementation details
 namespace detail

@@ -32,11 +32,19 @@ Please make sure that `scorep-config` is in your `PATH` variable.
 
 For Ubuntu LTS systems there is a non-official ppa of Score-P available: https://launchpad.net/~andreasgocht/+archive/ubuntu/scorep .
 
-Then run
+Then install the package from PyPI
+
+```
+pip install scorep
+```
+
+or build them from source 
+
 
 ```
 pip install .
 ```
+
 # Use
 
 To trace the full script, you need to run

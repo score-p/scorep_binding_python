@@ -1,1 +1,1 @@
-recursive-include src *.hpp
+recursive-include src *.hpp pythoncapi_compat.h

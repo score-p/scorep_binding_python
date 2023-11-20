@@ -7,13 +7,13 @@
 
 namespace scorepy
 {
-std::string_view get_module_name(PyFrameObject& frame)
+std::string get_module_name(PyFrameObject& frame)
 {
     PyObject* globals = PyFrame_GetGlobals(&frame);
     PyObject* module_name = PyDict_GetItemString(globals, "__name__");
     Py_DECREF(globals);
     if (module_name)
-        return compat::get_string_as_utf_8(module_name);
+        return std::move(std::string(compat::get_string_as_utf_8(module_name)));
 
     // this is a NUMPY special situation, see NEP-18, and Score-P issue #63
     // TODO: Use string_view/C-String to avoid creating 2 std::strings
@@ -21,9 +21,9 @@ std::string_view get_module_name(PyFrameObject& frame)
     std::string_view filename = compat::get_string_as_utf_8(code->co_filename);
     Py_DECREF(code);
     if ((filename.size() > 0) && (filename == "<__array_function__ internals>"))
-        return std::string_view("numpy.__array_function__");
+        return std::move(std::string("numpy.__array_function__"));
     else
-        return std::string_view("unkown");
+        return std::move(std::string("unkown"));
 }
 
 std::string get_file_name(PyFrameObject& frame)
@@ -33,9 +33,9 @@ std::string get_file_name(PyFrameObject& frame)
     Py_DECREF(code);
     if (filename == Py_None)
     {
-        return "None";
+        return std::move(std::string("None"));
     }
-    const std::string full_file_name = abspath(compat::get_string_as_utf_8(filename));
-    return !full_file_name.empty() ? full_file_name : "ErrorPath";
+    const auto full_file_name = abspath(compat::get_string_as_utf_8(filename));
+    return !full_file_name.empty() ? std::move(full_file_name) : "ErrorPath";
 }
 } // namespace scorepy

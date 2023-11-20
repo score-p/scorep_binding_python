@@ -28,29 +28,29 @@ static compat::RegisterCodeDealloc register_dealloc(on_dealloc);
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
-void region_begin(std::string_view function_name, std::string_view module,
-                  const std::string& file_name, const std::uint64_t line_number,
-                  compat::PyCodeObject* identifier)
+void region_begin(std::string_view function_name, std::string module, std::string file_name,
+                  const std::uint64_t line_number, compat::PyCodeObject* identifier)
 {
     region_handle& region = regions[identifier];
 
     if (region == uninitialised_region_handle)
     {
-        const auto region_name = make_region_name(module, function_name);
+        const auto region_name = make_region_name(std::move(module), function_name);
         SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
-        SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(region.value,
+                                   std::string(region_name, 0, region_name.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(region.value);
 }
 
 // Used for regions, that only have a function name, a module, a file and a line number (user
 // regions)
-void region_begin(std::string_view function_name, std::string_view module,
-                  const std::string& file_name, const std::uint64_t line_number)
+void region_begin(std::string_view function_name, std::string module, std::string file_name,
+                  const std::uint64_t line_number)
 {
-    const auto region_name = make_region_name(module, function_name);
+    const auto region_name = make_region_name(std::move(module), function_name);
     region_handle& region = user_regions[region_name];
 
     if (region == uninitialised_region_handle)
@@ -58,14 +58,15 @@ void region_begin(std::string_view function_name, std::string_view module,
         SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
-        SCOREP_User_RegionSetGroup(region.value, std::string(module, 0, module.find('.')).c_str());
+        SCOREP_User_RegionSetGroup(region.value,
+                                   std::string(region_name, 0, region_name.find('.')).c_str());
     }
     SCOREP_User_RegionEnter(region.value);
 }
 
 // Used for regions, that have an identifier, aka a code object id. (instrumenter regions and
 // some decorated regions)
-void region_end(std::string_view function_name, std::string_view module,
+void region_end(std::string_view function_name, std::string module,
                 compat::PyCodeObject* identifier)
 {
     const auto it_region = regions.find(identifier);
@@ -75,15 +76,15 @@ void region_end(std::string_view function_name, std::string_view module,
     }
     else
     {
-        const auto region_name = make_region_name(module, function_name);
-        region_end_error_handling(region_name);
+        const auto region_name = make_region_name(std::move(module), function_name);
+        region_end_error_handling(std::move(region_name));
     }
 }
 
 // Used for regions, that only have a function name, a module (user regions)
-void region_end(std::string_view function_name, std::string_view module)
+void region_end(std::string_view function_name, std::string module)
 {
-    const auto region_name = make_region_name(module, function_name);
+    const auto region_name = make_region_name(std::move(module), function_name);
     auto it_region = user_regions.find(region_name);
     if (it_region != user_regions.end())
     {
@@ -91,11 +92,11 @@ void region_end(std::string_view function_name, std::string_view module)
     }
     else
     {
-        region_end_error_handling(region_name);
+        region_end_error_handling(std::move(region_name));
     }
 }
 
-void region_end_error_handling(const std::string& region_name)
+void region_end_error_handling(std::string region_name)
 {
     static region_handle error_region;
     static SCOREP_User_ParameterHandle scorep_param = SCOREP_USER_INVALID_PARAMETER;

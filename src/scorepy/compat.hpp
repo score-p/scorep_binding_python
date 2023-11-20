@@ -14,11 +14,13 @@ namespace compat
 {
     /// Region names that are known to have no region enter event and should not report an error
     /// on region exit
-    static const std::array<std::string, 2> exit_region_whitelist = {
+    static const std::array<std::string, 4> exit_region_whitelist = {
 #if PY_MAJOR_VERSION >= 3
-        "threading:_bootstrap_inner", "threading:_bootstrap"
+        "threading.Thread:_bootstrap_inner", "threading.Thread:_bootstrap",
+        "threading.TMonitor:_bootstrap_inner", "threading.TMonitor:_bootstrap"
 #else
-        "threading:__bootstrap_inner", "threading:__bootstrap"
+        "threading.Thread:__bootstrap_inner", "threading.Thread:__bootstrap",
+        "threading.TMonitor:__bootstrap_inner", "threading.TMonitor:__bootstrap"
 #endif
     };
 

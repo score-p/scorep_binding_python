@@ -309,25 +309,9 @@ def test_classes(scorep_env, instrumenter):
 
     trace = OTF2_Trace(trace_path)
 
-    region_ids = []
-    foo_count = 0
-    for line in str(trace).split("\n"):
-        m = re.search('ENTER[ ]*[0-9 ]*[0-9 ]*Region: "__main__:foo" <([0-9]*)>', line)
-        if m is not None:
-            foo_count += 1
-            r_id = m.group(1)
-
-            if foo_count == 1:
-                region_ids.append(r_id)
-                continue
-
-            if foo_count < 4:
-                assert region_ids[-1] < r_id  # check if foo regions are different
-            else:
-                assert r_id == region_ids[0]  # check if last foo is fist foo
-            region_ids.append(r_id)
-
-    assert len(region_ids) == 4
+    assert OTF2_Region("__main__:foo") in trace
+    assert OTF2_Region("__main__.TestClass:foo") in trace
+    assert OTF2_Region("__main__.TestClass2:foo") in trace
 
 
 def test_dummy(scorep_env):

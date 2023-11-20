@@ -3,17 +3,36 @@
 #include "pathUtils.hpp"
 #include "pythoncapi_compat.h"
 
+#include <sstream>
 #include <stdlib.h>
 
 namespace scorepy
 {
 std::string get_module_name(PyFrameObject& frame)
 {
+    const char* self_name = nullptr;
+    PyObject* locals = PyFrame_GetLocals(&frame);
+    PyObject* self = PyDict_GetItemString(locals, "self");
+    if (self)
+    {
+        Py_INCREF(self);
+        PyTypeObject* type = Py_TYPE(self);
+        self_name = _PyType_Name(type);
+        Py_DECREF(self);
+    }
+    Py_DECREF(locals);
+
     PyObject* globals = PyFrame_GetGlobals(&frame);
     PyObject* module_name = PyDict_GetItemString(globals, "__name__");
     Py_DECREF(globals);
     if (module_name)
-        return std::move(std::string(compat::get_string_as_utf_8(module_name)));
+    {
+        std::stringstream result;
+        result << compat::get_string_as_utf_8(module_name);
+        if (self_name)
+            result << '.' << self_name;
+        return std::move(result).str();
+    }
 
     // this is a NUMPY special situation, see NEP-18, and Score-P issue #63
     // TODO: Use string_view/C-String to avoid creating 2 std::strings

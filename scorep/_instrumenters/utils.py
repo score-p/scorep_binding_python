@@ -1,4 +1,5 @@
 from scorep._bindings import abspath
+from scorep.instrumenter import has_c_instrumenter
 
 
 def get_module_name(frame):
@@ -11,6 +12,12 @@ def get_module_name(frame):
             modulename = "numpy.__array_function__"
         else:
             modulename = "unkown"
+    typeobject = frame.f_locals.get("self", None)
+    if typeobject is not None:
+        if has_c_instrumenter():
+            return ".".join([modulename, type(typeobject).__name__])
+        else:
+            return ".".join([modulename, typeobject.__class__.__name__])
     return modulename
 
 

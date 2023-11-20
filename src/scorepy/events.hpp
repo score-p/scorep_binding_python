@@ -30,14 +30,13 @@ struct region_handle
 constexpr region_handle uninitialised_region_handle = region_handle();
 
 /// Combine the arguments into a region name
-/// Return value is a statically allocated string to avoid memory (re)allocations
-inline const std::string& make_region_name(std::string_view& module_name, std::string_view& name)
+inline std::string make_region_name(std::string_view module_name, std::string_view name)
 {
-    static std::string region;
-    region = module_name;
+    std::string region;
+    region += module_name;
     region += ":";
     region += name;
-    return region;
+    return std::move(region);
 }
 
 extern std::unordered_map<compat::PyCodeObject*, region_handle> regions;
@@ -59,10 +58,10 @@ inline bool try_region_begin(compat::PyCodeObject* identifier)
     }
 }
 
-void region_begin(std::string_view& function_name, std::string_view& module,
+void region_begin(std::string_view function_name, std::string_view module,
                   const std::string& file_name, const std::uint64_t line_number,
                   compat::PyCodeObject* identifier);
-void region_begin(std::string_view& function_name, std::string_view& module,
+void region_begin(std::string_view function_name, std::string_view module,
                   const std::string& file_name, const std::uint64_t line_number);
 
 /** tries to end a region. Return true on success
@@ -82,9 +81,9 @@ inline bool try_region_end(compat::PyCodeObject* identifier)
     }
 }
 
-void region_end(std::string_view& function_name, std::string_view& module,
+void region_end(std::string_view function_name, std::string_view module,
                 compat::PyCodeObject* identifier);
-void region_end(std::string_view& function_name, std::string_view& module);
+void region_end(std::string_view function_name, std::string_view module);
 
 void region_end_error_handling(const std::string& region_name);
 

@@ -74,7 +74,7 @@ extern "C"
         auto const file_name_abs =
             scorepy::abspath(std::string_view(file_name_cstr, file_name_len));
 
-        if (identifier == nullptr or identifier == Py_None)
+        if (identifier == nullptr || identifier == Py_None)
         {
             scorepy::region_begin(function_name, std::move(module), std::move(file_name_abs),
                                   line_number);
@@ -127,7 +127,7 @@ extern "C"
         std::string module(module_cstr, module_len);
         std::string_view function_name(function_name_cstr, function_name_len);
 
-        if (identifier == nullptr or identifier == Py_None)
+        if (identifier == nullptr || identifier == Py_None)
         {
             scorepy::region_end(function_name, std::move(module));
         }
@@ -254,7 +254,7 @@ extern "C"
         { "abspath", abspath, METH_VARARGS, "Estimates the absolute Path." },
         { "force_finalize", force_finalize, METH_VARARGS, "triggers a finalize" },
         { "reregister_exit_handler", reregister_exit_handler, METH_VARARGS,
-          "register an new atexit handler" },
+          "register a new atexit handler" },
         { NULL, NULL, 0, NULL } /* Sentinel */
     };
 }

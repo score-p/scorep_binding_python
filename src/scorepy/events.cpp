@@ -35,12 +35,15 @@ void region_begin(std::string_view function_name, std::string module, std::strin
 
     if (region == uninitialised_region_handle)
     {
-        const auto region_name = make_region_name(std::move(module), function_name);
+        auto region_name = make_region_name(std::move(module), function_name);
         SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
-        SCOREP_User_RegionSetGroup(region.value,
-                                   std::string(region_name, 0, region_name.find('.')).c_str());
+        if (const auto pos = region_name.find(':'); pos != std::string::npos)
+        {
+            region_name.resize(pos);
+            SCOREP_User_RegionSetGroup(region.value, region_name.c_str());
+        }
     }
     SCOREP_User_RegionEnter(region.value);
 }
@@ -50,7 +53,7 @@ void region_begin(std::string_view function_name, std::string module, std::strin
 void region_begin(std::string_view function_name, std::string module, std::string file_name,
                   const std::uint64_t line_number)
 {
-    const auto region_name = make_region_name(std::move(module), function_name);
+    auto region_name = make_region_name(std::move(module), function_name);
     region_handle& region = user_regions[region_name];
 
     if (region == uninitialised_region_handle)
@@ -58,8 +61,11 @@ void region_begin(std::string_view function_name, std::string module, std::strin
         SCOREP_User_RegionInit(&region.value, NULL, NULL, region_name.c_str(),
                                SCOREP_USER_REGION_TYPE_FUNCTION, file_name.c_str(), line_number);
 
-        SCOREP_User_RegionSetGroup(region.value,
-                                   std::string(region_name, 0, region_name.find('.')).c_str());
+        if (const auto pos = region_name.find(':'); pos != std::string::npos)
+        {
+            region_name.resize(pos);
+            SCOREP_User_RegionSetGroup(region.value, region_name.c_str());
+        }
     }
     SCOREP_User_RegionEnter(region.value);
 }

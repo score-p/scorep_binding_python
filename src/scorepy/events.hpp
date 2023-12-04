@@ -30,14 +30,11 @@ struct region_handle
 constexpr region_handle uninitialised_region_handle = region_handle();
 
 /// Combine the arguments into a region name
-/// Return value is a statically allocated string to avoid memory (re)allocations
-inline const std::string& make_region_name(std::string_view& module_name, std::string_view& name)
+inline std::string make_region_name(std::string module_name, std::string_view name)
 {
-    static std::string region;
-    region = module_name;
-    region += ":";
-    region += name;
-    return region;
+    module_name += ':';
+    module_name += name;
+    return std::move(module_name);
 }
 
 extern std::unordered_map<compat::PyCodeObject*, region_handle> regions;
@@ -59,11 +56,10 @@ inline bool try_region_begin(compat::PyCodeObject* identifier)
     }
 }
 
-void region_begin(std::string_view& function_name, std::string_view& module,
-                  const std::string& file_name, const std::uint64_t line_number,
-                  compat::PyCodeObject* identifier);
-void region_begin(std::string_view& function_name, std::string_view& module,
-                  const std::string& file_name, const std::uint64_t line_number);
+void region_begin(std::string_view function_name, std::string module, std::string file_name,
+                  const std::uint64_t line_number, compat::PyCodeObject* identifier);
+void region_begin(std::string_view function_name, std::string module, std::string file_name,
+                  const std::uint64_t line_number);
 
 /** tries to end a region. Return true on success
  *
@@ -82,11 +78,11 @@ inline bool try_region_end(compat::PyCodeObject* identifier)
     }
 }
 
-void region_end(std::string_view& function_name, std::string_view& module,
+void region_end(std::string_view function_name, std::string module,
                 compat::PyCodeObject* identifier);
-void region_end(std::string_view& function_name, std::string_view& module);
+void region_end(std::string_view function_name, std::string module);
 
-void region_end_error_handling(const std::string& region_name);
+void region_end_error_handling(std::string region_name);
 
 void rewind_begin(std::string region_name, std::string file_name, std::uint64_t line_number);
 void rewind_end(std::string region_name, bool value);

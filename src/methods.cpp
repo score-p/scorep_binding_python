@@ -69,20 +69,20 @@ extern "C"
             return NULL;
         }
 
-        std::string_view module(module_cstr, module_len);
+        std::string module(module_cstr, module_len);
         std::string_view function_name(function_name_cstr, function_name_len);
-        std::string_view file_name(file_name_cstr, file_name_len);
+        auto const file_name_abs =
+            scorepy::abspath(std::string_view(file_name_cstr, file_name_len));
 
-        std::string file_name_abs = scorepy::abspath(file_name);
-
-        if (identifier == nullptr or identifier == Py_None)
+        if (identifier == nullptr || identifier == Py_None)
         {
-            scorepy::region_begin(function_name, module, file_name_abs, line_number);
+            scorepy::region_begin(function_name, std::move(module), std::move(file_name_abs),
+                                  line_number);
         }
         else
         {
-            scorepy::region_begin(function_name, module, file_name_abs, line_number,
-                                  reinterpret_cast<PyCodeObject*>(identifier));
+            scorepy::region_begin(function_name, std::move(module), std::move(file_name_abs),
+                                  line_number, reinterpret_cast<PyCodeObject*>(identifier));
         }
 
         Py_RETURN_NONE;
@@ -124,16 +124,17 @@ extern "C"
             return NULL;
         }
 
-        std::string_view module(module_cstr, module_len);
+        std::string module(module_cstr, module_len);
         std::string_view function_name(function_name_cstr, function_name_len);
 
-        if (identifier == nullptr or identifier == Py_None)
+        if (identifier == nullptr || identifier == Py_None)
         {
-            scorepy::region_end(function_name, module);
+            scorepy::region_end(function_name, std::move(module));
         }
         else
         {
-            scorepy::region_end(function_name, module, reinterpret_cast<PyCodeObject*>(identifier));
+            scorepy::region_end(function_name, std::move(module),
+                                reinterpret_cast<PyCodeObject*>(identifier));
         }
 
         Py_RETURN_NONE;
@@ -253,7 +254,7 @@ extern "C"
         { "abspath", abspath, METH_VARARGS, "Estimates the absolute Path." },
         { "force_finalize", force_finalize, METH_VARARGS, "triggers a finalize" },
         { "reregister_exit_handler", reregister_exit_handler, METH_VARARGS,
-          "register an new atexit handler" },
+          "register a new atexit handler" },
         { NULL, NULL, 0, NULL } /* Sentinel */
     };
 }

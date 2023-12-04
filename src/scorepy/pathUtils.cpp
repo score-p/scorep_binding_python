@@ -25,7 +25,7 @@ static std::string getcwd()
         result.resize(result.find('\0', result.size() - chunk_size));
     else
         result.clear();
-    return result;
+    return std::move(result);
 }
 
 void normalize_path(std::string& path)
@@ -80,7 +80,7 @@ std::string abspath(std::string_view input_path)
         result = getcwd();
         // On error exit
         if (result.empty())
-            return result;
+            return {};
         // Prepend CWD
         result.append(1, '/').append(input_path);
     }
@@ -89,6 +89,6 @@ std::string abspath(std::string_view input_path)
         result = input_path;
     }
     normalize_path(result);
-    return result;
+    return std::move(result);
 }
 } // namespace scorepy

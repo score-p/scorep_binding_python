@@ -88,8 +88,9 @@ def generate(scorep_config, keep_files=False):
     # setuptools, which replaces distutils, calls uname in python < 3.9 during distutils bootstraping.
     # When LD_PRELOAD is set, this leads to preloading Score-P to uname, and crashes the later tracing.
     # To avoid this, we need to do the distutils bootstrap as late as possible.
-    import distutils.ccompiler
-    cc = distutils.ccompiler.new_compiler()
+    # Setuptools does not support ccompiler.new_compiler https://github.com/pypa/setuptools/issues/4540
+    from setuptools._distutils.ccompiler import new_compiler
+    cc = new_compiler()
 
     compiled_subsystem = cc.compile(
         [temp_dir + "/scorep_init.c"], output_dir=temp_dir)

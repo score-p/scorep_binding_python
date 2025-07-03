@@ -375,6 +375,7 @@ def test_threads(scorep_env, instrumenter):
 @foreach_instrumenter
 def test_io(scorep_env, instrumenter):
     trace_path = get_trace_path(scorep_env)
+    scorep_env["SCOREP_IO_POSIX"] = "true"
 
     print("start")
     std_out, std_err = utils.call_with_scorep(
@@ -383,7 +384,6 @@ def test_io(scorep_env, instrumenter):
             "--nocompiler",
             "--instrumenter-type=" + instrumenter,
             "--noinstrumenter",
-            "--io=runtime:posix",
         ],
         env=scorep_env,
     )
@@ -397,8 +397,9 @@ def test_io(scorep_env, instrumenter):
     # print_regex = "STDOUT_FILENO"
 
     ops = {
-        "open": {"ENTER": "open64", "IO_CREATE_HANDLE": file_regex, "LEAVE": "open64"},
-        "seek": {"ENTER": "lseek64", "IO_SEEK": file_regex, "LEAVE": "lseek64"},
+        # CPython calls "int open64( const char*, int, ... )" but PyPy calls "int open( const char*, int, ... )"
+        "open": {"ENTER": "open(64)?", "IO_CREATE_HANDLE": file_regex, "LEAVE": "open(64)?"},
+        "seek": {"ENTER": "lseek(64)?", "IO_SEEK": file_regex, "LEAVE": "lseek(64)?"},
         "write": {
             "ENTER": "write",
             "IO_OPERATION_BEGIN": file_regex,
@@ -439,7 +440,7 @@ def test_io(scorep_env, instrumenter):
 
     for _, details in ops.items():
         for event, data in details.items():
-            regex_str = '{event:}[ ]*[0-9 ]*[0-9 ]*(Region|Handle): "{data:}"'.format(
+            regex_str = '{event:}[ ]*[0-9 ]*[0-9 ]*(Region|Handle): ".*{data:}.*"'.format(
                 event=event, data=data
             )
             print(regex_str)

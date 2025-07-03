@@ -30,7 +30,7 @@ scorep is a module that allows tracing of python scripts using [Score-P](https:/
 You need at least Score-P 5.0, build with `--enable-shared` and the gcc compiler plugin.
 Please make sure that `scorep-config` is in your `PATH` variable.
 
-For Ubuntu LTS systems there is a non-official ppa of Score-P available: https://launchpad.net/~andreasgocht/+archive/ubuntu/scorep .
+For Ubuntu LTS systems there is a official ppa of Score-P available: https://launchpad.net/~score-p/+archive/ubuntu/releases .
 
 Then install the package from PyPI
 

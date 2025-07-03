@@ -27,6 +27,8 @@ if "gcc" in check_compiler:
         )
 
 
+install_requires= ["setuptools>=68.0.0"]
+
 cmodules = []
 (include, _, _, _, _) = scorep.helper.generate_compile_deps([])
 src_folder = os.path.abspath("src")
@@ -76,6 +78,7 @@ To enable tracing it uses LD_PRELOAD to load the Score-P runtime libraries.
 Besides this, it uses the traditional python-tracing infrastructure.
 """,
     packages=["scorep", "scorep._instrumenters"],
+    install_requires=install_requires,
     ext_modules=cmodules,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -83,16 +86,11 @@ Besides this, it uses the traditional python-tracing infrastructure.
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Testing",
         "Topic :: Software Development :: Quality Assurance",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Operating System :: POSIX",

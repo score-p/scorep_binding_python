@@ -3,12 +3,45 @@ import sys
 
 import scorep.instrumenter
 import scorep.subsystem
+import scorep.helper
 from scorep.helper import print_err
 
 
 def _err_exit(msg):
     print_err("scorep: " + msg)
     sys.exit(1)
+
+
+def print_help():
+    print("""
+Usage: python -m scorep [options] [--] your_program.py [args]
+
+Score-P Python instrumentation wrapper. The following options control how the program is instrumented and executed:
+
+  --help                   Show this help message and exit.
+  --mpi                    Enable MPI instrumentation (equivalent to --mpp=mpi).
+  --keep-files             Keep temporary files after execution.
+  --verbose, -v            Enable verbose output for debugging and tracing.
+  --nopython               Disable instrumentation of Python code.
+                           Instrumentation can still be enabled later from within the application's source code.
+  --noinstrumenter         Same as --nopython.
+  --instrumenter-type=<t>  Specify custom instrumenter type (e.g., cProfile).
+  --instrumenter-file=<f>  Path to a Python script that is executed before the application.
+                           Allows instrumentation of specific modules and functions without modifying their source code.
+  --                       Stop parsing Score-P options; pass following args to your script.
+
+Other options starting with '-' are passed directly to 'scorep-config'.
+To view all available Score-P configuration options, run: scorep-config --help
+
+Example:
+  scorep --mpi --thread=pthread -- your_script.py --arg1 --arg2
+
+Note:
+  If using --noinstrumenter, Score-P will not trace Python code, but it may still collect MPI or threading events
+    if configured.
+  You can enable Python instrumentation manually from within your application's source code,
+     e.g., by calling 'scorep.instrumenter.enable()'.
+""")
 
 
 def scorep_main(argv=None):
@@ -19,9 +52,11 @@ def scorep_main(argv=None):
     prog_argv = []
     parse_scorep_commands = True
 
+    show_help = False
     keep_files = False
     verbose = False
     no_instrumenter = False
+
     if scorep.instrumenter.has_c_instrumenter():
         instrumenter_type = "cProfile"
     else:
@@ -32,6 +67,9 @@ def scorep_main(argv=None):
         if parse_scorep_commands:
             if elem == "--":
                 parse_scorep_commands = False
+            if elem == "--help":
+                show_help = True
+                break
             elif elem == "--mpi":
                 scorep_config.append("--mpp=mpi")
             elif elem == "--keep-files":
@@ -64,6 +102,10 @@ def scorep_main(argv=None):
         else:
             prog_argv.append(elem)
 
+    # fast exit on "--help"
+    if show_help:
+        print_help()
+        sys.exit(0)
     if len(prog_argv) == 0:
         _err_exit("Did not find a script to run")
 

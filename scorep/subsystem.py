@@ -52,7 +52,7 @@ def generate_subsystem_code(config):
 def generate(scorep_config, keep_files=False):
     """
     Uses the scorep_config to compile the scorep subsystem.
-    Returns the name of the compiled subsystem, and the path the the temp folder, where the lib is located
+    Returns the name of the compiled subsystem, and the path of the temp folder, where the lib is located
 
     @param scorep_config scorep configuration to build subsystem
     @param keep_files whether to keep the generated files, or not.
@@ -61,7 +61,13 @@ def generate(scorep_config, keep_files=False):
     (include, lib, lib_dir, macro,
      linker_flags_tmp) = scorep.helper.generate_compile_deps(scorep_config)
     scorep_adapter_init = generate_subsystem_code(scorep_config)
-    if ("-lscorep_adapter_opari2_mgmt" in lib):
+    # scorep_adapter_opari2_mgmt: Score-P v8.4 and lower
+    # scorep_adapter_opari2_{openmp,user}_mgmt: Score-P v9.0 and newer
+    if any(libname in lib for libname in [
+        "-lscorep_adapter_opari2_mgmt",
+        "-lscorep_adapter_opari2_openmp_mgmt",
+        "-lscorep_adapter_opari2_user_mgmt"
+    ]):
         scorep_adapter_init += "\n"
         scorep_adapter_init += "/* OPARI dependencies */\n"
         scorep_adapter_init += "void POMP2_Init_regions(){}\n"
@@ -69,9 +75,9 @@ def generate(scorep_config, keep_files=False):
         scorep_adapter_init += "void POMP2_USER_Init_regions(){};\n"
         scorep_adapter_init += "size_t POMP2_USER_Get_num_regions(){return 0;};\n"
 
-    # add -Wl,-no-as-needed to tell the compiler that we really want to link these. Actually this sould be default.
+    # add -Wl,-no-as-needed to tell the compiler that we really want to link these. Actually this should be default.
     # as distutils adds extra args at the very end we need to add all the libs
-    # after this and skipt the libs later in the extension module
+    # after this and skip the libs later in the extension module
     linker_flags = ["-Wl,-no-as-needed"]
     linker_flags.extend(lib)
     linker_flags.extend(linker_flags_tmp)

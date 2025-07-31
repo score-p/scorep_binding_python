@@ -21,7 +21,6 @@ def scorep_main(argv=None):
 
     keep_files = False
     verbose = False
-    no_default_threads = False
     no_default_compiler = False
     no_instrumenter = False
     if scorep.instrumenter.has_c_instrumenter():
@@ -40,9 +39,6 @@ def scorep_main(argv=None):
                 keep_files = True
             elif elem == "--verbose" or elem == '-v':
                 verbose = True
-            elif "--thread=" in elem:
-                scorep_config.append(elem)
-                no_default_threads = True
             elif elem == "--nocompiler":
                 scorep_config.append(elem)
                 no_default_compiler = True
@@ -50,6 +46,14 @@ def scorep_main(argv=None):
                 no_instrumenter = True
             elif elem == "--noinstrumenter":
                 no_instrumenter = True
+            elif elem in ["--io=runtime:posix", "--io=posix"]:
+                print_err(f"scorep: Warning: The option '{elem}' is deprecated.")
+                if "SCOREP_IO_POSIX" in os.environ:
+                    print_err("        Will not overwrite existing value for environment variable "
+                              f"'SCOREP_IO_POSIX={os.environ['SCOREP_IO_POSIX']}'.")
+                else:
+                    print_err("        The environment variable 'SCOREP_IO_POSIX=true' is set and will be used.")
+                    os.environ["SCOREP_IO_POSIX"] = "true"
             elif "--instrumenter-type" in elem:
                 param = elem.split("=")
                 instrumenter_type = param[1]
@@ -63,9 +67,6 @@ def scorep_main(argv=None):
                 parse_scorep_commands = False
         else:
             prog_argv.append(elem)
-
-    if not no_default_threads:
-        scorep_config.append("--thread=pthread")
 
     if not no_default_compiler:
         scorep_config.append("--compiler")

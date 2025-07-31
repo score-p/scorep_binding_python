@@ -46,12 +46,12 @@ def scorep_main(argv=None):
                 no_instrumenter = True
             elif elem == "--noinstrumenter":
                 no_instrumenter = True
-            elif elem == "--io=runtime:posix" or elem == "--io=posix":
+            elif elem in ["--io=runtime:posix", "--io=posix"]:
+                print_err(f"scorep: Warning: The option '{elem}' is deprecated.")
                 if "SCOREP_IO_POSIX" in os.environ:
-                    print_err("scorep: Warning: The option '--io=runtime:posix' is deprecated.")
-                    print_err("        Please set the environment variable 'SCOREP_IO_POSIX=true' instead.")
+                    print_err("        Will not overwrite existing value for environment variable "
+                              f"'SCOREP_IO_POSIX={os.environ['SCOREP_IO_POSIX']}'.")
                 else:
-                    print_err("scorep: The option '--io=runtime:posix' is deprecated. ")
                     print_err("        The environment variable 'SCOREP_IO_POSIX=true' is set and will be used.")
                     os.environ["SCOREP_IO_POSIX"] = "true"
             elif "--instrumenter-type" in elem:

@@ -463,3 +463,10 @@ def test_force_finalize(scorep_env, instrumenter):
     trace = OTF2_Trace(trace_path)
     assert OTF2_Region("__main__:foo") in trace
     assert OTF2_Region("__main__:bar") not in trace
+
+
+def test_help():
+    std_out, std_err = utils.call_with_scorep("", ["--help"])
+
+    assert "Usage: python -m scorep" in std_out
+    assert "--help" in std_out

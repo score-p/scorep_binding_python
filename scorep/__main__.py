@@ -14,7 +14,7 @@ def _err_exit(msg):
 
 def print_help():
     print("""
-Usage: python -m scorep [options] [--] your_program.py [args]
+Usage: python -m scorep [options] [--] <script> [args]
 
 Score-P Python instrumentation wrapper. The following options control how the program is instrumented and executed. Any unknown option are passed directly to 'scorep-config'.
 

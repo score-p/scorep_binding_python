@@ -16,7 +16,7 @@ def print_help():
     print("""
 Usage: python -m scorep [options] [--] your_program.py [args]
 
-Score-P Python instrumentation wrapper. The following options control how the program is instrumented and executed:
+Score-P Python instrumentation wrapper. The following options control how the program is instrumented and executed. Any unknown option are passed directly to 'scorep-config'.
 
   --help                   Show this help message and exit.
   --mpi                    Enable MPI instrumentation (equivalent to --mpp=mpi).
@@ -25,8 +25,10 @@ Score-P Python instrumentation wrapper. The following options control how the pr
   --nopython               Disable instrumentation of Python code.
                            Instrumentation can still be enabled later from within the application's source code.
   --noinstrumenter         Same as --nopython.
-  --instrumenter-type=<t>  Specify custom instrumenter type (e.g., cProfile).
-  --instrumenter-file=<f>  Path to a Python script that is executed before the application.
+  --instrumenter-type=<type>
+                           Specify custom instrumenter type (e.g., cProfile).
+  --instrumenter-file=<file>
+                           Path to a Python script that is executed before the application.
                            Allows instrumentation of specific modules and functions without modifying their source code.
   --                       Stop parsing Score-P options; pass following args to your script.
 
@@ -34,7 +36,7 @@ Other options starting with '-' are passed directly to 'scorep-config'.
 To view all available Score-P configuration options, run: scorep-config --help
 
 Example:
-  scorep --mpi --thread=pthread -- your_script.py --arg1 --arg2
+  scorep --mpi --thread=pthread -- ./your_script.py --arg1 --arg2
 
 Note:
   If using --noinstrumenter, Score-P will not trace Python code, but it may still collect MPI or threading events

@@ -38,7 +38,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install --upgrade setuptools
-        pip install numpy mpi4py pytest
+        pip install numpy mpi4py pytest otf2
 
     - name: Build python bindings
       run: pip install .

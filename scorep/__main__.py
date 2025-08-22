@@ -4,7 +4,7 @@ import sys
 import scorep.instrumenter
 import scorep.subsystem
 import scorep.helper
-from scorep.helper import print_err
+from scorep.helper import get_scorep_version, print_err
 
 
 def _err_exit(msg):
@@ -13,13 +13,12 @@ def _err_exit(msg):
 
 
 def print_help():
-    print("""
+    print("""\
 Usage: python -m scorep [options] [--] <script> [args]
 
 Score-P Python instrumentation wrapper. The following options control how the program is instrumented and executed. Any unknown option are passed directly to 'scorep-config'.
 
   --help                   Show this help message and exit.
-  --mpi                    Enable MPI instrumentation (equivalent to --mpp=mpi).
   --keep-files             Keep temporary files after execution.
   --verbose, -v            Enable verbose output for debugging and tracing.
   --nopython               Disable instrumentation of Python code.
@@ -30,7 +29,7 @@ Score-P Python instrumentation wrapper. The following options control how the pr
   --instrumenter-file=<file>
                            Path to a Python script that is executed before the application.
                            Allows instrumentation of specific modules and functions without modifying their source code.
-  --                       Stop parsing Score-P options; pass following args to your script.
+  --                       Stop parsing Score-P options; interpret all following arguments verbatim as the program with its arguments.
 
 Other options starting with '-' are passed directly to 'scorep-config'.
 To view all available Score-P configuration options, run: scorep-config --help
@@ -43,7 +42,7 @@ Note:
     if configured.
   You can enable Python instrumentation manually from within your application's source code,
      e.g., by calling 'scorep.instrumenter.enable()'.
-""")
+""")  # noqa: E501
 
 
 def scorep_main(argv=None):
@@ -73,6 +72,8 @@ def scorep_main(argv=None):
                 show_help = True
                 break
             elif elem == "--mpi":
+                print_err(f"scorep: Warning: The option '{elem}' is deprecated "
+                          "and will be removed in future.")
                 scorep_config.append("--mpp=mpi")
             elif elem == "--keep-files":
                 keep_files = True
@@ -82,7 +83,7 @@ def scorep_main(argv=None):
                 no_instrumenter = True
             elif elem == "--noinstrumenter":
                 no_instrumenter = True
-            elif elem in ["--io=runtime:posix", "--io=posix"]:
+            elif elem in ["--io=runtime:posix", "--io=posix"] and get_scorep_version() >= 9.0:
                 print_err(f"scorep: Warning: The option '{elem}' is deprecated.")
                 if "SCOREP_IO_POSIX" in os.environ:
                     print_err("        Will not overwrite existing value for environment variable "

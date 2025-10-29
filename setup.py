@@ -13,20 +13,6 @@ if not ("shared=yes" in link_mode):
         'Score-P not build with "--enable-shared". Link mode is:\n{}'.format(link_mode)
     )
 
-check_compiler = scorep.helper.get_scorep_config("C99 compiler used:")
-if check_compiler is None:
-    check_compiler = scorep.helper.get_scorep_config("C99 compiler:")
-if check_compiler is None:
-    raise RuntimeError("Can not parse the C99 compiler, aborting!")
-if "gcc" in check_compiler:
-    gcc_plugin = scorep.helper.get_scorep_config("GCC plug-in support:")
-    if not ("yes" in gcc_plugin):
-        raise RuntimeError(
-            "Score-P uses GCC but is not build with GCC Compiler Plugin. "
-            "GCC plug-in support is:\n{}".format(gcc_plugin)
-        )
-
-
 install_requires= ["setuptools>=68.0.0"]
 
 cmodules = []

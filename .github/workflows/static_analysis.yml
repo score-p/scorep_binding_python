@@ -10,6 +10,7 @@ jobs:
       uses: Flamefire/clang-format-lint-action@master
       with:
         source: src
+        exclude: "src/scorepy/pythoncapi_compat.h"
         clangFormatVersion: 9
 
   Python:

@@ -21,7 +21,6 @@ def scorep_main(argv=None):
 
     keep_files = False
     verbose = False
-    no_default_compiler = False
     no_instrumenter = False
     if scorep.instrumenter.has_c_instrumenter():
         instrumenter_type = "cProfile"
@@ -39,9 +38,6 @@ def scorep_main(argv=None):
                 keep_files = True
             elif elem == "--verbose" or elem == '-v':
                 verbose = True
-            elif elem == "--nocompiler":
-                scorep_config.append(elem)
-                no_default_compiler = True
             elif elem == "--nopython":
                 no_instrumenter = True
             elif elem == "--noinstrumenter":
@@ -67,9 +63,6 @@ def scorep_main(argv=None):
                 parse_scorep_commands = False
         else:
             prog_argv.append(elem)
-
-    if not no_default_compiler:
-        scorep_config.append("--compiler")
 
     if len(prog_argv) == 0:
         _err_exit("Did not find a script to run")

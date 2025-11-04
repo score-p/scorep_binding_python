@@ -27,7 +27,7 @@ scorep is a module that allows tracing of python scripts using [Score-P](https:/
 <!-- <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small> -->
 
 # Install
-You need at least Score-P 5.0, build with `--enable-shared` and the gcc compiler plugin.
+You need at least Score-P 5.0, build with `--enable-shared`.
 Please make sure that `scorep-config` is in your `PATH` variable.
 
 The Score-P community provides an unofficial PPA for Ubuntu LTS systems: https://launchpad.net/~score-p/+archive/ubuntu/releases .
